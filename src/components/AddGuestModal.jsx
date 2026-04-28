@@ -6,7 +6,7 @@ import { CATEGORIES } from '../utils/constants';
  * Modal for adding a new guest OR editing an existing one.
  *
  * Props:
- *   onAdd          — ({ name, category, note }) => void   (新增模式)
+ *   onAdd          — ({ name, category, diet }) => void   (新增模式)
  *   onUpdate       — (guestId, patch)           => void   (編輯模式)
  *   onClose        — () => void
  *   initialGuest   — Guest object (傳入時進入「編輯」模式)
@@ -16,7 +16,7 @@ export default function AddGuestModal({ onAdd, onUpdate, onClose, initialGuest }
 
   const [name, setName]         = useState(initialGuest?.name     ?? '');
   const [category, setCategory] = useState(initialGuest?.category ?? '其他');
-  const [note, setNote]         = useState(initialGuest?.note     ?? '');
+  const [diet, setDiet]         = useState(initialGuest?.diet     ?? '葷食');
   const [error, setError]       = useState('');
 
   const handleSubmit = (e) => {
@@ -27,9 +27,9 @@ export default function AddGuestModal({ onAdd, onUpdate, onClose, initialGuest }
     }
 
     if (isEditMode) {
-      onUpdate(initialGuest.id, { name: name.trim(), category, note: note.trim() });
+      onUpdate(initialGuest.id, { name: name.trim(), category, diet });
     } else {
-      onAdd({ name: name.trim(), category, note: note.trim() });
+      onAdd({ name: name.trim(), category, diet });
     }
     onClose();
   };
@@ -94,20 +94,20 @@ export default function AddGuestModal({ onAdd, onUpdate, onClose, initialGuest }
             </select>
           </div>
 
-          {/* Note */}
+          {/* Diet */}
           <div className="modal__field">
-            <label className="modal__label" htmlFor="guest-note">
-              備註 <span className="modal__optional">（選填）</span>
-            </label>
-            <input
-              id="guest-note"
-              className="modal__input"
-              type="text"
-              value={note}
-              onChange={e => setNote(e.target.value)}
-              placeholder="例：素食、VIP、長輩…"
-              maxLength={50}
-            />
+            <label className="modal__label" htmlFor="guest-diet">飲食</label>
+            <select
+              id="guest-diet"
+              className="modal__input modal__select"
+              value={diet}
+              onChange={e => setDiet(e.target.value)}
+            >
+              <option value="葷食">🍖 葷食</option>
+              <option value="素食">🥦 素食</option>
+              <option value="清真">🌙 清真</option>
+              <option value="其他">其他</option>
+            </select>
           </div>
 
           {/* Actions */}

@@ -18,6 +18,7 @@ import AddGuestModal from './components/AddGuestModal';
 import { useSeatingState } from './hooks/useSeatingState';
 import { useGoogleSheets } from './hooks/useGoogleSheets';
 import { useExport } from './hooks/useExport';
+import { syncToGoogleSheets } from './hooks/useFirebase';
 
 /**
  * Find which table + seat a guest currently occupies.
@@ -34,6 +35,7 @@ function findGuestSeat(tables, guestId) {
 export default function App() {
   const {
     state,
+    fbReady,
     stats,
     getGuestById,
     addGuest,
@@ -96,6 +98,13 @@ export default function App() {
   const handleImport = async () => {
     const guests = await fetchGuests();
     if (guests) importGuests(guests);
+  };
+
+  // --- Sync to Google Sheets handler ---
+  const handleSyncSheets = async () => {
+    const sheetsUrl = import.meta.env.VITE_SHEETS_URL;
+    const result = await syncToGoogleSheets(state, sheetsUrl);
+    if (!result.success) throw new Error(result.error ?? '同步失敗');
   };
 
   // --- DnD handlers ---
@@ -170,6 +179,16 @@ export default function App() {
     setActiveGuestId(null);
   };
 
+  // Show loading overlay until Firebase has responded
+  if (!fbReady) {
+    return (
+      <div className="fb-loading" role="status" aria-label="載入中">
+        <span className="fb-loading__spinner" />
+        <p>連線中…</p>
+      </div>
+    );
+  }
+
   return (
     <>
       {/* Add Guest Modal */}
@@ -220,6 +239,7 @@ export default function App() {
             onExportCSV={exportCSV}
             onExportPDF={() => exportPDF(floorPlanRef)}
             onExportFloorPDF={exportFloorPDF}
+            onSyncSheets={handleSyncSheets}
             importLoading={importLoading}
           />
 

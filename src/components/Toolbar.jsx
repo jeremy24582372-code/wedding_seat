@@ -13,6 +13,7 @@ import './Toolbar.css';
  *   onExportCSV     — () => void
  *   onExportPDF     — () => void
  *   onExportFloorPDF — () => void
+ *   onSyncSheets    — () => Promise<void>   (同步回寫 Google Sheets)
  *   importLoading   — bool
  */
 export default function Toolbar({
@@ -25,10 +26,33 @@ export default function Toolbar({
   onExportCSV,
   onExportPDF,
   onExportFloorPDF,
+  onSyncSheets,
   importLoading,
 }) {
   const [exportOpen, setExportOpen] = useState(false);
+  const [syncState, setSyncState] = useState('idle'); // 'idle' | 'syncing' | 'success' | 'error'
   const exportRef = useRef(null);
+  const syncTimerRef = useRef(null);
+
+  const handleSyncSheets = async () => {
+    setSyncState('syncing');
+    try {
+      await onSyncSheets();
+      setSyncState('success');
+    } catch {
+      setSyncState('error');
+    } finally {
+      if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
+      syncTimerRef.current = setTimeout(() => setSyncState('idle'), 3000);
+    }
+  };
+
+  const syncLabel = {
+    idle:    '↗️ 同步到試算表',
+    syncing: '同步中…',
+    success: '✓ 同步完成',
+    error:   '⚠️ 同步失敗',
+  }[syncState];
 
   const handleExportClick = (fn) => {
     fn();
@@ -98,6 +122,21 @@ export default function Toolbar({
           aria-label="新增桌次"
         >
           🪑 新增桌次
+        </button>
+
+        {/* Sync to Google Sheets */}
+        <button
+          className={`btn toolbar__btn toolbar__btn--sync ${
+            syncState === 'success' ? 'btn-success' :
+            syncState === 'error'   ? 'btn-danger'  :
+            'btn-sync'
+          }`}
+          onClick={handleSyncSheets}
+          disabled={syncState === 'syncing'}
+          id="btn-sync-sheets"
+          aria-label="同步排位結果到 Google Sheets"
+        >
+          {syncLabel}
         </button>
 
         {/* Export dropdown */}
