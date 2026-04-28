@@ -1,0 +1,313 @@
+/* ============================================================
+   FLOOR PLAN — Wedding Venue Canvas
+   ============================================================ */
+
+/* ── Outer wrapper (fills app-main) ── */
+.floor-plan {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── Controls overlay (zoom / reset) ── */
+.floor-plan__controls {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  align-items: center;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-2);
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(12px);
+}
+
+.floor-plan__ctrl-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  font-size: 1.1rem;
+  font-weight: 600;
+  transition: all var(--transition-fast);
+  cursor: pointer;
+}
+
+.floor-plan__ctrl-btn:hover {
+  background: var(--color-bg-card-hover);
+  border-color: var(--color-border-light);
+  color: var(--color-accent);
+}
+
+.floor-plan__zoom-label {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+  margin-top: var(--space-1);
+  font-family: var(--font-body);
+}
+
+/* ── Legend ── */
+.floor-plan__legend {
+  position: absolute;
+  bottom: var(--space-4);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  display: flex;
+  gap: var(--space-4);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  padding: var(--space-2) var(--space-5);
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(12px);
+  pointer-events: none;
+}
+
+.floor-plan__legend-tip {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+/* ── Viewport (clips & scrolls) ── */
+.floor-plan__viewport {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  cursor: default;
+  user-select: none;
+}
+
+.floor-plan__viewport.floor-plan__canvas--panning {
+  cursor: grabbing;
+}
+
+/* ── Canvas (the actual floor plan surface) ── */
+.floor-plan__canvas {
+  position: relative;
+  /* Dot-grid background — like graph paper */
+  background-color: oklch(9% 0.008 55);
+  background-image:
+    radial-gradient(circle, oklch(40% 0.020 55 / 0.5) 1px, transparent 1px);
+  background-size: 40px 40px;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow:
+    inset 0 0 80px oklch(5% 0.01 55 / 0.8),
+    0 0 0 1px var(--color-border-accent);
+  will-change: transform;
+  /* Room boundary glow */
+  outline: none;
+}
+
+/* ── Room label (top-left corner) ── */
+.floor-plan__room-label {
+  position: absolute;
+  top: var(--space-4);
+  left: var(--space-6);
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-style: italic;
+  color: var(--color-accent);
+  opacity: 0.4;
+  pointer-events: none;
+  user-select: none;
+  letter-spacing: 0.06em;
+}
+
+/* ── Stage / Head table (top-center) ── */
+.floor-plan__stage {
+  position: absolute;
+  top: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 280px;
+  height: 52px;
+  background: linear-gradient(
+    135deg,
+    oklch(76% 0.14 83 / 0.12),
+    oklch(76% 0.14 83 / 0.06)
+  );
+  border: 1px dashed var(--color-accent);
+  border-radius: var(--radius-md);
+  color: var(--color-accent);
+  font-size: var(--text-sm);
+  font-family: var(--font-display);
+  font-style: italic;
+  letter-spacing: 0.08em;
+  opacity: 0.6;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ── Table wrapper (positioned absolutely on canvas) ── */
+.floor-plan__table-wrapper {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  transition: filter var(--transition-fast), transform var(--transition-fast);
+}
+
+.floor-plan__table-wrapper--dragging {
+  filter: drop-shadow(0 12px 36px oklch(5% 0.01 55 / 0.9)) drop-shadow(0 0 12px var(--color-accent-glow));
+  transform: scale(1.03);
+  transition: none; /* No transition while actively dragging — instant follow */
+}
+
+/* ── Drag handle (shown above each table) ── */
+.floor-plan__drag-handle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
+  border-bottom: none;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  cursor: grab;
+  touch-action: none;
+  transition: all var(--transition-fast);
+  min-width: 80px;
+  justify-content: center;
+}
+
+.floor-plan__drag-handle:hover {
+  background: var(--color-bg-card);
+  border-color: var(--color-border-accent);
+  color: var(--color-accent);
+}
+
+.floor-plan__drag-handle:active {
+  cursor: grabbing;
+}
+
+.floor-plan__drag-icon {
+  font-size: 1rem;
+  color: var(--color-text-muted);
+  line-height: 1;
+}
+
+.floor-plan__drag-label {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  font-style: italic;
+  white-space: nowrap;
+}
+
+/* Editable label — shows pencil hint on hover */
+.floor-plan__drag-label--editable {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: text;
+  border-bottom: 1px dashed transparent;
+  transition: border-color var(--transition-fast), color var(--transition-fast);
+  padding-bottom: 1px;
+}
+
+.floor-plan__drag-label--editable:hover {
+  color: var(--color-accent);
+  border-bottom-color: var(--color-accent);
+}
+
+.floor-plan__edit-hint {
+  font-style: normal;
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+  pointer-events: none;
+}
+
+.floor-plan__drag-label--editable:hover .floor-plan__edit-hint {
+  opacity: 0.8;
+}
+
+/* Inline rename input inside drag handle */
+.floor-plan__rename-input {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-style: italic;
+  color: var(--color-text-primary);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-sm);
+  padding: 1px var(--space-2);
+  outline: none;
+  width: 100px;
+  min-width: 60px;
+  box-shadow: 0 0 0 2px var(--color-accent-glow);
+  transition: box-shadow var(--transition-fast);
+}
+
+/* Override TableZone top radius when inside floor plan */
+.floor-plan__table-wrapper .table-zone {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+/* ── Multi-select: selected table highlight ───────────────── */
+.floor-plan__table-wrapper--selected > .floor-plan__drag-handle {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -1px;
+  background: rgba(var(--color-accent-rgb, 212, 175, 55), 0.08);
+}
+
+.floor-plan__table-wrapper--selected .table-zone {
+  box-shadow: 0 0 0 2px var(--color-accent), var(--shadow-card);
+}
+
+/* Selection tip banner that appears inside the canvas */
+.floor-plan__select-tip {
+  position: absolute;
+  top: var(--space-2);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  background: rgba(212, 175, 55, 0.15);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-full);
+  color: var(--color-accent);
+  font-size: var(--text-xs);
+  padding: var(--space-1) var(--space-4);
+  white-space: nowrap;
+  backdrop-filter: blur(8px);
+  pointer-events: none;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(-4px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* ============================================================
+   RESPONSIVE / PRINT
+   ============================================================ */
+@media print {
+  .floor-plan__controls,
+  .floor-plan__legend { display: none; }
+  .floor-plan__viewport { overflow: visible; }
+  .floor-plan__canvas { transform: none !important; }
+}

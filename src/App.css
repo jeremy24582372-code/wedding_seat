@@ -1,0 +1,297 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap');
+
+/* ============================================================
+   DESIGN TOKENS
+   ============================================================ */
+:root {
+  /* Backgrounds */
+  --color-bg-base:    oklch(12% 0.012 55);
+  --color-bg-surface: oklch(17% 0.016 55);
+  --color-bg-card:    oklch(21% 0.020 55);
+  --color-bg-card-hover: oklch(25% 0.024 55);
+  --color-bg-input:   oklch(19% 0.018 55);
+  --color-bg-overlay: oklch(5% 0.01 55 / 0.85);
+
+  /* Accent — Warm Gold */
+  --color-accent:       oklch(76% 0.14 83);
+  --color-accent-light: oklch(86% 0.10 83);
+  --color-accent-dim:   oklch(76% 0.14 83 / 0.2);
+  --color-accent-glow:  oklch(76% 0.14 83 / 0.4);
+
+  /* Text */
+  --color-text-primary: oklch(94% 0.012 83);
+  --color-text-secondary: oklch(70% 0.020 83);
+  --color-text-muted:   oklch(50% 0.015 55);
+  --color-text-inverse: oklch(15% 0.012 55);
+
+  /* Borders */
+  --color-border:       oklch(30% 0.022 55);
+  --color-border-light: oklch(38% 0.026 55);
+  --color-border-accent: oklch(76% 0.14 83 / 0.5);
+
+  /* Status */
+  --color-success: oklch(70% 0.18 150);
+  --color-warning: oklch(78% 0.18 65);
+  --color-danger:  oklch(65% 0.22 25);
+  --color-drop-active: oklch(68% 0.16 200);
+  --color-drop-active-bg: oklch(68% 0.16 200 / 0.12);
+  --color-full-table: oklch(65% 0.22 25 / 0.12);
+
+  /* Guest Category Colors — WCAG AA + Colorblind-safe */
+  --color-cat-groom:     oklch(68% 0.16 265);  /* 藍紫 — 男方親友 */
+  --color-cat-bride:     oklch(70% 0.16 0);    /* 玫瑰紅 — 女方親友 */
+  --color-cat-mutual:    oklch(68% 0.16 145);  /* 翠綠 — 共同朋友 */
+  --color-cat-colleague: oklch(74% 0.16 55);   /* 琥珀 — 同事 */
+  --color-cat-other:     oklch(60% 0.06 55);   /* 中性灰 — 其他 */
+
+  /* Typography */
+  --font-display: 'Cormorant Garamond', 'Georgia', serif;
+  --font-body:    'DM Sans', system-ui, sans-serif;
+
+  --text-xs:   0.75rem;
+  --text-sm:   0.875rem;
+  --text-base: 1rem;
+  --text-lg:   1.125rem;
+  --text-xl:   1.25rem;
+  --text-2xl:  1.5rem;
+  --text-3xl:  2rem;
+  --text-4xl:  2.75rem;
+
+  /* Spacing */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+
+  /* Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-card: 0 2px 12px oklch(5% 0.01 55 / 0.6);
+  --shadow-card-hover: 0 8px 32px oklch(5% 0.01 55 / 0.8), 0 0 0 1px var(--color-border-accent);
+  --shadow-drag: 0 16px 48px oklch(5% 0.01 55 / 0.9), 0 0 0 1px var(--color-accent);
+  --shadow-glow: 0 0 24px var(--color-accent-glow);
+
+  /* Transitions */
+  --transition-fast: 120ms ease;
+  --transition-base: 220ms ease;
+  --transition-slow: 380ms ease;
+
+  /* Layout */
+  --sidebar-width: 320px;
+  --toolbar-height: 64px;
+}
+
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-bg-base);
+  color: var(--color-text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+
+  /* Subtle grain texture for depth */
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+button {
+  font-family: var(--font-body);
+  cursor: pointer;
+}
+
+input, textarea, select {
+  font-family: var(--font-body);
+}
+
+/* ============================================================
+   SCROLLBAR
+   ============================================================ */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--color-bg-base); }
+::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: var(--radius-full); }
+::-webkit-scrollbar-thumb:hover { background: var(--color-border-light); }
+
+/* ============================================================
+   UTILITY CLASSES
+   ============================================================ */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.btn-primary {
+  background: var(--color-accent);
+  color: var(--color-text-inverse);
+  border-color: var(--color-accent);
+}
+.btn-primary:hover {
+  filter: brightness(1.1);
+  box-shadow: var(--shadow-glow);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--color-text-primary);
+  border-color: var(--color-border);
+}
+.btn-secondary:hover {
+  background: var(--color-bg-card);
+  border-color: var(--color-border-light);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--color-text-secondary);
+  border-color: transparent;
+}
+.btn-ghost:hover {
+  color: var(--color-text-primary);
+  background: var(--color-bg-card);
+}
+
+.btn-danger {
+  background: transparent;
+  color: var(--color-danger);
+  border-color: var(--color-danger);
+}
+.btn-danger:hover {
+  background: var(--color-danger);
+  color: white;
+}
+
+/* ============================================================
+   APP LAYOUT
+   ============================================================ */
+#root {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.app-layout {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.app-sidebar {
+  width: var(--sidebar-width);
+  flex-shrink: 0;
+  border-right: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--color-bg-surface);
+}
+
+.app-main {
+  flex: 1;
+  overflow: hidden;   /* FloorPlan manages its own viewport */
+  padding: 0;         /* No padding — canvas fills the full area */
+  background: var(--color-bg-base);
+  position: relative;
+}
+
+/* ============================================================
+   TABLES GRID
+   ============================================================ */
+.tables-grid {
+  display: grid;
+  /* Auto-fill: each column is at least 310px wide, fills the space */
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+  gap: var(--space-8);
+  align-items: start;
+  padding-bottom: var(--space-8);
+}
+
+/* Empty state */
+.app-empty-tables {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  height: 100%;
+  min-height: 400px;
+  color: var(--color-text-muted);
+}
+
+.app-empty-tables p {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  opacity: 0.6;
+}
+
+/* Error banner */
+.app-error-banner {
+  position: fixed;
+  top: calc(var(--toolbar-height) + var(--space-3));
+  left: 50%;
+  transform: translateX(-50%);
+  background: oklch(65% 0.22 25 / 0.92);
+  color: white;
+  padding: var(--space-2) var(--space-6);
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  z-index: 999;
+  backdrop-filter: blur(8px);
+  box-shadow: var(--shadow-card);
+}
+
+/* ============================================================
+   PRINT STYLES
+   ============================================================ */
+@media print {
+  .app-sidebar,
+  .toolbar { display: none; }
+  .app-main { padding: 0; overflow: visible; }
+  .tables-grid { grid-template-columns: repeat(3, 1fr); }
+}

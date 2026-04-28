@@ -1,0 +1,95 @@
+.unassigned-pool {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.unassigned-pool__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.unassigned-pool__title {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 500;
+  color: var(--color-text-primary);
+  letter-spacing: 0.04em;
+}
+
+.unassigned-pool__count {
+  font-size: var(--text-sm);
+  color: var(--color-accent);
+  font-weight: 600;
+  background: var(--color-accent-dim);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+}
+
+/* Filters */
+.unassigned-pool__filters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.unassigned-pool__search,
+.unassigned-pool__cat-filter {
+  width: 100%;
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  font-size: var(--text-sm);
+  padding: var(--space-2) var(--space-3);
+  outline: none;
+  transition: border-color var(--transition-fast);
+  appearance: none;
+}
+
+.unassigned-pool__search::placeholder {
+  color: var(--color-text-muted);
+}
+
+.unassigned-pool__search:focus,
+.unassigned-pool__cat-filter:focus {
+  border-color: var(--color-accent);
+}
+
+/* Drop zone body */
+.unassigned-pool__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-3) var(--space-4);
+  transition: background var(--transition-fast);
+}
+
+.unassigned-pool__body--drop-active {
+  background: var(--color-drop-active-bg);
+}
+
+.unassigned-pool__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.unassigned-pool__empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  padding: var(--space-8) var(--space-4);
+  height: 100%;
+  min-height: 120px;
+}
