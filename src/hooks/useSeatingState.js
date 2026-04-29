@@ -12,7 +12,7 @@ function emptySeats() {
 function buildInitialState() {
   const tables = Array.from({ length: DEFAULT_TABLE_COUNT }, (_, i) => ({
     id:       uuidv4(),
-    label:    `桌 ${i + 1}`,
+    label:    `${i + 1}桌`,
     seats:    MAX_SEATS,
     guestIds: emptySeats(),
   }));
@@ -98,8 +98,17 @@ export function useSeatingState() {
       guestIds: Array.from({ length: MAX_SEATS }, (_, i) => t.guestIds?.[i] ?? null),
     }));
 
+    // Firebase also drops null on object fields (e.g. guest.tableId becomes undefined).
+    // Normalise back to null so strict equality checks (tableId !== null) work correctly.
+    const normalisedGuests = (fbData.guests ?? []).map(g => ({
+      ...g,
+      tableId: g.tableId ?? null,
+      // 舊資料無 source 欄位時，預設為 'manual'（保守策略，避免回寫遺漏）
+      source:  g.source ?? 'manual',
+    }));
+
     setStateRaw({
-      guests:             fbData.guests            ?? [],
+      guests:             normalisedGuests,
       tables:             normalisedTables,
       unassignedGuestIds: fbData.unassignedGuestIds ?? [],
       tablePositions:     fbData.tablePositions     ?? {},
@@ -117,6 +126,7 @@ export function useSeatingState() {
       category: guestData.category || '其他',
       diet:     guestData.diet?.trim() || '',
       tableId:  null,
+      source:   'manual', // 手動新增 → 允許回寫 Google Sheets
     };
     setState(prev => ({
       ...prev,
@@ -274,7 +284,7 @@ export function useSeatingState() {
       const nextNum  = prev.tables.length + 1;
       const newTable = {
         id:       uuidv4(),
-        label:    `桌 ${nextNum}`,
+        label:    `${nextNum}桌`,
         seats:    MAX_SEATS,
         guestIds: emptySeats(),
       };
@@ -323,14 +333,20 @@ export function useSeatingState() {
   const importGuests = useCallback((guestList) => {
     setState(prev => {
       const existingKeys = new Set(prev.guests.map(g => `${g.name}|${g.category}`));
+      // Normalise category BEFORE dedup comparison so the key matches
+      // how data is stored in Firebase (empty string → '其他').
       const newGuests = guestList
-        .filter(g => !existingKeys.has(`${g.name}|${g.category}`))
+        .filter(g => {
+          const cat = (g.category || '').trim() || '其他';
+          return !existingKeys.has(`${g.name.trim()}|${cat}`);
+        })
         .map(g => ({
           id:       uuidv4(),
           name:     g.name.trim(),
-          category: g.category || '其他',
+          category: (g.category || '').trim() || '其他',
           diet:     g.diet?.trim() || '',
           tableId:  null,
+          source:   'import', // 從 Google Sheets 匯入 → 不回寫
         }));
 
       return {
@@ -353,7 +369,8 @@ export function useSeatingState() {
 
   const stats = {
     total:      state.guests.length,
-    assigned:   state.guests.filter(g => g.tableId !== null).length,
+    // Use != null (not !==) to catch both null and undefined (Firebase omits null fields)
+    assigned:   state.guests.filter(g => g.tableId != null).length,
     unassigned: state.unassignedGuestIds.length,
   };
 

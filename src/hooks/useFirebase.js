@@ -12,10 +12,11 @@ const FIREBASE_ROOT = 'wedding-seating';
 /** Write the full app state to Firebase */
 export async function saveStateToFirebase(state) {
   await set(ref(db, FIREBASE_ROOT), {
-    guests:         state.guests,
-    tables:         state.tables,
-    tablePositions: state.tablePositions ?? {},
-    lastSaved:      new Date().toISOString(),
+    guests:             state.guests,
+    tables:             state.tables,
+    tablePositions:     state.tablePositions ?? {},
+    unassignedGuestIds: state.unassignedGuestIds ?? [],   // ← was missing, caused pool to vanish after Firebase sync
+    lastSaved:          new Date().toISOString(),
   });
 }
 
@@ -55,13 +56,17 @@ export async function syncToGoogleSheets(state, sheetsUrl) {
   const tableLabelMap = {};
   (state.tables ?? []).forEach(t => { tableLabelMap[t.id] = t.label; });
 
-  // Build payload: one row per guest
-  const payload = (state.guests ?? []).map(g => ({
-    name:       g.name,
-    category:   g.category,
-    diet:       g.diet || '',
-    tableLabel: g.tableId ? (tableLabelMap[g.tableId] ?? '') : '',
-  }));
+  // Build payload: only sync manually-added guests back to Sheets.
+  // Guests imported from Sheets (source === 'import') are skipped to avoid
+  // overwriting the original spreadsheet data with potentially stale copies.
+  const payload = (state.guests ?? [])
+    .filter(g => g.source !== 'import')
+    .map(g => ({
+      name:       g.name,
+      category:   g.category,
+      diet:       g.diet || '',
+      tableLabel: g.tableId ? (tableLabelMap[g.tableId] ?? '') : '',
+    }));
 
   try {
     // Apps Script CORS workaround: use no-cors mode, no response body expected
