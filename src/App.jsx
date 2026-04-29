@@ -18,7 +18,7 @@ import AddGuestModal from './components/AddGuestModal';
 import { useSeatingState } from './hooks/useSeatingState';
 import { useGoogleSheets } from './hooks/useGoogleSheets';
 import { useExport } from './hooks/useExport';
-import { syncToGoogleSheets } from './hooks/useFirebase';
+import { syncToGoogleSheets, useFirebaseStatus } from './hooks/useFirebase';
 
 /**
  * Find which table + seat a guest currently occupies.
@@ -52,6 +52,7 @@ export default function App() {
 
   const { fetchGuests, loading: importLoading, error: importError } = useGoogleSheets();
   const { exportJSON, exportCSV, exportPDF, exportFloorPDF } = useExport(state);
+  const firebaseStatus = useFirebaseStatus();
 
   const floorPlanRef = useRef(null);
 
@@ -228,6 +229,19 @@ export default function App() {
         onDragCancel={handleDragCancel}
       >
         <div id="root-layout">
+          {/* Firebase connection status badge */}
+          <div className={`firebase-status firebase-status--${firebaseStatus}`} title={
+            firebaseStatus === 'connected'    ? 'Firebase 已連線' :
+            firebaseStatus === 'disconnected' ? 'Firebase 斷線中' :
+                                               '未設定 Firebase'
+          }>
+            <span className="firebase-status__dot" />
+            <span className="firebase-status__label">
+              {firebaseStatus === 'connected'    ? 'Firebase 已連線' :
+               firebaseStatus === 'disconnected' ? 'Firebase 斷線' :
+                                                  '本機模式'}
+            </span>
+          </div>
           {/* Toolbar */}
           <Toolbar
             stats={stats}

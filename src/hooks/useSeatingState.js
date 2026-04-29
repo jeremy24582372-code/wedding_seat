@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { saveStateToFirebase, useFirebaseListener } from './useFirebase';
+import { db } from '../firebase';
 import { MAX_SEATS, DEFAULT_TABLE_COUNT, AUTOSAVE_DEBOUNCE_MS } from '../utils/constants';
 
 /** Build an empty fixed-length seat array */
@@ -82,6 +83,13 @@ export function useSeatingState() {
 
       return next;
     });
+  }, []);
+
+  // When Firebase is unconfigured (db === null), subscribeToState is a no-op and
+  // never calls our callback — fbReady would stay false forever. Detect this upfront
+  // and mark ready immediately so the app renders in local-only mode.
+  useEffect(() => {
+    if (!db) setFbReady(true);
   }, []);
 
   // Subscribe to Firebase — loads initial state and reacts to external changes
