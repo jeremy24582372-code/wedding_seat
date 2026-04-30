@@ -557,7 +557,11 @@ export default function FloorPlan({
                   ) : (
                     <span
                       className="floor-plan__drag-label floor-plan__drag-label--editable"
-                      onClick={e => startRename(e, table)}
+                      onClick={e => {
+                        // Let modifier-key clicks bubble up to the wrapper's multi-select handler
+                        if (e.shiftKey || e.ctrlKey || e.metaKey) return;
+                        startRename(e, table);
+                      }}
                       onPointerDown={e => e.stopPropagation()}
                       title="點擊改名"
                     >
