@@ -23,6 +23,9 @@ export function useGoogleSheets() {
       return null;
     }
 
+    // Guard: prevent concurrent requests if already loading
+    if (loading) return null;
+
     setLoading(true);
     setError(null);
 
@@ -48,7 +51,7 @@ export function useGoogleSheets() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [loading]);
 
   return { fetchGuests, loading, error };
 }

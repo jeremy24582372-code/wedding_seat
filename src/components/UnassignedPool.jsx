@@ -26,7 +26,7 @@ export default function UnassignedPool({ guests, unassignedIds, onEdit, onDelete
       .map(id => guests.find(g => g.id === id))
       .filter(Boolean)
       .filter(g => {
-        const matchSearch = g.name.includes(search) || g.note.includes(search);
+        const matchSearch = g.name.includes(search) || (g.diet ?? '').includes(search);
         const matchCat = filterCat ? g.category === filterCat : true;
         return matchSearch && matchCat;
       });
@@ -45,7 +45,7 @@ export default function UnassignedPool({ guests, unassignedIds, onEdit, onDelete
         <input
           className="unassigned-pool__search"
           type="text"
-          placeholder="搜尋姓名或備註…"
+          placeholder="搜尋姓名或飲食需求…"
           value={search}
           onChange={e => setSearch(e.target.value)}
           aria-label="搜尋賓客"

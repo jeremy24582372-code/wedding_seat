@@ -33,8 +33,6 @@ function buildInitialState() {
  */
 export function useSeatingState() {
   const [state, setStateRaw] = useState(buildInitialState);
-  const [fbReady, setFbReady] = useState(false); // true once first Firebase load completes
-
   // Debounced Firebase save
   const saveTimer = useRef(null);
   const pendingState = useRef(null);
@@ -86,11 +84,10 @@ export function useSeatingState() {
   }, []);
 
   // When Firebase is unconfigured (db === null), subscribeToState is a no-op and
-  // never calls our callback — fbReady would stay false forever. Detect this upfront
-  // and mark ready immediately so the app renders in local-only mode.
-  useEffect(() => {
-    if (!db) setFbReady(true);
-  }, []);
+  // never calls our callback — fbReady would stay false forever. Initialise to
+  // true immediately when db is null so the app renders in local-only mode.
+  // (Avoids calling setState synchronously inside an effect — react-hooks/set-state-in-effect)
+  const [fbReady, setFbReady] = useState(() => !db);
 
   // Subscribe to Firebase — loads initial state and reacts to external changes
   useFirebaseListener((fbData) => {
@@ -108,11 +105,14 @@ export function useSeatingState() {
 
     // Firebase also drops null on object fields (e.g. guest.tableId becomes undefined).
     // Normalise back to null so strict equality checks (tableId !== null) work correctly.
+    // Legacy normalization: old records stored dietary info in `note`; migrate to `diet`.
     const normalisedGuests = (fbData.guests ?? []).map(g => ({
       ...g,
       tableId: g.tableId ?? null,
       // 舊資料無 source 欄位時，預設為 'manual'（保守策略，避免回寫遺漏）
       source:  g.source ?? 'manual',
+      // 舊資料 note → diet 遷移（防止舊備份資料的飲食欄位消失）
+      diet:    g.diet ?? g.note ?? '',
     }));
 
     setStateRaw({
@@ -317,13 +317,22 @@ export function useSeatingState() {
   }, [setState]);
 
   const renameTable = useCallback((tableId, newLabel) => {
-    setState(prev => ({
-      ...prev,
-      tables: prev.tables.map(t =>
-        t.id === tableId ? { ...t, label: newLabel.trim() || t.label } : t
-      ),
-      lastSaved: new Date().toISOString(),
-    }));
+    setState(prev => {
+      const trimmed = newLabel.trim();
+      // Guard: don't allow renaming to a label already used by another table
+      const duplicate = trimmed && prev.tables.some(
+        t => t.id !== tableId && t.label === trimmed
+      );
+      return {
+        ...prev,
+        tables: prev.tables.map(t =>
+          t.id === tableId
+            ? { ...t, label: (!trimmed || duplicate) ? t.label : trimmed }
+            : t
+        ),
+        lastSaved: new Date().toISOString(),
+      };
+    });
   }, [setState]);
 
   const updateTablePosition = useCallback((tableId, pos) => {
@@ -379,7 +388,9 @@ export function useSeatingState() {
     total:      state.guests.length,
     // Use != null (not !==) to catch both null and undefined (Firebase omits null fields)
     assigned:   state.guests.filter(g => g.tableId != null).length,
-    unassigned: state.unassignedGuestIds.length,
+    // Derive unassigned from guests array (same source as `assigned`) to stay consistent
+    // during Firebase sync. unassignedGuestIds may lag one tick behind guests in edge cases.
+    unassigned: state.guests.filter(g => g.tableId == null).length,
   };
 
   return {

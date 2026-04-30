@@ -23,7 +23,7 @@ export function useExport(state) {
     const rows = state.guests.map(g => ({
       姓名: g.name,
       關係分類: g.category,
-      備註: g.note,
+      飲食: g.diet || '',
       桌次: g.tableId ? tableMap[g.tableId] || '未知' : '未分配',
     }));
 
@@ -171,7 +171,7 @@ function buildPrintHTML(state) {
         ${guestDot(g.category)}
         <span class="guest-name">${escHtml(g.name)}</span>
         ${g.category ? `<span class="guest-cat">${escHtml(g.category)}</span>` : ''}
-        ${g.note     ? `<span class="guest-note">${escHtml(g.note)}</span>`     : ''}
+        ${g.diet     ? `<span class="guest-note">${escHtml(g.diet)}</span>`     : ''}
       </li>`).join('');
 
     const emptyRows = Array(emptyCount)

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ref, set, get, onValue, off } from 'firebase/database';
+import { ref, set, get, onValue } from 'firebase/database';
 import { db } from '../firebase';
 
 const FIREBASE_ROOT = 'wedding-seating';
@@ -39,10 +39,11 @@ export async function loadStateFromFirebase() {
 export function subscribeToState(onStateChange) {
   if (!db) return () => {}; // no-op when Firebase is unconfigured
   const stateRef = ref(db, FIREBASE_ROOT);
-  onValue(stateRef, (snapshot) => {
+  // onValue() returns an unsubscribe function — use it directly for cleanup
+  const unsub = onValue(stateRef, (snapshot) => {
     onStateChange(snapshot.exists() ? snapshot.val() : null);
   });
-  return () => off(stateRef);
+  return unsub;
 }
 
 /**
@@ -98,7 +99,12 @@ export async function syncToGoogleSheets(state, sheetsUrl) {
  */
 export function useFirebaseListener(onStateChange) {
   const callbackRef = useRef(onStateChange);
-  callbackRef.current = onStateChange;
+
+  // Keep the ref in sync with the latest callback.
+  // Done inside useEffect to avoid mutating refs during render (react-hooks/refs).
+  useEffect(() => {
+    callbackRef.current = onStateChange;
+  });
 
   useEffect(() => {
     const unsubscribe = subscribeToState((data) => callbackRef.current(data));
@@ -122,10 +128,12 @@ export function useFirebaseStatus() {
   useEffect(() => {
     if (!db) return; // stay 'unconfigured'
     const connRef = ref(db, '.info/connected');
+    // onValue() returns an unsubscribe function. Call it directly to detach the listener.
+    // off(connRef, 'value', unsub) is incorrect — `unsub` is not the original callback.
     const unsub = onValue(connRef, (snap) => {
       setStatus(snap.val() === true ? 'connected' : 'disconnected');
     });
-    return () => off(connRef, 'value', unsub);
+    return () => unsub();
   }, []);
 
   return status;

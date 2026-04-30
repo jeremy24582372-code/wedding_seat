@@ -89,7 +89,7 @@ function SeatSlot({ tableId, seatIndex, guest, onMoveOut, onEdit, onDelete, cx, 
       className={`table-zone__seat table-zone__seat--filled ${catClass}`}
       style={style}
       onClick={() => onMoveOut(guest.id)}
-      title={`${guest.name}（${guest.category}）${guest.note ? '\n' + guest.note : ''}\n點擊移回未分配`}
+      title={`${guest.name}（${guest.category}）${guest.diet ? '\n飲食: ' + guest.diet : ''}\n點擊移回未分配`}
       aria-label={`${guest.name}，點擊移回未分配`}
       {...dataAttrs}
     >

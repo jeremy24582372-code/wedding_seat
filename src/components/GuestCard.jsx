@@ -15,7 +15,7 @@ const CAT_TOKENS = {
 /**
  * Draggable guest card.
  * Props:
- *   guest     — { id, name, category, note }
+ *   guest     — { id, name, category, diet }
  *   onRemove  — () => void  (right-click: move back to unassigned)
  *   onEdit    — (guest) => void  (pencil icon click: open edit modal)
  *   onDelete  — (guestId) => void  (trash icon: permanently delete with 2-step confirm)
@@ -85,7 +85,7 @@ export default function GuestCard({ guest, onRemove, onEdit, onDelete, compact =
         onRemove?.();
       }}
       onMouseLeave={handleMouseLeave}
-      title={`${guest.name}｜${guest.category}${guest.note ? `｜${guest.note}` : ''}\n右鍵 → 移回未分配`}
+      title={`${guest.name}｜${guest.category}${guest.diet ? `｜飲食: ${guest.diet}` : ''}\n右鍵 → 移回未分配`}
     >
       {/* Category color bar */}
       <span
@@ -96,11 +96,11 @@ export default function GuestCard({ guest, onRemove, onEdit, onDelete, compact =
 
       <div className="guest-card__body">
         <span className="guest-card__name">{guest.name}</span>
-        {!compact && guest.note && (
-          <span className="guest-card__note">{guest.note}</span>
+        {!compact && guest.diet && (
+          <span className="guest-card__note">{guest.diet}</span>
         )}
-        {compact && guest.note && (
-          <span className="guest-card__note guest-card__note--dot" title={guest.note}>●</span>
+        {compact && guest.diet && (
+          <span className="guest-card__note guest-card__note--dot" title={guest.diet}>●</span>
         )}
       </div>
 
