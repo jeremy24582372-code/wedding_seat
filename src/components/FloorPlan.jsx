@@ -140,6 +140,8 @@ export default function FloorPlan({
   const [livePos, setLivePos] = useState(null);
   const [dragGroupState, setDragGroupState]         = useState([]);
   const [dragOriginalsState, setDragOriginalsState] = useState({});
+  // Stores the latest snapped positions for ALL tables in the drag group (guide+grid applied)
+  const livePosGroupRef = useRef({});
 
   // ── Multi-select state ────────────────────────────────────────
   const [selectedTableIds, setSelectedTableIds] = useState(new Set());
@@ -277,7 +279,7 @@ export default function FloorPlan({
 
     const dx = rawDx / zoom;
     const dy = rawDy / zoom;
-    const { origX, origY, dragGroup } = tableDrag.current;
+    const { origX, origY, originals, dragGroup } = tableDrag.current;
 
     let rawX = Math.max(0, Math.min(CANVAS_WIDTH  - TABLE_W, origX + dx));
     let rawY = Math.max(0, Math.min(CANVAS_HEIGHT - TABLE_H, origY + dy));
@@ -303,13 +305,28 @@ export default function FloorPlan({
       if (!ySnapped) finalY = snapToGrid(finalY);
     }
 
+    // ── Record final snapped positions for ALL tables in the drag group ──
+    // (used by handleTableDragEnd to commit exactly what the user sees)
+    const snapDx = finalX - origX;
+    const snapDy = finalY - origY;
+    const groupSnapshot = {};
+    dragGroup.forEach(tid => {
+      const orig = originals[tid];
+      if (!orig) return;
+      groupSnapshot[tid] = {
+        x: Math.max(0, Math.min(CANVAS_WIDTH  - TABLE_W, orig.x + snapDx)),
+        y: Math.max(0, Math.min(CANVAS_HEIGHT - TABLE_H, orig.y + snapDy)),
+      };
+    });
+    livePosGroupRef.current = groupSnapshot;
+
     setGuides({ h: hGuides, v: vGuides });
     setLivePos({ x: finalX, y: finalY });
   }, [zoom, snapEnabled, tables, positions]);
 
   const handleTableDragEnd = useCallback((e) => {
     if (!tableDrag.current) return;
-    const { tableId, startX, startY, dragGroup, originals, hasMoved } = tableDrag.current;
+    const { tableId, dragGroup, hasMoved } = tableDrag.current;
 
     // Clear guides regardless of whether we moved
     setGuides({ h: [], v: [] });
@@ -332,25 +349,16 @@ export default function FloorPlan({
       setLivePos(null);
       setDragGroupState([]);
       setDragOriginalsState({});
+      livePosGroupRef.current = {};
       return;
     }
 
-    // Real drag → commit positions for all tables in the group
-    // Re-compute final positions with snap applied
-    const dx = (e.clientX - startX) / zoom;
-    const dy = (e.clientY - startY) / zoom;
-
+    // Real drag → commit the exact positions already computed (with guide+grid snap)
+    // from the last handleTableDragMove call, stored in livePosGroupRef.
+    const snapshot = livePosGroupRef.current;
     dragGroup.forEach(tid => {
-      const orig = originals[tid];
-      if (!orig) return;
-      let rawX = Math.max(0, Math.min(CANVAS_WIDTH  - TABLE_W, orig.x + dx));
-      let rawY = Math.max(0, Math.min(CANVAS_HEIGHT - TABLE_H, orig.y + dy));
-
-      if (snapEnabled) {
-        rawX = snapToGrid(rawX);
-        rawY = snapToGrid(rawY);
-      }
-      onUpdatePosition(tid, { x: rawX, y: rawY });
+      const pos = snapshot[tid];
+      if (pos) onUpdatePosition(tid, pos);
     });
 
     tableDrag.current = null;
@@ -358,7 +366,8 @@ export default function FloorPlan({
     setLivePos(null);
     setDragGroupState([]);
     setDragOriginalsState({});
-  }, [zoom, snapEnabled, onUpdatePosition]);
+    livePosGroupRef.current = {};
+  }, [onUpdatePosition]);
 
   /**
    * Compute the live (in-drag) canvas position for any table in the current drag group.
