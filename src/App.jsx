@@ -14,11 +14,13 @@ import UnassignedPool from './components/UnassignedPool';
 import FloorPlan from './components/FloorPlan';
 import GuestCard from './components/GuestCard';
 import AddGuestModal from './components/AddGuestModal';
+import ToastContainer from './components/Toast';
 
 import { useSeatingState } from './hooks/useSeatingState';
 import { useGoogleSheets } from './hooks/useGoogleSheets';
 import { useExport } from './hooks/useExport';
 import { syncToGoogleSheets, useFirebaseStatus } from './hooks/useFirebase';
+import { useToast } from './hooks/useToast';
 
 /**
  * Find which table + seat a guest currently occupies.
@@ -50,9 +52,10 @@ export default function App() {
     updateTablePosition,
   } = useSeatingState();
 
-  const { fetchGuests, loading: importLoading, error: importError } = useGoogleSheets();
+  const { fetchGuests, loading: importLoading } = useGoogleSheets();
   const { exportJSON, exportCSV, exportPDF, exportFloorPDF } = useExport(state);
   const firebaseStatus = useFirebaseStatus();
+  const { toasts, toast } = useToast();
 
   const floorPlanRef = useRef(null);
 
@@ -97,15 +100,27 @@ export default function App() {
 
   // --- Import handler ---
   const handleImport = async () => {
-    const guests = await fetchGuests();
-    if (guests) importGuests(guests);
+    try {
+      const guests = await fetchGuests();
+      if (guests) {
+        importGuests(guests);
+        toast.success(`已匯入 ${guests.length} 位賓客`);
+      }
+    } catch (err) {
+      toast.error(`匯入失敗：${err?.message ?? '未知錯誤'}`);
+    }
   };
 
   // --- Sync to Google Sheets handler ---
   const handleSyncSheets = async () => {
     const sheetsUrl = import.meta.env.VITE_SHEETS_URL;
+    toast.info('正在同步至 Google Sheets…');
     const result = await syncToGoogleSheets(state, sheetsUrl);
-    if (!result.success) throw new Error(result.error ?? '同步失敗');
+    if (!result.success) {
+      toast.error(`同步失敗：${result.error ?? '未知錯誤'}`);
+    } else {
+      toast.success('已成功同步至 Google Sheets');
+    }
   };
 
   // --- DnD handlers ---
@@ -209,12 +224,8 @@ export default function App() {
         />
       )}
 
-      {/* Import error notification */}
-      {importError && (
-        <div className="app-error-banner" role="alert">
-          ⚠️ {importError}
-        </div>
-      )}
+      {/* Global toast notifications */}
+      <ToastContainer toasts={toasts} onDismiss={toast.dismiss} />
 
       {/* Main DnD context — manages GUEST drag-and-drop only */}
       <DndContext

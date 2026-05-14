@@ -1,0 +1,133 @@
+/* ============================================================
+   TOAST NOTIFICATION SYSTEM
+   ============================================================ */
+
+/* Container — 固定在右上角，通知由下往上堆疊 */
+.toast-container {
+  position: fixed;
+  top: calc(var(--toolbar-height, 64px) + var(--space-3, 0.75rem));
+  right: var(--space-4, 1rem);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2, 0.5rem);
+  pointer-events: none; /* 不阻擋背後的互動 */
+  max-width: min(380px, calc(100vw - 2rem));
+}
+
+/* ── 單則通知 ── */
+.toast {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3, 0.75rem);
+  padding: var(--space-3, 0.75rem) var(--space-4, 1rem);
+  border-radius: var(--radius-lg, 12px);
+  border: 1px solid transparent;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 32px oklch(5% 0.01 55 / 0.7), 0 2px 8px oklch(5% 0.01 55 / 0.4);
+  font-size: var(--text-sm, 0.875rem);
+  line-height: 1.5;
+  pointer-events: auto;
+
+  /* 進場動畫初始狀態 */
+  opacity: 0;
+  transform: translateX(12px);
+  transition:
+    opacity 220ms ease,
+    transform 220ms ease;
+}
+
+/* 進場：加上 --visible class 後觸發 */
+.toast--visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* ── 類型樣式 ── */
+.toast--success {
+  background: oklch(17% 0.016 55 / 0.92);
+  border-color: oklch(70% 0.18 150 / 0.4);
+  color: var(--color-text-primary, oklch(94% 0.012 83));
+}
+.toast--success .toast__icon {
+  color: var(--color-success, oklch(70% 0.18 150));
+}
+
+.toast--error {
+  background: oklch(17% 0.016 55 / 0.95);
+  border-color: oklch(65% 0.22 25 / 0.5);
+  color: var(--color-text-primary, oklch(94% 0.012 83));
+}
+.toast--error .toast__icon {
+  color: var(--color-danger, oklch(65% 0.22 25));
+}
+
+.toast--warn {
+  background: oklch(17% 0.016 55 / 0.92);
+  border-color: oklch(78% 0.18 65 / 0.4);
+  color: var(--color-text-primary, oklch(94% 0.012 83));
+}
+.toast--warn .toast__icon {
+  color: var(--color-warning, oklch(78% 0.18 65));
+}
+
+.toast--info {
+  background: oklch(17% 0.016 55 / 0.92);
+  border-color: oklch(76% 0.14 83 / 0.35);
+  color: var(--color-text-primary, oklch(94% 0.012 83));
+}
+.toast--info .toast__icon {
+  color: var(--color-accent, oklch(76% 0.14 83));
+}
+
+/* ── 子元素 ── */
+.toast__icon {
+  font-size: 1rem;
+  line-height: 1.5;
+  flex-shrink: 0;
+  font-style: normal;
+}
+
+.toast__message {
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
+}
+
+.toast__close {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.75rem;
+  line-height: 1;
+  color: var(--color-text-muted, oklch(50% 0.015 55));
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity var(--transition-fast, 120ms ease);
+  align-self: flex-start;
+  margin-top: 2px;
+}
+.toast__close:hover {
+  opacity: 1;
+}
+
+/* ── Responsive: 小螢幕改為底部通知 ── */
+@media (max-width: 640px) {
+  .toast-container {
+    top: auto;
+    bottom: var(--space-4, 1rem);
+    right: var(--space-3, 0.75rem);
+    left: var(--space-3, 0.75rem);
+    max-width: 100%;
+  }
+}
+
+/* ── Reduced Motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .toast {
+    transition: none;
+    opacity: 1;
+    transform: none;
+  }
+}

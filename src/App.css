@@ -44,9 +44,15 @@
   --color-cat-colleague: oklch(74% 0.16 55);   /* 琥珀 — 同事 */
   --color-cat-other:     oklch(60% 0.06 55);   /* 中性灰 — 其他 */
 
-  /* Typography */
-  --font-display: 'Cormorant Garamond', 'Georgia', serif;
-  --font-body:    'DM Sans', system-ui, sans-serif;
+  /* Typography
+   * 中文 Fallback 順序：繁體優先 (JhengHei / PingFang TC)，次為簡體，再回退 system-ui
+   */
+  --font-display: 'Cormorant Garamond', 'Georgia',
+                  'Microsoft JhengHei', 'PingFang TC',
+                  'Noto Serif TC', serif;
+  --font-body:    'DM Sans', system-ui,
+                  'Microsoft JhengHei', 'PingFang TC',
+                  'Noto Sans TC', sans-serif;
 
   --text-xs:   0.75rem;
   --text-sm:   0.875rem;
@@ -469,3 +475,69 @@ input, textarea, select {
   margin-top: var(--space-2);
 }
 
+/* ============================================================
+   RESPONSIVE BREAKPOINTS
+   1024px — Tablet: sidebar collapses to top drawer
+    640px — Mobile: single-column stacked layout
+   ============================================================ */
+@media (max-width: 1024px) {
+  :root {
+    --sidebar-width: 100%;      /* 側邊欄改為全寬頂部列 */
+    --toolbar-height: 56px;     /* 工具列縮減高度 */
+  }
+
+  .app-layout {
+    flex-direction: column;     /* 水平並排 → 垂直堆疊 */
+  }
+
+  .app-sidebar {
+    width: 100%;
+    max-height: 240px;          /* 限制側邊欄高度，避免佔滿螢幕 */
+    border-right: none;
+    border-bottom: 1px solid var(--color-border);
+    flex-direction: row;        /* 賓客卡片改為橫向滾動 */
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .app-main {
+    flex: 1;
+    min-height: 0;              /* 確保 flex child 可縮小 */
+  }
+}
+
+@media (max-width: 640px) {
+  :root {
+    --toolbar-height: 48px;
+  }
+
+  .app-sidebar {
+    max-height: 180px;
+  }
+
+  .tables-grid {
+    grid-template-columns: 1fr; /* 單欄布局 */
+  }
+}
+
+/* ============================================================
+   ACCESSIBILITY: REDUCED MOTION
+   符合 WCAG 2.1 SC 2.3.3 (AAA) 及 SC 2.3.1 (AA) 要求
+   停用所有裝飾性動畫，保留功能性 transition
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  /* 停用全域 animation */
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* 例外：僅保留使用者操作必要的 focus 視覺回饋 */
+  :focus-visible {
+    transition: outline-offset 0.01ms !important;
+  }
+}
