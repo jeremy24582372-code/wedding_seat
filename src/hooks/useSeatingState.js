@@ -12,18 +12,18 @@ function emptySeats() {
 /** Build the initial app state: default tables, no guests */
 function buildInitialState() {
   const tables = Array.from({ length: DEFAULT_TABLE_COUNT }, (_, i) => ({
-    id:       uuidv4(),
-    label:    `${i + 1}桌`,
-    seats:    MAX_SEATS,
+    id: uuidv4(),
+    label: `${i + 1}桌`,
+    seats: MAX_SEATS,
     guestIds: emptySeats(),
   }));
 
   return {
-    guests:            [],
+    guests: [],
     tables,
     unassignedGuestIds: [],
-    tablePositions:    {},
-    lastSaved:         null,
+    tablePositions: {},
+    lastSaved: null,
   };
 }
 
@@ -80,9 +80,9 @@ function computeGuestMove(prev, guestId, targetTableId, seatIndex = null) {
       guests: prev.guests.map(g =>
         g.id === guestId ? { ...g, tableId: targetTableId } : g
       ),
-      tables:             updatedTables,
+      tables: updatedTables,
       unassignedGuestIds: updatedUnassigned,
-      lastSaved:          new Date().toISOString(),
+      lastSaved: new Date().toISOString(),
     },
     result: { success: true },
   };
@@ -173,7 +173,7 @@ export function useSeatingState() {
     // ─── 防止 Firebase 舊資料回滾本地較新的狀態 ──────────────────────────────
     // 當 debounce 尚未寫入 Firebase 時，Firebase listener 可能收到「比本地還舊」
     // 的快照，若直接覆蓋 stateRef 會導致剛匯入的賓客消失，下次匯入誤判無重複。
-    const localLastSaved  = stateRef.current.lastSaved;
+    const localLastSaved = stateRef.current.lastSaved;
     const remoteLastSaved = fbData.lastSaved ?? null;
     if (
       localLastSaved &&
@@ -199,17 +199,17 @@ export function useSeatingState() {
       ...g,
       tableId: g.tableId ?? null,
       // 舊資料無 source 欄位時，預設為 'manual'（保守策略，避免回寫遺漏）
-      source:  g.source ?? 'manual',
+      source: g.source ?? 'manual',
       // 舊資料 note → diet 遷移（防止舊備份資料的飲食欄位消失）
-      diet:    g.diet ?? g.note ?? '',
+      diet: g.diet ?? g.note ?? '',
     }));
 
     const nextState = {
-      guests:             normalisedGuests,
-      tables:             normalisedTables,
+      guests: normalisedGuests,
+      tables: normalisedTables,
       unassignedGuestIds: fbData.unassignedGuestIds ?? [],
-      tablePositions:     fbData.tablePositions     ?? {},
-      lastSaved:          fbData.lastSaved          ?? null,
+      tablePositions: fbData.tablePositions ?? {},
+      lastSaved: fbData.lastSaved ?? null,
     };
 
     stateRef.current = nextState;
@@ -221,18 +221,18 @@ export function useSeatingState() {
 
   const addGuest = useCallback((guestData) => {
     const newGuest = {
-      id:       uuidv4(),
-      name:     guestData.name.trim(),
+      id: uuidv4(),
+      name: guestData.name.trim(),
       category: guestData.category || '其他',
-      diet:     guestData.diet?.trim() || '',
-      tableId:  null,
-      source:   'manual', // 手動新增 → 允許回寫 Google Sheets
+      diet: guestData.diet?.trim() || '',
+      tableId: null,
+      source: 'manual', // 手動新增 → 允許回寫 Google Sheets
     };
     setState(prev => ({
       ...prev,
-      guests:             [...prev.guests, newGuest],
+      guests: [...prev.guests, newGuest],
       unassignedGuestIds: [...prev.unassignedGuestIds, newGuest.id],
-      lastSaved:          new Date().toISOString(),
+      lastSaved: new Date().toISOString(),
     }));
   }, [setState]);
 
@@ -243,8 +243,8 @@ export function useSeatingState() {
 
       return {
         ...prev,
-        guests:  prev.guests.filter(g => g.id !== guestId),
-        tables:  prev.tables.map(t => ({
+        guests: prev.guests.filter(g => g.id !== guestId),
+        tables: prev.tables.map(t => ({
           ...t,
           guestIds: t.guestIds.map(id => (id === guestId ? null : id)),
         })),
@@ -260,11 +260,11 @@ export function useSeatingState() {
       guests: prev.guests.map(g =>
         g.id === guestId
           ? {
-              ...g,
-              name:     patch.name?.trim()  ?? g.name,
-              category: patch.category      ?? g.category,
-              diet:     patch.diet?.trim()  ?? g.diet,
-            }
+            ...g,
+            name: patch.name?.trim() ?? g.name,
+            category: patch.category ?? g.category,
+            diet: patch.diet?.trim() ?? g.diet,
+          }
           : g
       ),
       lastSaved: new Date().toISOString(),
@@ -301,22 +301,22 @@ export function useSeatingState() {
 
   const swapGuestsBetweenSeats = useCallback((fromTableId, fromSeatIndex, toTableId, toSeatIndex) => {
     setState(prev => {
-      const tables  = prev.tables.map(t => ({ ...t, guestIds: [...t.guestIds] }));
+      const tables = prev.tables.map(t => ({ ...t, guestIds: [...t.guestIds] }));
       const fromIdx = tables.findIndex(t => t.id === fromTableId);
-      const toIdx   = tables.findIndex(t => t.id === toTableId);
+      const toIdx = tables.findIndex(t => t.id === toTableId);
       if (fromIdx === -1 || toIdx === -1) return prev;
 
       const fromGuestId = tables[fromIdx].guestIds[fromSeatIndex];
-      const toGuestId   = tables[toIdx].guestIds[toSeatIndex];
+      const toGuestId = tables[toIdx].guestIds[toSeatIndex];
 
       tables[fromIdx].guestIds[fromSeatIndex] = toGuestId;
-      tables[toIdx].guestIds[toSeatIndex]     = fromGuestId;
+      tables[toIdx].guestIds[toSeatIndex] = fromGuestId;
 
       let guests = prev.guests;
       if (fromTableId !== toTableId) {
         guests = prev.guests.map(g => {
           if (g.id === fromGuestId) return { ...g, tableId: toTableId };
-          if (g.id === toGuestId)   return { ...g, tableId: fromTableId };
+          if (g.id === toGuestId) return { ...g, tableId: fromTableId };
           return g;
         });
       }
@@ -329,11 +329,11 @@ export function useSeatingState() {
 
   const addTable = useCallback(() => {
     setState(prev => {
-      const nextNum  = prev.tables.length + 1;
+      const nextNum = prev.tables.length + 1;
       const newTable = {
-        id:       uuidv4(),
-        label:    `${nextNum}桌`,
-        seats:    MAX_SEATS,
+        id: uuidv4(),
+        label: `${nextNum}桌`,
+        seats: MAX_SEATS,
         guestIds: emptySeats(),
       };
       return { ...prev, tables: [...prev.tables, newTable], lastSaved: new Date().toISOString() };
@@ -348,10 +348,10 @@ export function useSeatingState() {
       const releasedIds = table.guestIds.filter(Boolean);
       return {
         ...prev,
-        guests:             prev.guests.map(g => releasedIds.includes(g.id) ? { ...g, tableId: null } : g),
-        tables:             prev.tables.filter(t => t.id !== tableId),
+        guests: prev.guests.map(g => releasedIds.includes(g.id) ? { ...g, tableId: null } : g),
+        tables: prev.tables.filter(t => t.id !== tableId),
         unassignedGuestIds: [...prev.unassignedGuestIds, ...releasedIds],
-        lastSaved:          new Date().toISOString(),
+        lastSaved: new Date().toISOString(),
       };
     });
   }, [setState]);
@@ -379,60 +379,53 @@ export function useSeatingState() {
     setState(prev => ({
       ...prev,
       tablePositions: { ...prev.tablePositions, [tableId]: pos },
-      lastSaved:      new Date().toISOString(),
+      lastSaved: new Date().toISOString(),
     }));
   }, [setState]);
 
   /**
-   * Bulk import guests — merges without losing existing seating.
-   * Matched by name+category; new ones added to unassigned.
+   * Bulk import guests — dedup by name only (trimmed, case-sensitive).
+   * Covers guests in the unassigned pool AND those already seated at tables.
+   * Patches diet for existing guests when the incoming value is non-empty.
+   * Returns { added, skipped } so the caller can show an accurate toast.
    */
   const importGuests = useCallback((guestList) => {
-    // Use a ref to capture stats out of the setState updater
-    const statsRef = { added: 0, skipped: 0 };
+    const result = { added: 0, skipped: 0 };
 
     setState(prev => {
-      // Build lookup for existing guests by name+category key.
-      // This includes ALL guests — unassigned AND those already seated at tables —
-      // so anyone already in the seating chart is also skipped.
-      const existingKeyMap = new Map(
-        prev.guests.map(g => [`${g.name}|${g.category}`, g])
-      );
+      // Build a Set of names already in the system — covers BOTH unassigned
+      // and seated guests, so no one already in the seating chart gets re-added.
+      const existingNames = new Set(prev.guests.map(g => g.name));
 
-      const newGuests = [];
-      // For guests that already exist, patch their diet if the incoming value
-      // is non-empty and differs from what's stored (covers the case where
-      // dietary info was added to the source sheet after the first import).
+      // Patch diet for already-existing guests with updated dietary info.
       const patchedGuests = prev.guests.map(existing => {
-        const matchKey = `${existing.name}|${existing.category}`;
-        const incoming = guestList.find(g => {
-          const cat = (g.category || '').trim() || '其他';
-          return `${g.name.trim()}|${cat}` === matchKey;
-        });
+        const incoming = guestList.find(g => g.name.trim() === existing.name);
         if (incoming && incoming.diet?.trim() && incoming.diet.trim() !== existing.diet) {
           return { ...existing, diet: incoming.diet.trim() };
         }
         return existing;
       });
 
-      // Normalise category BEFORE dedup comparison so the key matches
-      // how data is stored in Firebase (empty string → '其他').
+      // Only add guests whose name is not already present.
+      const newGuests = [];
       guestList.forEach(g => {
-        const cat = (g.category || '').trim() || '其他';
-        if (!existingKeyMap.has(`${g.name.trim()}|${cat}`)) {
+        const name = g.name.trim();
+        if (!name) return;
+        if (existingNames.has(name)) {
+          result.skipped += 1;
+        } else {
+          const cat = (g.category || '').trim() || '其他';
           newGuests.push({
             id:       uuidv4(),
-            name:     g.name.trim(),
+            name,
             category: cat,
             diet:     g.diet?.trim() || '',
             tableId:  null,
-            source:   'import', // 從 Google Sheets 匯入 → 不回寫
+            source:   'import',
           });
+          result.added += 1;
         }
       });
-
-      statsRef.added   = newGuests.length;
-      statsRef.skipped = guestList.length - newGuests.length;
 
       return {
         ...prev,
@@ -442,7 +435,7 @@ export function useSeatingState() {
       };
     });
 
-    return statsRef; // { added, skipped }
+    return result;
   }, [setState]);
 
   const resetAll = useCallback(() => {
@@ -455,9 +448,9 @@ export function useSeatingState() {
   const getTableById = useCallback((id) => state.tables.find(t => t.id === id), [state.tables]);
 
   const stats = {
-    total:      state.guests.length,
+    total: state.guests.length,
     // Use != null (not !==) to catch both null and undefined (Firebase omits null fields)
-    assigned:   state.guests.filter(g => g.tableId != null).length,
+    assigned: state.guests.filter(g => g.tableId != null).length,
     // Derive unassigned from guests array (same source as `assigned`) to stay consistent
     // during Firebase sync. unassignedGuestIds may lag one tick behind guests in edge cases.
     unassigned: state.guests.filter(g => g.tableId == null).length,

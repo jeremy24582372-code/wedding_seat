@@ -83,10 +83,10 @@ export default function App() {
       lastPointer.current = { x: e.clientX, y: e.clientY };
     };
     window.addEventListener('pointermove', track, { passive: true });
-    window.addEventListener('pointerup',   track, { passive: true });
+    window.addEventListener('pointerup', track, { passive: true });
     return () => {
       window.removeEventListener('pointermove', track);
-      window.removeEventListener('pointerup',   track);
+      window.removeEventListener('pointerup', track);
     };
   }, []);
 
@@ -142,7 +142,7 @@ export default function App() {
   function findSeatAtPointer(clientX, clientY) {
     const elements = document.elementsFromPoint(clientX, clientY);
     for (const el of elements) {
-      const tableId   = el.getAttribute('data-table-id');
+      const tableId = el.getAttribute('data-table-id');
       const seatIndex = el.getAttribute('data-seat-index');
       if (tableId && seatIndex !== null) {
         return {
@@ -163,8 +163,8 @@ export default function App() {
     //    droppable rects current even under CSS transform + scale)
     if (over) {
       const targetTableId = over.data?.current?.tableId ?? null;
-      const seatIndex     = over.data?.current?.seatIndex ?? null;
-      const isEmpty       = over.data?.current?.isEmpty ?? true;
+      const seatIndex = over.data?.current?.seatIndex ?? null;
+      const isEmpty = over.data?.current?.isEmpty ?? true;
       console.log('[DnD] over →', over.id, '| seatIndex:', seatIndex, '| isEmpty:', isEmpty);
 
       if (!isEmpty) {
@@ -258,15 +258,15 @@ export default function App() {
         <div id="root-layout">
           {/* Firebase connection status badge */}
           <div className={`firebase-status firebase-status--${firebaseStatus}`} title={
-            firebaseStatus === 'connected'    ? 'Firebase 已連線' :
-            firebaseStatus === 'disconnected' ? 'Firebase 斷線中' :
-                                               '未設定 Firebase'
+            firebaseStatus === 'connected' ? 'Firebase 已連線' :
+              firebaseStatus === 'disconnected' ? 'Firebase 斷線中' :
+                '未設定 Firebase'
           }>
             <span className="firebase-status__dot" />
             <span className="firebase-status__label">
-              {firebaseStatus === 'connected'    ? 'Firebase 已連線' :
-               firebaseStatus === 'disconnected' ? 'Firebase 斷線' :
-                                                  '本機模式'}
+              {firebaseStatus === 'connected' ? 'Firebase 已連線' :
+                firebaseStatus === 'disconnected' ? 'Firebase 斷線' :
+                  '本機模式'}
             </span>
           </div>
           {/* Toolbar */}
