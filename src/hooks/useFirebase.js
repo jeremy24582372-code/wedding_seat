@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { ref, set, get, onValue } from 'firebase/database';
 import { db } from '../firebase';
+import { buildGoogleSheetsPayload } from '../utils/googleSheetsPayload';
 
 const FIREBASE_ROOT = 'wedding-seating';
 
@@ -59,21 +60,9 @@ export async function syncToGoogleSheets(state, sheetsUrl) {
     return { success: false, error: '尚未設定 VITE_SHEETS_URL' };
   }
 
-  // Build a lookup: tableId → tableLabel
-  const tableLabelMap = {};
-  (state.tables ?? []).forEach(t => { tableLabelMap[t.id] = t.label; });
-
-  // Build payload: only sync manually-added guests back to Sheets.
-  // Guests imported from Sheets (source === 'import') are skipped to avoid
-  // overwriting the original spreadsheet data with potentially stale copies.
-  const payload = (state.guests ?? [])
-    .filter(g => g.source !== 'import')
-    .map(g => ({
-      name:       g.name,
-      category:   g.category,
-      diet:       g.diet || '',
-      tableLabel: g.tableId ? (tableLabelMap[g.tableId] ?? '') : '',
-    }));
+  // Build payload for all guests. Imported guests update their existing sheet
+  // rows; manual guests are appended by the Apps Script if the name is new.
+  const payload = buildGoogleSheetsPayload(state);
 
   try {
     // Apps Script CORS workaround: use no-cors mode, no response body expected

@@ -18,4 +18,16 @@ export default defineConfig([
       parserOptions: { ecmaFeatures: { jsx: true } },
     },
   },
+  {
+    files: ['apps-script-doPost.js'],
+    languageOptions: {
+      globals: {
+        SpreadsheetApp: 'readonly',
+        ContentService: 'readonly',
+      },
+    },
+    rules: {
+      'no-unused-vars': ['error', { varsIgnorePattern: '^do(Get|Post)$' }],
+    },
+  },
 ])

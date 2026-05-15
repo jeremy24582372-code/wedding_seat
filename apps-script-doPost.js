@@ -60,6 +60,8 @@ function doGet() {
 function doPost(e) {
   try {
     const payload = JSON.parse(e.postData.contents); // array of guest objects
+    if (!Array.isArray(payload)) throw new Error('Payload must be an array');
+
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
     const rows = sheet.getDataRange().getValues();
     const headers = rows[0].map(h => String(h).trim());
@@ -71,6 +73,8 @@ function doPost(e) {
       table: headers.indexOf('桌次'),
     };
 
+    if (idx.name < 0) throw new Error('Missing required header: 姓名');
+
     // Build a lookup by name → row index (1-based, skipping header)
     const nameRowMap = {};
     rows.slice(1).forEach((r, i) => {
@@ -78,18 +82,30 @@ function doPost(e) {
       if (name) nameRowMap[name] = i + 2; // +2: 1-based + skip header
     });
 
-    // Write back category + diet + tableLabel for each guest
+    let updated = 0;
+    let appended = 0;
+
+    // Upsert each guest: update existing names, append newly-created manual guests.
     payload.forEach(guest => {
-      const rowNum = nameRowMap[guest.name];
-      if (!rowNum) return; // not found → skip
+      const name = String(guest.name ?? '').trim();
+      if (!name) return;
+
+      let rowNum = nameRowMap[name];
+      if (!rowNum) {
+        rowNum = sheet.getLastRow() + 1;
+        sheet.getRange(rowNum, idx.name + 1).setValue(name);
+        nameRowMap[name] = rowNum;
+        appended++;
+      }
 
       if (idx.category >= 0) sheet.getRange(rowNum, idx.category + 1).setValue(guest.category || '');
       if (idx.diet >= 0) sheet.getRange(rowNum, idx.diet + 1).setValue(guest.diet || '');
       if (idx.table >= 0) sheet.getRange(rowNum, idx.table + 1).setValue(guest.tableLabel || '');
+      updated++;
     });
 
     return ContentService
-      .createTextOutput(JSON.stringify({ ok: true, updated: payload.length }))
+      .createTextOutput(JSON.stringify({ ok: true, updated, appended }))
       .setMimeType(ContentService.MimeType.JSON);
 
   } catch (err) {

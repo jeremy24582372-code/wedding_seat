@@ -27,15 +27,81 @@ function buildInitialState() {
   };
 }
 
+function computeGuestMove(prev, guestId, targetTableId, seatIndex = null) {
+  const guest = prev.guests.find(g => g.id === guestId);
+  if (!guest) {
+    return { nextState: prev, result: { success: false, reason: '賓客不存在' } };
+  }
+
+  // Clear the guest from any previous seat before evaluating the target.
+  // The transition remains pure; callers decide whether to commit nextState.
+  const updatedTables = prev.tables.map(t => ({
+    ...t,
+    guestIds: t.guestIds.map(id => (id === guestId ? null : id)),
+  }));
+  let updatedUnassigned = prev.unassignedGuestIds.filter(id => id !== guestId);
+
+  if (targetTableId !== null) {
+    const tableIdx = updatedTables.findIndex(t => t.id === targetTableId);
+    if (tableIdx === -1) {
+      return { nextState: prev, result: { success: false, reason: '桌次不存在' } };
+    }
+
+    const seats = [...updatedTables[tableIdx].guestIds];
+
+    if (seatIndex !== null) {
+      if (!Number.isInteger(seatIndex) || seatIndex < 0 || seatIndex >= MAX_SEATS) {
+        return { nextState: prev, result: { success: false, reason: '座位不存在' } };
+      }
+
+      if (seats[seatIndex] !== null && seats[seatIndex] !== guestId) {
+        return { nextState: prev, result: { success: false, reason: '該座位已有人' } };
+      }
+      seats[seatIndex] = guestId;
+    } else {
+      const emptyIdx = seats.indexOf(null);
+      if (emptyIdx === -1) {
+        return {
+          nextState: prev,
+          result: { success: false, reason: `${updatedTables[tableIdx].label} 已滿 (${MAX_SEATS} 人)` },
+        };
+      }
+      seats[emptyIdx] = guestId;
+    }
+
+    updatedTables[tableIdx] = { ...updatedTables[tableIdx], guestIds: seats };
+  } else {
+    updatedUnassigned = [...updatedUnassigned, guestId];
+  }
+
+  return {
+    nextState: {
+      ...prev,
+      guests: prev.guests.map(g =>
+        g.id === guestId ? { ...g, tableId: targetTableId } : g
+      ),
+      tables:             updatedTables,
+      unassignedGuestIds: updatedUnassigned,
+      lastSaved:          new Date().toISOString(),
+    },
+    result: { success: true },
+  };
+}
+
 /**
  * Core seating state management backed by Firebase Realtime Database.
  * Firebase is the single source of truth — all mutations auto-save with debounce.
  */
 export function useSeatingState() {
   const [state, setStateRaw] = useState(buildInitialState);
+  const stateRef = useRef(state);
   // Debounced Firebase save
   const saveTimer = useRef(null);
   const pendingState = useRef(null);
+
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
 
   const flushToFirebase = useCallback(() => {
     if (saveTimer.current && pendingState.current) {
@@ -46,6 +112,19 @@ export function useSeatingState() {
       );
       pendingState.current = null;
     }
+  }, []);
+
+  const scheduleFirebaseSave = useCallback((next) => {
+    pendingState.current = next;
+
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => {
+      saveStateToFirebase(next).catch(err =>
+        console.error('[useSeatingState] Firebase save failed:', err)
+      );
+      saveTimer.current = null;
+      pendingState.current = null;
+    }, AUTOSAVE_DEBOUNCE_MS);
   }, []);
 
   // Flush on tab hide / close
@@ -66,22 +145,16 @@ export function useSeatingState() {
    * Accepts a next-state value or a functional updater (same API as useState).
    */
   const setState = useCallback((valueOrUpdater) => {
-    setStateRaw(prev => {
-      const next = typeof valueOrUpdater === 'function' ? valueOrUpdater(prev) : valueOrUpdater;
-      pendingState.current = next;
+    const prev = stateRef.current;
+    const next = typeof valueOrUpdater === 'function' ? valueOrUpdater(prev) : valueOrUpdater;
 
-      if (saveTimer.current) clearTimeout(saveTimer.current);
-      saveTimer.current = setTimeout(() => {
-        saveStateToFirebase(next).catch(err =>
-          console.error('[useSeatingState] Firebase save failed:', err)
-        );
-        saveTimer.current = null;
-        pendingState.current = null;
-      }, AUTOSAVE_DEBOUNCE_MS);
+    if (Object.is(next, prev)) return next;
 
-      return next;
-    });
-  }, []);
+    stateRef.current = next;
+    scheduleFirebaseSave(next);
+    setStateRaw(next);
+    return next;
+  }, [scheduleFirebaseSave]);
 
   // When Firebase is unconfigured (db === null), subscribeToState is a no-op and
   // never calls our callback — fbReady would stay false forever. Initialise to
@@ -115,13 +188,16 @@ export function useSeatingState() {
       diet:    g.diet ?? g.note ?? '',
     }));
 
-    setStateRaw({
+    const nextState = {
       guests:             normalisedGuests,
       tables:             normalisedTables,
       unassignedGuestIds: fbData.unassignedGuestIds ?? [],
       tablePositions:     fbData.tablePositions     ?? {},
       lastSaved:          fbData.lastSaved          ?? null,
-    });
+    };
+
+    stateRef.current = nextState;
+    setStateRaw(nextState);
     setFbReady(true);
   });
 
@@ -179,68 +255,16 @@ export function useSeatingState() {
     }));
   }, [setState]);
 
-  // Ref to pass result out of setState's functional updater
-  const moveResultRef = useRef({ success: false });
-
   const moveGuest = useCallback((guestId, targetTableId, seatIndex = null) => {
-    moveResultRef.current = { success: false };
+    const { nextState, result } = computeGuestMove(
+      stateRef.current,
+      guestId,
+      targetTableId,
+      seatIndex
+    );
 
-    setState(prev => {
-      const guest = prev.guests.find(g => g.id === guestId);
-      if (!guest) {
-        moveResultRef.current = { success: false, reason: '賓客不存在' };
-        return prev;
-      }
-
-      // Clear current seat
-      const updatedTables = prev.tables.map(t => ({
-        ...t,
-        guestIds: t.guestIds.map(id => (id === guestId ? null : id)),
-      }));
-      let updatedUnassigned = prev.unassignedGuestIds.filter(id => id !== guestId);
-
-      if (targetTableId !== null) {
-        const tableIdx = updatedTables.findIndex(t => t.id === targetTableId);
-        if (tableIdx === -1) {
-          moveResultRef.current = { success: false, reason: '桌次不存在' };
-          return prev;
-        }
-
-        const seats = [...updatedTables[tableIdx].guestIds];
-
-        if (seatIndex !== null) {
-          if (seats[seatIndex] !== null && seats[seatIndex] !== guestId) {
-            moveResultRef.current = { success: false, reason: '該座位已有人' };
-            return prev;
-          }
-          seats[seatIndex] = guestId;
-        } else {
-          const emptyIdx = seats.indexOf(null);
-          if (emptyIdx === -1) {
-            moveResultRef.current = { success: false, reason: `${updatedTables[tableIdx].label} 已滿 (${MAX_SEATS} 人)` };
-            return prev;
-          }
-          seats[emptyIdx] = guestId;
-        }
-
-        updatedTables[tableIdx] = { ...updatedTables[tableIdx], guestIds: seats };
-      } else {
-        updatedUnassigned = [...updatedUnassigned, guestId];
-      }
-
-      moveResultRef.current = { success: true };
-      return {
-        ...prev,
-        guests: prev.guests.map(g =>
-          g.id === guestId ? { ...g, tableId: targetTableId } : g
-        ),
-        tables:             updatedTables,
-        unassignedGuestIds: updatedUnassigned,
-        lastSaved:          new Date().toISOString(),
-      };
-    });
-
-    return moveResultRef.current;
+    if (result.success) setState(nextState);
+    return result;
   }, [setState]);
 
   const swapSeatsInTable = useCallback((tableId, fromIndex, toIndex) => {
