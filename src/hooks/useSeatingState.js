@@ -388,8 +388,13 @@ export function useSeatingState() {
    * Matched by name+category; new ones added to unassigned.
    */
   const importGuests = useCallback((guestList) => {
+    // Use a ref to capture stats out of the setState updater
+    const statsRef = { added: 0, skipped: 0 };
+
     setState(prev => {
-      // Build lookup for existing guests by name+category key
+      // Build lookup for existing guests by name+category key.
+      // This includes ALL guests — unassigned AND those already seated at tables —
+      // so anyone already in the seating chart is also skipped.
       const existingKeyMap = new Map(
         prev.guests.map(g => [`${g.name}|${g.category}`, g])
       );
@@ -426,6 +431,9 @@ export function useSeatingState() {
         }
       });
 
+      statsRef.added   = newGuests.length;
+      statsRef.skipped = guestList.length - newGuests.length;
+
       return {
         ...prev,
         guests:             [...patchedGuests, ...newGuests],
@@ -433,6 +441,8 @@ export function useSeatingState() {
         lastSaved:          new Date().toISOString(),
       };
     });
+
+    return statsRef; // { added, skipped }
   }, [setState]);
 
   const resetAll = useCallback(() => {

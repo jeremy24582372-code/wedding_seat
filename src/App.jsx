@@ -103,8 +103,14 @@ export default function App() {
     try {
       const guests = await fetchGuests();
       if (guests) {
-        importGuests(guests);
-        toast.success(`已匯入 ${guests.length} 位賓客`);
+        const { added, skipped } = importGuests(guests);
+        if (added === 0) {
+          toast.info(`所有 ${skipped} 位賓客已存在（含桌次圖座位），無需重複匯入`);
+        } else if (skipped > 0) {
+          toast.success(`新增 ${added} 位賓客（略過 ${skipped} 位已存在）`);
+        } else {
+          toast.success(`已匯入 ${added} 位賓客`);
+        }
       }
     } catch (err) {
       toast.error(`匯入失敗：${err?.message ?? '未知錯誤'}`);
