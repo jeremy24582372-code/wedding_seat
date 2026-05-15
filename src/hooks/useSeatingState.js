@@ -170,6 +170,22 @@ export function useSeatingState() {
       return;
     }
 
+    // ─── 防止 Firebase 舊資料回滾本地較新的狀態 ──────────────────────────────
+    // 當 debounce 尚未寫入 Firebase 時，Firebase listener 可能收到「比本地還舊」
+    // 的快照，若直接覆蓋 stateRef 會導致剛匯入的賓客消失，下次匯入誤判無重複。
+    const localLastSaved  = stateRef.current.lastSaved;
+    const remoteLastSaved = fbData.lastSaved ?? null;
+    if (
+      localLastSaved &&
+      remoteLastSaved &&
+      new Date(remoteLastSaved) < new Date(localLastSaved)
+    ) {
+      // Firebase 資料較舊 — 等待 debounce 把本地狀態寫上去後再同步
+      // 仍要標記 fbReady，避免 UI 永久 loading
+      setFbReady(true);
+      return;
+    }
+
     // Normalise: Firebase drops null values in arrays; restore them
     const normalisedTables = (fbData.tables ?? []).map(t => ({
       ...t,
@@ -373,26 +389,46 @@ export function useSeatingState() {
    */
   const importGuests = useCallback((guestList) => {
     setState(prev => {
-      const existingKeys = new Set(prev.guests.map(g => `${g.name}|${g.category}`));
+      // Build lookup for existing guests by name+category key
+      const existingKeyMap = new Map(
+        prev.guests.map(g => [`${g.name}|${g.category}`, g])
+      );
+
+      const newGuests = [];
+      // For guests that already exist, patch their diet if the incoming value
+      // is non-empty and differs from what's stored (covers the case where
+      // dietary info was added to the source sheet after the first import).
+      const patchedGuests = prev.guests.map(existing => {
+        const matchKey = `${existing.name}|${existing.category}`;
+        const incoming = guestList.find(g => {
+          const cat = (g.category || '').trim() || '其他';
+          return `${g.name.trim()}|${cat}` === matchKey;
+        });
+        if (incoming && incoming.diet?.trim() && incoming.diet.trim() !== existing.diet) {
+          return { ...existing, diet: incoming.diet.trim() };
+        }
+        return existing;
+      });
+
       // Normalise category BEFORE dedup comparison so the key matches
       // how data is stored in Firebase (empty string → '其他').
-      const newGuests = guestList
-        .filter(g => {
-          const cat = (g.category || '').trim() || '其他';
-          return !existingKeys.has(`${g.name.trim()}|${cat}`);
-        })
-        .map(g => ({
-          id:       uuidv4(),
-          name:     g.name.trim(),
-          category: (g.category || '').trim() || '其他',
-          diet:     g.diet?.trim() || '',
-          tableId:  null,
-          source:   'import', // 從 Google Sheets 匯入 → 不回寫
-        }));
+      guestList.forEach(g => {
+        const cat = (g.category || '').trim() || '其他';
+        if (!existingKeyMap.has(`${g.name.trim()}|${cat}`)) {
+          newGuests.push({
+            id:       uuidv4(),
+            name:     g.name.trim(),
+            category: cat,
+            diet:     g.diet?.trim() || '',
+            tableId:  null,
+            source:   'import', // 從 Google Sheets 匯入 → 不回寫
+          });
+        }
+      });
 
       return {
         ...prev,
-        guests:             [...prev.guests, ...newGuests],
+        guests:             [...patchedGuests, ...newGuests],
         unassignedGuestIds: [...prev.unassignedGuestIds, ...newGuests.map(g => g.id)],
         lastSaved:          new Date().toISOString(),
       };
