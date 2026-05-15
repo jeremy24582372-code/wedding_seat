@@ -168,8 +168,10 @@ export default function TableZone({ table, guests, onMoveOut, onRename, onRemove
     <article
       className={[
         'table-zone',
-        isFull ? 'table-zone--full' : '',
+        isFull ? 'table-zone--full table-zone--locked' : '',
       ].filter(Boolean).join(' ')}
+      data-full={isFull ? 'true' : 'false'}
+      aria-label={`${table.label}，${filledCount}/${MAX_SEATS} 人${isFull ? '，已滿桌' : ''}`}
     >
       {/* ── Circular diagram ── */}
       <div
@@ -264,7 +266,7 @@ export default function TableZone({ table, guests, onMoveOut, onRename, onRemove
         >
           ✕ 刪除
         </button>
-        {isFull && <span className="table-zone__full-badge">已滿桌</span>}
+        {isFull && <span className="table-zone__full-badge">已滿 · 10 人</span>}
       </footer>
     </article>
   );

@@ -24,7 +24,7 @@
   border-radius: var(--radius-lg, 12px);
   border: 1px solid transparent;
   backdrop-filter: blur(12px);
-  box-shadow: 0 8px 32px oklch(5% 0.01 55 / 0.7), 0 2px 8px oklch(5% 0.01 55 / 0.4);
+  box-shadow: var(--shadow-card-hover);
   font-size: var(--text-sm, 0.875rem);
   line-height: 1.5;
   pointer-events: auto;
@@ -45,39 +45,39 @@
 
 /* ── 類型樣式 ── */
 .toast--success {
-  background: oklch(17% 0.016 55 / 0.92);
-  border-color: oklch(70% 0.18 150 / 0.4);
-  color: var(--color-text-primary, oklch(94% 0.012 83));
+  background: color-mix(in oklch, var(--color-success), white 91%);
+  border-color: color-mix(in oklch, var(--color-success), white 62%);
+  color: var(--color-text-primary);
 }
 .toast--success .toast__icon {
-  color: var(--color-success, oklch(70% 0.18 150));
+  color: var(--color-success);
 }
 
 .toast--error {
-  background: oklch(17% 0.016 55 / 0.95);
-  border-color: oklch(65% 0.22 25 / 0.5);
-  color: var(--color-text-primary, oklch(94% 0.012 83));
+  background: color-mix(in oklch, var(--color-danger), white 91%);
+  border-color: color-mix(in oklch, var(--color-danger), white 60%);
+  color: var(--color-text-primary);
 }
 .toast--error .toast__icon {
-  color: var(--color-danger, oklch(65% 0.22 25));
+  color: var(--color-danger);
 }
 
 .toast--warn {
-  background: oklch(17% 0.016 55 / 0.92);
-  border-color: oklch(78% 0.18 65 / 0.4);
-  color: var(--color-text-primary, oklch(94% 0.012 83));
+  background: color-mix(in oklch, var(--color-warning), white 90%);
+  border-color: color-mix(in oklch, var(--color-warning), white 58%);
+  color: var(--color-text-primary);
 }
 .toast--warn .toast__icon {
-  color: var(--color-warning, oklch(78% 0.18 65));
+  color: var(--color-warning);
 }
 
 .toast--info {
-  background: oklch(17% 0.016 55 / 0.92);
-  border-color: oklch(76% 0.14 83 / 0.35);
-  color: var(--color-text-primary, oklch(94% 0.012 83));
+  background: var(--color-accent-dim);
+  border-color: color-mix(in oklch, var(--color-accent), white 58%);
+  color: var(--color-text-primary);
 }
 .toast--info .toast__icon {
-  color: var(--color-accent, oklch(76% 0.14 83));
+  color: var(--color-accent);
 }
 
 /* ── 子元素 ── */
@@ -101,7 +101,7 @@
   padding: 0;
   font-size: 0.75rem;
   line-height: 1;
-  color: var(--color-text-muted, oklch(50% 0.015 55));
+  color: var(--color-text-muted);
   cursor: pointer;
   opacity: 0.6;
   transition: opacity var(--transition-fast, 120ms ease);

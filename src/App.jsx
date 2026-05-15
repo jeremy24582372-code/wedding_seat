@@ -166,11 +166,16 @@ export default function App() {
         const from = findGuestSeat(state.tables, guestId);
         if (from) {
           swapGuestsBetweenSeats(from.tableId, from.seatIndex, targetTableId, seatIndex);
+        } else {
+          toast.warn('此座位已有人；請拖到空位，或先移出原賓客。');
         }
         return;
       }
       const result = moveGuest(guestId, targetTableId, seatIndex);
-      if (!result.success) console.warn('[DnD] moveGuest rejected:', result.reason);
+      if (!result.success) {
+        console.warn('[DnD] moveGuest rejected:', result.reason);
+        toast.warn(result.reason ?? '無法放入此桌');
+      }
       return;
     }
 
@@ -184,11 +189,16 @@ export default function App() {
       const from = findGuestSeat(state.tables, guestId);
       if (from) {
         swapGuestsBetweenSeats(from.tableId, from.seatIndex, hit.tableId, hit.seatIndex);
+      } else {
+        toast.warn('此座位已有人；請拖到空位，或先移出原賓客。');
       }
       return;
     }
     const result = moveGuest(guestId, hit.tableId, hit.seatIndex);
-    if (!result.success) console.warn('[DnD] moveGuest rejected:', result.reason);
+    if (!result.success) {
+      console.warn('[DnD] moveGuest rejected:', result.reason);
+      toast.warn(result.reason ?? '無法放入此桌');
+    }
   };
 
   const handleDragCancel = () => {

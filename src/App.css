@@ -1,58 +1,62 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap');
 
 /* ============================================================
    DESIGN TOKENS
    ============================================================ */
 :root {
   /* Backgrounds */
-  --color-bg-base:    oklch(12% 0.012 55);
-  --color-bg-surface: oklch(17% 0.016 55);
-  --color-bg-card:    oklch(21% 0.020 55);
-  --color-bg-card-hover: oklch(25% 0.024 55);
-  --color-bg-input:   oklch(19% 0.018 55);
-  --color-bg-overlay: oklch(5% 0.01 55 / 0.85);
+  --color-bg-base:       oklch(97.5% 0.012 82);
+  --color-bg-surface:    oklch(99% 0.006 82 / 0.9);
+  --color-bg-card:       oklch(99.6% 0.004 82);
+  --color-bg-card-hover: oklch(97.2% 0.014 82);
+  --color-bg-input:      oklch(99% 0.006 82);
+  --color-bg-overlay:    oklch(22% 0.026 42 / 0.42);
+  --color-bg-canvas:     oklch(95.5% 0.014 82);
 
-  /* Accent — Warm Gold */
-  --color-accent:       oklch(76% 0.14 83);
-  --color-accent-light: oklch(86% 0.10 83);
-  --color-accent-dim:   oklch(76% 0.14 83 / 0.2);
-  --color-accent-glow:  oklch(76% 0.14 83 / 0.4);
+  /* Accent — restrained deep rose + warm gold */
+  --color-accent:       oklch(47% 0.135 18);
+  --color-accent-light: oklch(58% 0.11 18);
+  --color-accent-dim:   oklch(94% 0.045 18);
+  --color-accent-glow:  oklch(47% 0.135 18 / 0.16);
+  --color-gold:         oklch(60% 0.105 78);
+  --color-gold-dim:     oklch(94% 0.04 78);
 
   /* Text */
-  --color-text-primary: oklch(94% 0.012 83);
-  --color-text-secondary: oklch(70% 0.020 83);
-  --color-text-muted:   oklch(50% 0.015 55);
-  --color-text-inverse: oklch(15% 0.012 55);
+  --color-text-primary:   oklch(23% 0.026 42);
+  --color-text-secondary: oklch(42% 0.026 42);
+  --color-text-muted:     oklch(58% 0.022 42);
+  --color-text-inverse:   oklch(98% 0.006 82);
 
   /* Borders */
-  --color-border:       oklch(30% 0.022 55);
-  --color-border-light: oklch(38% 0.026 55);
-  --color-border-accent: oklch(76% 0.14 83 / 0.5);
+  --color-border:        oklch(86% 0.018 82);
+  --color-border-light:  oklch(76% 0.028 82);
+  --color-border-accent: oklch(64% 0.07 78 / 0.45);
 
   /* Status */
-  --color-success: oklch(70% 0.18 150);
-  --color-warning: oklch(78% 0.18 65);
-  --color-danger:  oklch(65% 0.22 25);
-  --color-drop-active: oklch(68% 0.16 200);
-  --color-drop-active-bg: oklch(68% 0.16 200 / 0.12);
-  --color-full-table: oklch(65% 0.22 25 / 0.12);
+  --color-success: oklch(45% 0.12 155);
+  --color-warning: oklch(56% 0.12 72);
+  --color-danger:  oklch(50% 0.15 25);
+  --color-drop-active: oklch(48% 0.12 205);
+  --color-drop-active-bg: oklch(93% 0.045 205);
+  --color-full-table: oklch(93% 0.045 25);
 
   /* Guest Category Colors — WCAG AA + Colorblind-safe */
-  --color-cat-groom:     oklch(68% 0.16 265);  /* 藍紫 — 男方親友 */
-  --color-cat-bride:     oklch(70% 0.16 0);    /* 玫瑰紅 — 女方親友 */
-  --color-cat-mutual:    oklch(68% 0.16 145);  /* 翠綠 — 共同朋友 */
-  --color-cat-colleague: oklch(74% 0.16 55);   /* 琥珀 — 同事 */
-  --color-cat-other:     oklch(60% 0.06 55);   /* 中性灰 — 其他 */
+  --color-cat-groom:     oklch(43% 0.13 260);
+  --color-cat-groom-bg:  oklch(94% 0.04 260);
+  --color-cat-bride:     oklch(44% 0.14 18);
+  --color-cat-bride-bg:  oklch(94% 0.045 18);
+  --color-cat-mutual:    oklch(42% 0.11 158);
+  --color-cat-mutual-bg: oklch(94% 0.04 158);
+  --color-cat-colleague: oklch(43% 0.095 78);
+  --color-cat-colleague-bg: oklch(94% 0.04 78);
+  --color-cat-other:     oklch(40% 0.025 250);
+  --color-cat-other-bg:  oklch(94% 0.012 250);
 
   /* Typography
    * 中文 Fallback 順序：繁體優先 (JhengHei / PingFang TC)，次為簡體，再回退 system-ui
    */
-  --font-display: 'Cormorant Garamond', 'Georgia',
-                  'Microsoft JhengHei', 'PingFang TC',
-                  'Noto Serif TC', serif;
-  --font-body:    'DM Sans', system-ui,
-                  'Microsoft JhengHei', 'PingFang TC',
-                  'Noto Sans TC', sans-serif;
+  --font-display: 'Geist', 'Noto Sans TC', 'Microsoft JhengHei', 'PingFang TC', system-ui, sans-serif;
+  --font-body:    'Geist', 'Noto Sans TC', 'Microsoft JhengHei', 'PingFang TC', system-ui, sans-serif;
 
   --text-xs:   0.75rem;
   --text-sm:   0.875rem;
@@ -75,25 +79,26 @@
   --space-12: 3rem;
 
   /* Radius */
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
   --radius-full: 9999px;
 
   /* Shadows */
-  --shadow-card: 0 2px 12px oklch(5% 0.01 55 / 0.6);
-  --shadow-card-hover: 0 8px 32px oklch(5% 0.01 55 / 0.8), 0 0 0 1px var(--color-border-accent);
-  --shadow-drag: 0 16px 48px oklch(5% 0.01 55 / 0.9), 0 0 0 1px var(--color-accent);
-  --shadow-glow: 0 0 24px var(--color-accent-glow);
+  --shadow-card: 0 1px 2px oklch(30% 0.03 60 / 0.06), 0 14px 34px oklch(30% 0.03 60 / 0.10);
+  --shadow-card-hover: 0 2px 4px oklch(30% 0.03 60 / 0.08), 0 18px 42px oklch(30% 0.03 60 / 0.14);
+  --shadow-drag: 0 20px 48px oklch(30% 0.03 60 / 0.18), 0 0 0 1px var(--color-accent);
+  --shadow-glow: 0 8px 22px var(--color-accent-glow);
 
   /* Transitions */
-  --transition-fast: 120ms ease;
-  --transition-base: 220ms ease;
-  --transition-slow: 380ms ease;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-fast: 160ms var(--ease-out);
+  --transition-base: 240ms var(--ease-out);
+  --transition-slow: 380ms var(--ease-out);
 
   /* Layout */
-  --sidebar-width: 320px;
+  --sidebar-width: 360px;
   --toolbar-height: 64px;
 }
 
@@ -114,20 +119,17 @@ html {
 
 body {
   font-family: var(--font-body);
-  background-color: var(--color-bg-base);
+  background:
+    linear-gradient(180deg, oklch(99% 0.006 82) 0%, var(--color-bg-base) 42%, oklch(96% 0.012 82) 100%);
   color: var(--color-text-primary);
-  min-height: 100vh;
+  min-height: 100dvh;
   overflow-x: hidden;
-
-  /* Subtle grain texture for depth */
-  background-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
 }
 
 h1, h2, h3 {
   font-family: var(--font-display);
-  font-weight: 500;
-  letter-spacing: 0.02em;
+  font-weight: 650;
+  letter-spacing: 0;
 }
 
 button {
@@ -168,8 +170,17 @@ input, textarea, select {
   border: 1px solid transparent;
   font-size: var(--text-sm);
   font-weight: 500;
-  transition: all var(--transition-fast);
+  transition:
+    transform var(--transition-fast),
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast),
+    box-shadow var(--transition-fast);
   white-space: nowrap;
+}
+
+.btn:active {
+  transform: scale(0.98);
 }
 
 .btn-primary {
@@ -178,8 +189,8 @@ input, textarea, select {
   border-color: var(--color-accent);
 }
 .btn-primary:hover {
-  filter: brightness(1.1);
   box-shadow: var(--shadow-glow);
+  background: var(--color-accent-light);
 }
 
 .btn-secondary {
@@ -209,7 +220,7 @@ input, textarea, select {
 }
 .btn-danger:hover {
   background: var(--color-danger);
-  color: white;
+  color: var(--color-text-inverse);
 }
 
 .btn-success {
@@ -225,11 +236,11 @@ input, textarea, select {
 /* Sync button — uses teal-ish accent */
 .btn-sync {
   background: transparent;
-  color: oklch(72% 0.17 195);
-  border-color: oklch(72% 0.17 195);
+  color: var(--color-drop-active);
+  border-color: color-mix(in oklch, var(--color-drop-active), white 30%);
 }
 .btn-sync:hover {
-  background: oklch(72% 0.17 195 / 0.12);
+  background: var(--color-drop-active-bg);
 }
 .btn-sync:disabled {
   opacity: 0.5;
@@ -242,13 +253,20 @@ input, textarea, select {
 #root {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  min-height: 100dvh;
+}
+
+#root-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
 }
 
 .app-layout {
   display: flex;
   flex: 1;
   overflow: hidden;
+  min-height: 0;
 }
 
 .app-sidebar {
@@ -258,14 +276,16 @@ input, textarea, select {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: var(--color-bg-surface);
+  background:
+    linear-gradient(180deg, var(--color-bg-surface), oklch(98.3% 0.01 82 / 0.92));
+  backdrop-filter: blur(14px);
 }
 
 .app-main {
   flex: 1;
   overflow: hidden;   /* FloorPlan manages its own viewport */
   padding: 0;         /* No padding — canvas fills the full area */
-  background: var(--color-bg-base);
+  background: var(--color-bg-canvas);
   position: relative;
 }
 
@@ -320,10 +340,47 @@ input, textarea, select {
    PRINT STYLES
    ============================================================ */
 @media print {
+  @page {
+    size: A4 portrait;
+    margin: 8mm;
+  }
+
+  html,
+  body {
+    background: white !important;
+    color: #171717 !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .toolbar,
   .app-sidebar,
-  .toolbar { display: none; }
-  .app-main { padding: 0; overflow: visible; }
-  .tables-grid { grid-template-columns: repeat(3, 1fr); }
+  .firebase-status,
+  .toast-container,
+  .floor-plan__controls,
+  .floor-plan__legend {
+    display: none !important;
+  }
+
+  #root,
+  #root-layout,
+  .app-layout,
+  .app-main,
+  .floor-plan,
+  .floor-plan__viewport {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
+
+  .app-main {
+    padding: 0 !important;
+    background: white !important;
+  }
+
+  .tables-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 /* ============================================================
@@ -335,7 +392,7 @@ input, textarea, select {
   align-items: center;
   justify-content: center;
   gap: var(--space-4);
-  height: 100vh;
+  min-height: 100dvh;
   background: var(--color-bg-base);
   color: var(--color-text-secondary);
   font-family: var(--font-display);
@@ -373,7 +430,7 @@ input, textarea, select {
   letter-spacing: 0.03em;
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border);
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(12px);
   z-index: 500;
   cursor: default;
   transition: opacity var(--transition-base);
@@ -389,15 +446,15 @@ input, textarea, select {
 }
 
 /* Connected — green pulse */
-.firebase-status--connected { color: var(--color-success); border-color: oklch(70% 0.18 150 / 0.3); }
+.firebase-status--connected { color: var(--color-success); border-color: color-mix(in oklch, var(--color-success), white 68%); }
 .firebase-status--connected .firebase-status__dot {
   background: var(--color-success);
-  box-shadow: 0 0 0 0 oklch(70% 0.18 150 / 0.6);
+  box-shadow: 0 0 0 0 color-mix(in oklch, var(--color-success), transparent 40%);
   animation: fb-pulse 2s ease-in-out infinite;
 }
 
 /* Disconnected — red static */
-.firebase-status--disconnected { color: var(--color-danger); border-color: oklch(65% 0.22 25 / 0.3); }
+.firebase-status--disconnected { color: var(--color-danger); border-color: color-mix(in oklch, var(--color-danger), white 68%); }
 .firebase-status--disconnected .firebase-status__dot { background: var(--color-danger); }
 
 /* Unconfigured — muted */
@@ -405,9 +462,9 @@ input, textarea, select {
 .firebase-status--unconfigured .firebase-status__dot { background: var(--color-text-muted); }
 
 @keyframes fb-pulse {
-  0%   { box-shadow: 0 0 0 0   oklch(70% 0.18 150 / 0.6); }
-  70%  { box-shadow: 0 0 0 6px oklch(70% 0.18 150 / 0);   }
-  100% { box-shadow: 0 0 0 0   oklch(70% 0.18 150 / 0);   }
+  0%   { box-shadow: 0 0 0 0 color-mix(in oklch, var(--color-success), transparent 40%); }
+  70%  { box-shadow: 0 0 0 6px color-mix(in oklch, var(--color-success), transparent 100%); }
+  100% { box-shadow: 0 0 0 0 color-mix(in oklch, var(--color-success), transparent 100%); }
 }
 
 /* ============================================================
@@ -417,7 +474,7 @@ input, textarea, select {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
+  min-height: 100dvh;
   background: var(--color-bg-base);
   padding: var(--space-6);
 }

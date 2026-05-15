@@ -223,6 +223,9 @@ function buildPrintHTML(state) {
       color: #1a1a1a;
       background: #fff;
       padding: 16mm 14mm 12mm;
+      text-rendering: geometricPrecision;
+      print-color-adjust: exact;
+      -webkit-print-color-adjust: exact;
     }
 
     /* ── Header ── */
@@ -257,6 +260,7 @@ function buildPrintHTML(state) {
       border-radius: 5px;
       overflow: hidden;
       break-inside: avoid;
+      page-break-inside: avoid;
     }
     .table-card--full .table-head { background: #f0e8d0; }
 
@@ -280,6 +284,7 @@ function buildPrintHTML(state) {
       gap: 5px;
       padding: 1.5px 9px;
       font-size: 9pt;
+      min-height: 16px;
     }
     .guest-empty { opacity: 0.28; }
 
@@ -332,6 +337,11 @@ function buildPrintHTML(state) {
       @page { margin: 12mm; size: A4; }
       .tables-grid { grid-template-columns: repeat(3, 1fr); }
       .unassigned-list { columns: 4; }
+      .table-card,
+      .unassigned {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
     }
   </style>
 </head>
@@ -535,6 +545,9 @@ function buildFloorPrintHTML(state) {
       background: #fff;
       padding: 10mm 12mm 8mm;
       color: #1a1a1a;
+      text-rendering: geometricPrecision;
+      print-color-adjust: exact;
+      -webkit-print-color-adjust: exact;
     }
     .page-title {
       font-size: 18pt;
@@ -562,6 +575,10 @@ function buildFloorPrintHTML(state) {
       background: #fffdf7;
       border: 1px solid #e8dfc8;
       border-radius: 4px;
+      shape-rendering: geometricPrecision;
+      text-rendering: geometricPrecision;
+      print-color-adjust: exact;
+      -webkit-print-color-adjust: exact;
     }
     .legend {
       display: flex;
@@ -622,4 +639,3 @@ function buildFloorPrintHTML(state) {
 </body>
 </html>`;
 }
-
