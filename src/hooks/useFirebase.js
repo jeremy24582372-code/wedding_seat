@@ -60,8 +60,8 @@ export async function syncToGoogleSheets(state, sheetsUrl) {
     return { success: false, error: '尚未設定 VITE_SHEETS_URL' };
   }
 
-  // Build payload for all guests. Imported guests update their existing sheet
-  // rows; manual guests are appended by the Apps Script if the name is new.
+  // Build payload for all guests. The Apps Script overwrites the sync target
+  // sheet with the current seating state on each sync.
   const payload = buildGoogleSheetsPayload(state);
 
   try {
