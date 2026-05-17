@@ -1,13 +1,16 @@
 import { useState, useCallback } from 'react';
+import { normalizeCategory } from '../utils/constants';
 
 /**
  * Fetches guest data from Google Apps Script Web App.
  *
  * Expected Google Sheets columns (order independent, matched by header name):
- *   姓名 | 關係分類 | 飲食 | 桌次
+ *   姓名 | 關係分類 | 桌次
+ * 飲食 is optional legacy data; the current import source no longer includes it.
+ * 關係分類 accepts built-in values and guest-provided custom labels.
  *
  * Expected JSON shape from Apps Script:
- *   [{ name: string, category: string, diet: string, tableLabel?: string }, ...]
+ *   [{ name: string, category: string, tableLabel?: string, diet?: string }, ...]
  */
 export function useGoogleSheets() {
   const [loading, setLoading] = useState(false);
@@ -38,8 +41,9 @@ export function useGoogleSheets() {
 
       return data.map(row => ({
         name:     String(row.name     || row['姓名']   || '').trim(),
-        category: String(row.category || row['關係分類'] || row['關係'] || '其他').trim(),
-        // `diet` replaces `note` — supports both English key and Chinese header
+        category: normalizeCategory(row.category ?? row['關係分類'] ?? row['關係']),
+        tableLabel: String(row.tableLabel ?? row.table ?? row['桌次'] ?? '').trim(),
+        // Legacy optional field; current source sheets do not need it.
         diet:     String(row.diet     || row['飲食']   || '').trim(),
       })).filter(g => g.name.length > 0);
 

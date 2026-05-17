@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import './AddGuestModal.css';
-import { CATEGORIES } from '../utils/constants';
+import { CATEGORIES, isBuiltinCategory, normalizeCategory } from '../utils/constants';
 
 /**
  * Modal for adding a new guest OR editing an existing one.
@@ -15,9 +15,14 @@ export default function AddGuestModal({ onAdd, onUpdate, onClose, initialGuest }
   const isEditMode = Boolean(initialGuest);
 
   const [name, setName]         = useState(initialGuest?.name     ?? '');
-  const [category, setCategory] = useState(initialGuest?.category ?? '其他');
+  const [category, setCategory] = useState(normalizeCategory(initialGuest?.category));
   const [diet, setDiet]         = useState(initialGuest?.diet     ?? '葷食');
   const [error, setError]       = useState('');
+
+  const categoryOptions = useMemo(() => {
+    if (!category || isBuiltinCategory(category)) return CATEGORIES;
+    return [...CATEGORIES, { id: category, label: `${category}（自訂）` }];
+  }, [category]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -27,9 +32,9 @@ export default function AddGuestModal({ onAdd, onUpdate, onClose, initialGuest }
     }
 
     if (isEditMode) {
-      onUpdate(initialGuest.id, { name: name.trim(), category, diet });
+      onUpdate(initialGuest.id, { name: name.trim(), category: normalizeCategory(category), diet });
     } else {
-      onAdd({ name: name.trim(), category, diet });
+      onAdd({ name: name.trim(), category: normalizeCategory(category), diet });
     }
     onClose();
   };
@@ -88,7 +93,7 @@ export default function AddGuestModal({ onAdd, onUpdate, onClose, initialGuest }
               value={category}
               onChange={e => setCategory(e.target.value)}
             >
-              {CATEGORIES.map(cat => (
+              {categoryOptions.map(cat => (
                 <option key={cat.id} value={cat.id}>{cat.label}</option>
               ))}
             </select>

@@ -103,13 +103,35 @@ export default function App() {
     try {
       const guests = await fetchGuests();
       if (guests) {
-        const { added, skipped } = importGuests(guests);
-        if (added === 0) {
+        if (guests.length === 0) {
+          toast.info('來源試算表沒有可匯入的賓客');
+          return;
+        }
+
+        const {
+          added,
+          skipped,
+          assigned = 0,
+          createdTables = 0,
+          unassignedDueToFullTables = 0,
+        } = importGuests(guests);
+
+        const details = [];
+        if (assigned > 0) details.push(`依桌次安排 ${assigned} 位`);
+        if (createdTables > 0) details.push(`新增 ${createdTables} 張桌次`);
+        if (unassignedDueToFullTables > 0) {
+          details.push(`${unassignedDueToFullTables} 位因桌次已滿保留未分配`);
+        }
+        const suffix = details.length > 0 ? `（${details.join('，')}）` : '';
+
+        if (added === 0 && details.length === 0) {
           toast.info(`所有 ${skipped} 位賓客已存在（含桌次圖座位），無需重複匯入`);
+        } else if (added === 0) {
+          toast.success(`已更新既有賓客${suffix}`);
         } else if (skipped > 0) {
-          toast.success(`新增 ${added} 位賓客（略過 ${skipped} 位已存在）`);
+          toast.success(`新增 ${added} 位賓客，略過 ${skipped} 位已存在或重複${suffix}`);
         } else {
-          toast.success(`已匯入 ${added} 位賓客`);
+          toast.success(`已匯入 ${added} 位賓客${suffix}`);
         }
       }
     } catch (err) {

@@ -2,15 +2,7 @@ import { useState, useRef, useCallback } from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import './GuestCard.css';
-
-// Maps category ID to CSS token
-const CAT_TOKENS = {
-  '男方親友': 'var(--color-cat-groom)',
-  '女方親友': 'var(--color-cat-bride)',
-  '共同朋友': 'var(--color-cat-mutual)',
-  '同事':     'var(--color-cat-colleague)',
-  '其他':     'var(--color-cat-other)',
-};
+import { getCategoryVisual } from '../utils/constants';
 
 /**
  * Draggable guest card.
@@ -31,7 +23,7 @@ export default function GuestCard({ guest, onRemove, onEdit, onDelete, compact =
     transform: CSS.Translate.toString(transform),
   };
 
-  const catColor = CAT_TOKENS[guest.category] || CAT_TOKENS['其他'];
+  const categoryVisual = getCategoryVisual(guest.category);
 
   // ── 二次確認刪除狀態 ────────────────────────────────────────────
   const [pendingDelete, setPendingDelete] = useState(false);
@@ -85,13 +77,13 @@ export default function GuestCard({ guest, onRemove, onEdit, onDelete, compact =
         onRemove?.();
       }}
       onMouseLeave={handleMouseLeave}
-      title={`${guest.name}｜${guest.category}${guest.diet ? `｜飲食: ${guest.diet}` : ''}\n右鍵 → 移回未分配`}
+      title={`${guest.name}｜${categoryVisual.label}${guest.diet ? `｜飲食: ${guest.diet}` : ''}\n右鍵 → 移回未分配`}
     >
       {/* Category color bar */}
       <span
         className="guest-card__cat-bar"
-        style={{ background: catColor }}
-        aria-label={guest.category}
+        style={{ background: categoryVisual.color }}
+        aria-label={categoryVisual.label}
       />
 
       <div className="guest-card__body">
@@ -107,9 +99,9 @@ export default function GuestCard({ guest, onRemove, onEdit, onDelete, compact =
       {!compact && (
         <span
           className="guest-card__cat-badge"
-          style={{ color: catColor }}
+          style={{ color: categoryVisual.color }}
         >
-          {guest.category}
+          {categoryVisual.label}
         </span>
       )}
 

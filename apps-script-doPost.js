@@ -10,8 +10,15 @@
  *      - 存取權：任何人
  *   5. 複製「網頁應用程式 URL」→ 貼到 .env 的 VITE_SHEETS_URL
  *
- * 試算表結構（第一列為標題）：
+ * 匯入來源試算表結構（第一列為標題）：
+ *   A: 姓名 | B: 關係分類 | C: 桌次
+ *   飲食欄位已從匯入來源移除；若舊來源仍有「飲食」欄，會相容讀取但不要求存在。
+ *
+ * 同步回寫目標結構：
  *   A: 姓名 | B: 關係分類 | C: 飲食 | D: 桌次
+ * 關係分類：
+ *   正式分類為「新郎親友 / 新娘親友 / 共同朋友 / 同事 / 其他」；
+ *   賓客自行填寫的其他分類也會原樣讀取與回寫。
  * =========================================================
  */
 
@@ -43,15 +50,19 @@ function doGet() {
     diet: headers.indexOf('飲食'),
     table: headers.indexOf('桌次'),
   };
+  if (idx.name < 0) throw new Error('Import sheet missing required header: 姓名');
 
   const guests = rows.slice(1)
     .filter(r => r[idx.name])
-    .map(r => ({
-      name: String(r[idx.name]).trim(),
-      category: idx.category >= 0 ? String(r[idx.category] ?? '').trim() : '其他',
-      diet: idx.diet >= 0 ? String(r[idx.diet] ?? '').trim() : '',
-      table: idx.table >= 0 ? String(r[idx.table] ?? '').trim() : '',
-    }));
+    .map(r => {
+      const guest = {
+        name: String(r[idx.name]).trim(),
+        category: idx.category >= 0 ? String(r[idx.category] ?? '').trim() : '其他',
+        tableLabel: idx.table >= 0 ? String(r[idx.table] ?? '').trim() : '',
+      };
+      if (idx.diet >= 0) guest.diet = String(r[idx.diet] ?? '').trim();
+      return guest;
+    });
 
   return ContentService
     .createTextOutput(JSON.stringify(guests))
@@ -64,7 +75,7 @@ function doGet() {
  *
  * 預期接收的 JSON 格式：
  * [
- *   { "name": "王小明", "category": "男方親友", "diet": "葷食", "tableLabel": "桌 3" },
+ *   { "name": "王小明", "category": "新郎親友", "diet": "葷食", "tableLabel": "3桌" },
  *   ...
  * ]
  */

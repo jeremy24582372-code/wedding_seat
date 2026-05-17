@@ -1,15 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import './TableZone.css';
-import { MAX_SEATS } from '../utils/constants';
-
-const CATEGORY_CLASS = {
-  '男方親友': 'cat-groom',
-  '女方親友': 'cat-bride',
-  '共同朋友': 'cat-mutual',
-  '同事':     'cat-colleague',
-  '其他':     'cat-other',
-};
+import { MAX_SEATS, getCategoryVisual } from '../utils/constants';
 
 /**
  * Calculate the (x, y) position of a seat on a circle.
@@ -34,7 +26,7 @@ function SeatSlot({ tableId, seatIndex, guest, onMoveOut, onEdit, onDelete, cx, 
     data: { tableId, seatIndex, isEmpty }, // isEmpty passed for accurate drop validation
   });
 
-  const catClass = guest ? (CATEGORY_CLASS[guest.category] ?? 'cat-other') : '';
+  const categoryVisual = guest ? getCategoryVisual(guest.category) : null;
 
   const style = {
     left:   cx - seatR,
@@ -42,6 +34,12 @@ function SeatSlot({ tableId, seatIndex, guest, onMoveOut, onEdit, onDelete, cx, 
     width:  seatR * 2,
     height: seatR * 2,
     position: 'absolute',
+    ...(categoryVisual
+      ? {
+        '--seat-cat-border': categoryVisual.floorBorder,
+        '--seat-cat-bg': categoryVisual.floorBackground,
+      }
+      : {}),
   };
 
   // data-* attrs are used by elementFromPoint in handleDragEnd
@@ -86,10 +84,10 @@ function SeatSlot({ tableId, seatIndex, guest, onMoveOut, onEdit, onDelete, cx, 
   return (
     <button
       ref={setNodeRef}
-      className={`table-zone__seat table-zone__seat--filled ${catClass}`}
+      className="table-zone__seat table-zone__seat--filled"
       style={style}
       onClick={() => onMoveOut(guest.id)}
-      title={`${guest.name}（${guest.category}）${guest.diet ? '\n飲食: ' + guest.diet : ''}\n點擊移回未分配`}
+      title={`${guest.name}（${categoryVisual.label}）${guest.diet ? '\n飲食: ' + guest.diet : ''}\n點擊移回未分配`}
       aria-label={`${guest.name}，點擊移回未分配`}
       {...dataAttrs}
     >

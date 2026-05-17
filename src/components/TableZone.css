@@ -147,7 +147,8 @@
 }
 
 .table-zone__seat--filled {
-  background: var(--color-bg-card);
+  border-color: var(--seat-cat-border, var(--color-cat-other));
+  background: var(--seat-cat-bg, var(--color-bg-card));
   box-shadow:
     inset 0 1px 0 oklch(100% 0 0 / 0.9),
     0 2px 8px oklch(40% 0.04 75 / 0.14);
@@ -163,29 +164,6 @@
 
 .table-zone__seat:active {
   transform: scale(0.96);
-}
-
-/* ── Category colour rings ── */
-/* Each category gets a distinct border + soft fill so guests are distinguishable at a glance. */
-.table-zone__seat.cat-groom {
-  border-color: var(--color-cat-groom);
-  background: var(--color-cat-groom-bg);
-}
-.table-zone__seat.cat-bride {
-  border-color: var(--color-cat-bride);
-  background: var(--color-cat-bride-bg);
-}
-.table-zone__seat.cat-mutual {
-  border-color: var(--color-cat-mutual);
-  background: var(--color-cat-mutual-bg);
-}
-.table-zone__seat.cat-colleague {
-  border-color: var(--color-cat-colleague);
-  background: var(--color-cat-colleague-bg);
-}
-.table-zone__seat.cat-other {
-  border-color: var(--color-cat-other);
-  background: var(--color-cat-other-bg);
 }
 
 /* ── Seat name text ── */

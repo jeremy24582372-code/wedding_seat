@@ -1,6 +1,13 @@
 import { useCallback } from 'react';
 import * as XLSX from 'xlsx';
-import { CANVAS_WIDTH, CANVAS_HEIGHT, defaultTablePosition } from '../utils/constants';
+import {
+  CANVAS_WIDTH,
+  CANVAS_HEIGHT,
+  buildCategoryOptions,
+  defaultTablePosition,
+  getCategoryVisual,
+  normalizeCategory,
+} from '../utils/constants';
 
 /**
  * Export utilities for JSON, CSV/Excel, and PDF.
@@ -22,7 +29,7 @@ export function useExport(state) {
 
     const rows = state.guests.map(g => ({
       姓名: g.name,
-      關係分類: g.category,
+      關係分類: normalizeCategory(g.category),
       飲食: g.diet || '',
       桌次: g.tableId ? tableMap[g.tableId] || '未知' : '未分配',
     }));
@@ -124,17 +131,8 @@ function triggerDownload(url, filename) {
   document.body.removeChild(a);
 }
 
-/** Guest-category dot colours (print-safe hex values). */
-const CAT_COLORS = {
-  '男方親友': '#6b5ce7',
-  '女方親友': '#d9567a',
-  '共同朋友': '#3aaa6e',
-  '同事':     '#c49a2a',
-  '其他':     '#888888',
-};
-
 function guestDot(category) {
-  const color = CAT_COLORS[category] || '#888888';
+  const color = getCategoryVisual(category).printColor;
   return `<span class="dot" style="background:${color}"></span>`;
 }
 
@@ -170,7 +168,7 @@ function buildPrintHTML(state) {
       <li class="guest-row">
         ${guestDot(g.category)}
         <span class="guest-name">${escHtml(g.name)}</span>
-        ${g.category ? `<span class="guest-cat">${escHtml(g.category)}</span>` : ''}
+        ${g.category ? `<span class="guest-cat">${escHtml(normalizeCategory(g.category))}</span>` : ''}
         ${g.diet     ? `<span class="guest-note">${escHtml(g.diet)}</span>`     : ''}
       </li>`).join('');
 
@@ -197,15 +195,16 @@ function buildPrintHTML(state) {
           <li class="guest-row">
             ${guestDot(g.category)}
             <span class="guest-name">${escHtml(g.name)}</span>
-            ${g.category ? `<span class="guest-cat">${escHtml(g.category)}</span>` : ''}
+            ${g.category ? `<span class="guest-cat">${escHtml(normalizeCategory(g.category))}</span>` : ''}
           </li>`).join('')}
       </ul>
     </section>`;
 
   // ── Legend ─────────────────────────────────────────────────────
-  const legendItems = Object.entries(CAT_COLORS).map(([cat, color]) =>
-    `<span class="legend-item"><span class="dot" style="background:${color}"></span>${escHtml(cat)}</span>`
-  ).join('');
+  const legendItems = buildCategoryOptions(state.guests).map(cat => {
+    const visual = getCategoryVisual(cat.id);
+    return `<span class="legend-item"><span class="dot" style="background:${visual.printColor}"></span>${escHtml(visual.label)}</span>`;
+  }).join('');
 
   return `<!DOCTYPE html>
 <html lang="zh-Hant">
@@ -375,17 +374,8 @@ function buildPrintHTML(state) {
 //  • Geometry matches TableZone.jsx exactly: SIZE=260, TABLE_R=72, SEAT_R=26, SEAT_ORBIT=108.
 //  • Stage bar mirrors FloorPlan.jsx .floor-plan__stage (top=28, width=280, height=52).
 //  • Empty seats: dashed circle (matches CSS table-zone__seat--empty).
-//  • Filled seats: semi-transparent fill + coloured border (matches CSS cat-* classes).
+//  • Filled seats: semi-transparent fill + coloured border from shared category visuals.
 //  • Names in 9px equivalent — scaled to SVG units.
-
-/** Guest category colours — mirrors TableZone.css cat-* border colours. */
-const FLOOR_CAT_COLORS = {
-  '男方親友': { border: '#6b5ce7', bg: 'rgba(107,92,231,0.18)' },  // indigo
-  '女方親友': { border: '#c2255c', bg: 'rgba(194,37,92,0.18)' },   // rose
-  '共同朋友': { border: '#2f9e44', bg: 'rgba(47,158,68,0.18)' },   // green
-  '同事':     { border: '#c49a2a', bg: 'rgba(196,154,42,0.18)' },  // amber
-  '其他':     { border: '#777',    bg: 'rgba(100,100,100,0.10)' }, // grey
-};
 
 /**
  * Shared font stack — Microsoft JhengHei for CJK on Windows, PingFang TC for macOS.
@@ -481,7 +471,7 @@ function buildFloorPrintHTML(state) {
       const g = guestById[gid];
       if (!g) return '';
       const sp      = allSeatPos[i];
-      const cat     = FLOOR_CAT_COLORS[g.category] ?? FLOOR_CAT_COLORS['其他'];
+      const cat     = getCategoryVisual(g.category);
       const rawName = g.name ?? '';
       // Truncate: max 4 chars, wrap to 2 lines of 2 chars each
       const label   = rawName.length > 4 ? rawName.slice(0, 4) : rawName;
@@ -492,7 +482,7 @@ function buildFloorPrintHTML(state) {
       return `
       <g>
         <circle cx="${sp.x.toFixed(1)}" cy="${sp.y.toFixed(1)}" r="${SEAT_R}"
-                fill="${cat.bg}" stroke="${cat.border}" stroke-width="2"/>
+                fill="${cat.floorBackground}" stroke="${cat.floorBorder}" stroke-width="2"/>
         <text x="${sp.x.toFixed(1)}" y="${(sp.y + yOffset).toFixed(1)}"
               text-anchor="middle" dominant-baseline="central"
               font-family="${SYS_FONT}" font-size="9"
@@ -525,12 +515,13 @@ function buildFloorPrintHTML(state) {
   }).join('\n');
 
   // ── Legend items ─────────────────────────────────────────────────────────
-  const legendItems = Object.entries(FLOOR_CAT_COLORS).map(([cat, cat_colors]) =>
-    `<span style="display:inline-flex;align-items:center;gap:5px;font-size:8pt;color:#444">
-      <span style="width:12px;height:12px;border-radius:50%;background:${cat_colors.bg};border:2px solid ${cat_colors.border};flex-shrink:0;display:inline-block"></span>
-      ${escHtml(cat)}
-    </span>`
-  ).join('');
+  const legendItems = buildCategoryOptions(state.guests).map(cat => {
+    const visual = getCategoryVisual(cat.id);
+    return `<span style="display:inline-flex;align-items:center;gap:5px;font-size:8pt;color:#444">
+      <span style="width:12px;height:12px;border-radius:50%;background:${visual.floorBackground};border:2px solid ${visual.floorBorder};flex-shrink:0;display:inline-block"></span>
+      ${escHtml(visual.label)}
+    </span>`;
+  }).join('');
 
   // ── Assemble final HTML ──────────────────────────────────────────────────
   return `<!DOCTYPE html>

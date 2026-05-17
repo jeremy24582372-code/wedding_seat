@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import GuestCard from './GuestCard';
 import './UnassignedPool.css';
-import { CATEGORIES } from '../utils/constants';
+import { buildCategoryOptions, normalizeCategory } from '../utils/constants';
 import { useDroppable } from '@dnd-kit/core';
 
 /**
@@ -27,10 +27,12 @@ export default function UnassignedPool({ guests, unassignedIds, onEdit, onDelete
       .filter(Boolean)
       .filter(g => {
         const matchSearch = g.name.includes(search) || (g.diet ?? '').includes(search);
-        const matchCat = filterCat ? g.category === filterCat : true;
+        const matchCat = filterCat ? normalizeCategory(g.category) === filterCat : true;
         return matchSearch && matchCat;
       });
   }, [guests, unassignedIds, search, filterCat]);
+
+  const categoryOptions = useMemo(() => buildCategoryOptions(guests), [guests]);
 
   return (
     <aside className="unassigned-pool">
@@ -57,7 +59,7 @@ export default function UnassignedPool({ guests, unassignedIds, onEdit, onDelete
           aria-label="篩選分類"
         >
           <option value="">全部分類</option>
-          {CATEGORIES.map(cat => (
+          {categoryOptions.map(cat => (
             <option key={cat.id} value={cat.id}>{cat.label}</option>
           ))}
         </select>

@@ -2,7 +2,8 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { saveStateToFirebase, useFirebaseListener } from './useFirebase';
 import { db } from '../firebase';
-import { MAX_SEATS, DEFAULT_TABLE_COUNT, AUTOSAVE_DEBOUNCE_MS } from '../utils/constants';
+import { MAX_SEATS, DEFAULT_TABLE_COUNT, AUTOSAVE_DEBOUNCE_MS, normalizeCategory } from '../utils/constants';
+import { applyGuestImport } from '../utils/importGuests.js';
 
 /** Build an empty fixed-length seat array */
 function emptySeats() {
@@ -198,6 +199,7 @@ export function useSeatingState() {
     const normalisedGuests = (fbData.guests ?? []).map(g => ({
       ...g,
       tableId: g.tableId ?? null,
+      category: normalizeCategory(g.category),
       // 舊資料無 source 欄位時，預設為 'manual'（保守策略，避免回寫遺漏）
       source: g.source ?? 'manual',
       // 舊資料 note → diet 遷移（防止舊備份資料的飲食欄位消失）
@@ -223,7 +225,7 @@ export function useSeatingState() {
     const newGuest = {
       id: uuidv4(),
       name: guestData.name.trim(),
-      category: guestData.category || '其他',
+      category: normalizeCategory(guestData.category),
       diet: guestData.diet?.trim() || '',
       tableId: null,
       source: 'manual', // 手動新增 → 允許回寫 Google Sheets
@@ -262,7 +264,7 @@ export function useSeatingState() {
           ? {
             ...g,
             name: patch.name?.trim() ?? g.name,
-            category: patch.category ?? g.category,
+            category: patch.category !== undefined ? normalizeCategory(patch.category) : g.category,
             diet: patch.diet?.trim() ?? g.diet,
           }
           : g
@@ -386,56 +388,25 @@ export function useSeatingState() {
   /**
    * Bulk import guests — dedup by name only (trimmed, case-sensitive).
    * Covers guests in the unassigned pool AND those already seated at tables.
-   * Patches diet for existing guests when the incoming value is non-empty.
-   * Returns { added, skipped } so the caller can show an accurate toast.
+   * Patches import-managed fields and applies incoming table labels when present.
+   * Returns counts so the caller can show an accurate toast.
    */
   const importGuests = useCallback((guestList) => {
-    const result = { added: 0, skipped: 0 };
+    let importResult = {
+      added: 0,
+      skipped: 0,
+      assigned: 0,
+      createdTables: 0,
+      unassignedDueToFullTables: 0,
+    };
 
     setState(prev => {
-      // Build a Set of names already in the system — covers BOTH unassigned
-      // and seated guests, so no one already in the seating chart gets re-added.
-      const existingNames = new Set(prev.guests.map(g => g.name));
-
-      // Patch diet for already-existing guests with updated dietary info.
-      const patchedGuests = prev.guests.map(existing => {
-        const incoming = guestList.find(g => g.name.trim() === existing.name);
-        if (incoming && incoming.diet?.trim() && incoming.diet.trim() !== existing.diet) {
-          return { ...existing, diet: incoming.diet.trim() };
-        }
-        return existing;
-      });
-
-      // Only add guests whose name is not already present.
-      const newGuests = [];
-      guestList.forEach(g => {
-        const name = g.name.trim();
-        if (!name) return;
-        if (existingNames.has(name)) {
-          result.skipped += 1;
-        } else {
-          const cat = (g.category || '').trim() || '其他';
-          newGuests.push({
-            id:       uuidv4(),
-            name,
-            category: cat,
-            diet:     g.diet?.trim() || '',
-            tableId:  null,
-            source:   'import',
-          });
-          result.added += 1;
-        }
-      });
-
-      return {
-        ...prev,
-        guests:             [...patchedGuests, ...newGuests],
-        unassignedGuestIds: [...prev.unassignedGuestIds, ...newGuests.map(g => g.id)],
-        lastSaved:          new Date().toISOString(),
-      };
+      const { nextState, result } = applyGuestImport(prev, guestList);
+      importResult = result;
+      return nextState;
     });
 
-    return result;
+    return importResult;
   }, [setState]);
 
   const resetAll = useCallback(() => {
