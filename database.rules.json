@@ -1,0 +1,84 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "wedding-seating": {
+      ".read": true,
+      ".write": "newData.exists()",
+      ".validate": "newData.hasChild('tables') && newData.hasChild('lastSaved')",
+      "guests": {
+        "$guestIndex": {
+          ".validate": "newData.hasChildren(['id', 'name', 'category', 'diet', 'source'])",
+          "id": {
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 80"
+          },
+          "name": {
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 100"
+          },
+          "category": {
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 50"
+          },
+          "diet": {
+            ".validate": "newData.isString() && newData.val().length <= 100"
+          },
+          "source": {
+            ".validate": "newData.isString() && (newData.val() === 'manual' || newData.val() === 'import')"
+          },
+          "tableId": {
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 80"
+          },
+          "$other": {
+            ".validate": false
+          }
+        }
+      },
+      "tables": {
+        "$tableIndex": {
+          ".validate": "newData.hasChildren(['id', 'label', 'seats'])",
+          "id": {
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 80"
+          },
+          "label": {
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 30"
+          },
+          "seats": {
+            ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 20"
+          },
+          "guestIds": {
+            "$seatIndex": {
+              ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 80"
+            }
+          },
+          "$other": {
+            ".validate": false
+          }
+        }
+      },
+      "unassignedGuestIds": {
+        "$guestIndex": {
+          ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 80"
+        }
+      },
+      "tablePositions": {
+        "$tableId": {
+          ".validate": "newData.hasChildren(['x', 'y'])",
+          "x": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 3000"
+          },
+          "y": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 3000"
+          },
+          "$other": {
+            ".validate": false
+          }
+        }
+      },
+      "lastSaved": {
+        ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 40"
+      },
+      "$other": {
+        ".validate": false
+      }
+    }
+  }
+}
