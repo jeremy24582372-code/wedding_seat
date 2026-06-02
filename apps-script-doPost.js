@@ -15,7 +15,7 @@
  *   飲食欄位已從匯入來源移除；若舊來源仍有「飲食」欄，會相容讀取但不要求存在。
  *
  * 同步回寫目標結構：
- *   A: 姓名 | B: 關係分類 | C: 飲食 | D: 桌次 | E: 人數
+ *   A: 姓名 | B: 關係分類 | C: 飲食 | D: 桌次
  * 關係分類：
  *   正式分類為「新郎親友 / 新娘親友 / 共同朋友 / 同事 / 其他」；
  *   賓客自行填寫的其他分類也會原樣讀取與回寫。
@@ -86,7 +86,7 @@ function doGet() {
  *
  * 預期接收的 JSON 格式：
  * [
- *   { "name": "王小明", "category": "新郎親友", "diet": "葷食", "tableLabel": "3桌", "headcount": 2 },
+ *   { "name": "王小明", "category": "新郎親友", "diet": "葷食", "tableLabel": "3桌" },
  *   ...
  * ]
  */
@@ -99,7 +99,7 @@ function doPost(e) {
     if (!sheet) throw new Error(`Sync sheet not found: ${SYNC_SHEET_NAME}`);
 
     const rows = [
-      ['姓名', '關係分類', '飲食', '桌次', '人數'],
+      ['姓名', '關係分類', '飲食', '桌次'],
       ...payload
         .filter(guest => String(guest.name ?? '').trim().length > 0)
         .map(guest => [
@@ -107,7 +107,6 @@ function doPost(e) {
           guest.category || '',
           guest.diet || '',
           guest.tableLabel || '',
-          normalizeHeadcount(guest.headcount),
         ]),
     ];
 

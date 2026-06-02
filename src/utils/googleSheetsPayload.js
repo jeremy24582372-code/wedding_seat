@@ -30,7 +30,6 @@ export function buildGoogleSheetsPayload(state) {
         category: row.category || primaryGuest?.category || '其他',
         diet: primaryGuest?.diet || '',
         source: row.source || 'import',
-        headcount: row.headcount || guestIds.length || 1,
         tableLabel: summarizePartyTableLabels(guestIds, guestTableLabelMap),
       };
     });
@@ -43,7 +42,6 @@ export function buildGoogleSheetsPayload(state) {
       category:   g.category || '其他',
       diet:       g.diet || '',
       source:     g.source || '',
-      headcount:  1,
       tableLabel: guestTableLabelMap[g.id] ?? (g.tableId ? (tableLabelMap[g.tableId] ?? '') : ''),
     }));
 

@@ -1,6 +1,5 @@
 import { useState, useCallback } from 'react';
-import { normalizeCategory } from '../utils/constants';
-import { normalizeHeadcount } from '../utils/partyRows';
+import { normalizeSheetGuestRows } from '../utils/googleSheetsRows.js';
 
 /**
  * Fetches guest data from Google Apps Script Web App.
@@ -40,14 +39,7 @@ export function useGoogleSheets() {
 
       if (!Array.isArray(data)) throw new Error('回傳資料格式錯誤，預期為陣列');
 
-      return data.map(row => ({
-        name:     String(row.name     || row['姓名']   || '').trim(),
-        category: normalizeCategory(row.category ?? row['關係分類'] ?? row['關係']),
-        tableLabel: String(row.tableLabel ?? row.table ?? row['桌次'] ?? '').trim(),
-        headcount: normalizeHeadcount(row.headcount ?? row['人數']),
-        // Legacy optional field; current source sheets do not need it.
-        diet:     String(row.diet     || row['飲食']   || '').trim(),
-      })).filter(g => g.name.length > 0);
+      return normalizeSheetGuestRows(data);
 
     } catch (err) {
       const msg = err.message;

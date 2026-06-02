@@ -189,6 +189,8 @@ export default function App() {
           return;
         }
 
+        const missingHeadcountRows = guests.filter(g => g._sourceMissingHeadcount).length;
+
         const {
           added,
           updated = 0,
@@ -206,6 +208,7 @@ export default function App() {
           createdTables,
           unassignedDueToFullTables,
           sourceRows: guests.length,
+          missingHeadcountRows,
           importedAt: new Date().toISOString(),
         });
 
@@ -226,6 +229,10 @@ export default function App() {
           toast.success(`新增 ${added} 位座位需求${updatedText}，略過 ${skipped} 筆重複來源${suffix}`);
         } else {
           toast.success(`已匯入 ${added} 位座位需求${updatedText}${suffix}`);
+        }
+
+        if (missingHeadcountRows > 0) {
+          toast.warn(`匯入來源有 ${missingHeadcountRows} 筆未回傳「人數」欄，已暫以 1 位處理；請重新部署 Apps Script。`);
         }
       }
     } catch (err) {

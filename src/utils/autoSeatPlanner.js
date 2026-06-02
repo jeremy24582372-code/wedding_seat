@@ -16,6 +16,23 @@ function emptySeats() {
   return Array(MAX_SEATS).fill(null);
 }
 
+function normalizeTableLabelKey(label) {
+  return String(label ?? '').trim().replace(/\s+/g, '').toLowerCase();
+}
+
+function isMainTableForAutoSeat(table) {
+  const label = normalizeTableLabelKey(table?.label);
+  if (!label) return false;
+  if (label === '主桌' || label.includes('主桌')) return true;
+
+  const numericMatch =
+    label.match(/^第?(\d+)桌$/) ??
+    label.match(/^桌(\d+)$/) ??
+    label.match(/^(\d+)$/);
+
+  return numericMatch ? Number(numericMatch[1]) === 1 : false;
+}
+
 export function normalizeSeatingRules(rules = {}) {
   const maxPerCategoryPerTable = {};
   const incomingMax = rules?.maxPerCategoryPerTable ?? {};
@@ -294,12 +311,16 @@ function deriveGuestTableState(guests, tables) {
 function buildCandidateGroups({ state, guests, guestById, candidateIds, rules, originalTableByGuestId, tableByLabel }) {
   const seen = new Set();
   const groups = [];
+  let groupContextByGuestId = new Map();
 
   if (rules.keepGroupsTogether) {
-    normalizeGuestGroups(state?.guestGroups, guests.map(guest => guest.id), state?.lockedAssignments)
+    const normalizedGroups = normalizeGuestGroups(state?.guestGroups, guests.map(guest => guest.id), state?.lockedAssignments);
+
+    normalizedGroups
       .filter(group => group.preference === 'same-table')
       .forEach(group => {
-        const groupIds = group.guestIds.filter(guestId => candidateIds.has(guestId));
+        const fullGroupIds = group.guestIds.filter(guestId => guestById.has(guestId));
+        const groupIds = fullGroupIds.filter(guestId => candidateIds.has(guestId));
         if (groupIds.length === 0) return;
         groupIds.forEach(guestId => seen.add(guestId));
 
@@ -308,9 +329,22 @@ function buildCandidateGroups({ state, guests, guestById, candidateIds, rules, o
           sourceName: group.name,
           guestIds: groupIds,
           guestById,
-          preferredTableIds: buildPreferredTableIdsFromGuestIds(groupIds, state, originalTableByGuestId),
+          preferredTableIds: buildPreferredTableIdsFromGuestIds(fullGroupIds, state, originalTableByGuestId),
+          anchorTableIds: buildPreferredTableIdsFromGuestIds(
+            fullGroupIds.filter(guestId => !candidateIds.has(guestId)),
+            state,
+            originalTableByGuestId
+          ),
         }));
       });
+
+    groupContextByGuestId = buildIndividualGroupContexts({
+      groups: normalizedGroups,
+      candidateIds,
+      guestById,
+      originalTableByGuestId,
+      state,
+    });
 
     (state?.partyRows ?? []).forEach(row => {
       const groupIds = (row.guestIds ?? []).filter(guestId => candidateIds.has(guestId));
@@ -325,18 +359,26 @@ function buildCandidateGroups({ state, guests, guestById, candidateIds, rules, o
         guestIds: ungroupedIds,
         guestById,
         preferredTableIds: buildPreferredTableIds(row, state, originalTableByGuestId, tableByLabel),
+        anchorTableIds: buildPreferredTableIdsFromGuestIds(
+          (row.guestIds ?? []).filter(guestId => !candidateIds.has(guestId)),
+          state,
+          originalTableByGuestId
+        ),
       }));
     });
   }
 
   guests.forEach(guest => {
     if (!candidateIds.has(guest.id) || seen.has(guest.id)) return;
+    const groupContext = groupContextByGuestId.get(guest.id);
     groups.push(buildGroup({
       id: `guest:${guest.id}`,
-      sourceName: guest.name,
+      sourceName: formatIndividualGroupSourceName(guest.name, groupContext),
       guestIds: [guest.id],
       guestById,
-      preferredTableIds: [],
+      preferredTableIds: groupContext?.preferredTableIds ?? [],
+      anchorTableIds: [],
+      separateFromGuestIds: groupContext?.separateFromGuestIds ?? [],
     }));
   });
 
@@ -346,7 +388,15 @@ function buildCandidateGroups({ state, guests, guestById, candidateIds, rules, o
   });
 }
 
-function buildGroup({ id, sourceName, guestIds, guestById, preferredTableIds }) {
+function buildGroup({
+  id,
+  sourceName,
+  guestIds,
+  guestById,
+  preferredTableIds,
+  anchorTableIds = [],
+  separateFromGuestIds = [],
+}) {
   const categories = guestIds.map(guestId => normalizeCategory(guestById.get(guestId)?.category));
   return {
     id,
@@ -355,12 +405,64 @@ function buildGroup({ id, sourceName, guestIds, guestById, preferredTableIds }) 
     categories,
     primaryCategory: categories[0] ?? CATEGORIES[0].id,
     preferredTableIds,
+    anchorTableIds,
+    separateFromGuestIds,
   };
+}
+
+function mergeGroupContext(current = {}, patch = {}) {
+  return {
+    preferredTableIds: Array.from(new Set([
+      ...(current.preferredTableIds ?? []),
+      ...(patch.preferredTableIds ?? []),
+    ])),
+    separateFromGuestIds: Array.from(new Set([
+      ...(current.separateFromGuestIds ?? []),
+      ...(patch.separateFromGuestIds ?? []),
+    ])),
+    sourceNames: Array.from(new Set([
+      ...(current.sourceNames ?? []),
+      ...(patch.sourceNames ?? []),
+    ])),
+  };
+}
+
+function buildIndividualGroupContexts({ groups, candidateIds, guestById, originalTableByGuestId, state }) {
+  const contexts = new Map();
+
+  groups
+    .filter(group => group.preference === 'nearby' || group.preference === 'separate')
+    .forEach(group => {
+      const fullGroupIds = group.guestIds.filter(guestId => guestById.has(guestId));
+      const candidateGroupIds = fullGroupIds.filter(guestId => candidateIds.has(guestId));
+      if (candidateGroupIds.length === 0) return;
+
+      const assignedGroupIds = fullGroupIds.filter(guestId => !candidateIds.has(guestId));
+      const anchorTableIds = buildPreferredTableIdsFromGuestIds(assignedGroupIds, state, originalTableByGuestId);
+
+      candidateGroupIds.forEach(guestId => {
+        const context = {
+          preferredTableIds: anchorTableIds,
+          separateFromGuestIds: group.preference === 'separate'
+            ? fullGroupIds.filter(id => id !== guestId)
+            : [],
+          sourceNames: [group.name],
+        };
+        contexts.set(guestId, mergeGroupContext(contexts.get(guestId), context));
+      });
+    });
+
+  return contexts;
+}
+
+function formatIndividualGroupSourceName(guestName, context) {
+  if (!context?.sourceNames?.length) return guestName;
+  return `${guestName}（${context.sourceNames.join('、')}）`;
 }
 
 function buildPreferredTableIds(row, state, originalTableByGuestId, tableByLabel) {
   const ids = [];
-  const targetLabel = String(row.tableLabel ?? '').trim().replace(/\s+/g, '').toLowerCase();
+  const targetLabel = normalizeTableLabelKey(row.tableLabel);
   const targetTable = targetLabel ? tableByLabel.get(targetLabel) : null;
   if (targetTable) ids.push(targetTable.id);
 
@@ -383,7 +485,7 @@ function buildPreferredTableIdsFromGuestIds(guestIds, state, originalTableByGues
 
 function buildTableLabelMap(tables) {
   return new Map(tables.map(table => [
-    String(table.label ?? '').trim().replace(/\s+/g, '').toLowerCase(),
+    normalizeTableLabelKey(table.label),
     table,
   ]));
 }
@@ -401,7 +503,28 @@ function findPlacementTable({ group, tables, rules }) {
     table,
     fit: canPlaceGroupOnTable(table, group, rules),
   }));
-  const eligible = fitResults.filter(item => item.fit.ok).map(item => item.table);
+  let eligible = fitResults
+    .filter(item => item.fit.ok)
+    .filter(item => !isMainTableForAutoSeat(item.table))
+    .map(item => item.table);
+
+  if (group.anchorTableIds.length > 0) {
+    const anchorResults = fitResults.filter(item => group.anchorTableIds.includes(item.table.id));
+    eligible = eligible.filter(table => group.anchorTableIds.includes(table.id));
+
+    if (eligible.length === 0) {
+      const capacityReason = anchorResults.find(item => !item.fit.ok)?.fit.reason;
+      const reservedReason = anchorResults.some(item => item.fit.ok && isMainTableForAutoSeat(item.table))
+        ? `${formatTableLabels(anchorResults.map(item => item.table))} 為主桌，不納入自動排座。`
+        : null;
+
+      return {
+        table: null,
+        canCreateTable: false,
+        reason: capacityReason ?? reservedReason ?? '同行已有成員在其他桌，沒有可補入的同桌空位。',
+      };
+    }
+  }
 
   if (eligible.length === 0) {
     const firstReason = fitResults.find(item => item.fit.reason)?.fit.reason;
@@ -420,6 +543,10 @@ function canPlaceGroupOnTable(table, group, rules) {
   const freeSeats = table.guestIds.filter(guestId => !guestId).length;
   if (freeSeats < group.guestIds.length) {
     return { ok: false, reason: `${table.label} 剩餘 ${freeSeats} 位，不足以保留同行同桌。` };
+  }
+
+  if ((group.separateFromGuestIds ?? []).some(guestId => table.guestIds.includes(guestId))) {
+    return { ok: false, reason: `${table.label} 已有同一群組中標記為分開安排的成員。` };
   }
 
   const categoryLimits = rules.maxPerCategoryPerTable ?? {};
@@ -444,6 +571,10 @@ function countCategoriesForTable(table, group) {
     counts.set(category, (counts.get(category) ?? 0) + 1);
   });
   return counts;
+}
+
+function formatTableLabels(tables) {
+  return Array.from(new Set(tables.map(table => table.label).filter(Boolean))).join('、') || '指定桌次';
 }
 
 function compareTablesForGroup(a, b, group, rules) {
@@ -494,7 +625,7 @@ function buildNextTable(tables) {
     .filter(Boolean)
     .map(Number));
   let nextNumber = tables.length + 1;
-  while (usedNumbers.has(nextNumber)) nextNumber += 1;
+  while (nextNumber === 1 || usedNumbers.has(nextNumber)) nextNumber += 1;
 
   return {
     id: uuidv4(),

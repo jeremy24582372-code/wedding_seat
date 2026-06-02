@@ -209,6 +209,16 @@ function buildQualitySummary(rows, importSummary) {
     sourceName: row.sourceName,
   })));
 
+  if (importSummary?.missingHeadcountRows > 0) {
+    items.unshift({
+      level: 'warning',
+      label: '匯入來源缺少人數欄',
+      detail: `最近一次匯入有 ${importSummary.missingHeadcountRows} 筆未回傳「人數」，系統已暫以 1 位處理；請重新部署 Apps Script 後再匯入。`,
+      rowId: 'import-missing-headcount',
+      sourceName: '最近一次匯入',
+    });
+  }
+
   if (importSummary?.skipped > 0 || importSummary?.updated > 0) {
     items.unshift({
       level: importSummary.skipped > 0 ? 'notice' : 'info',
