@@ -11,11 +11,11 @@
  *   5. 複製「網頁應用程式 URL」→ 貼到 .env 的 VITE_SHEETS_URL
  *
  * 匯入來源試算表結構（第一列為標題）：
- *   A: 姓名 | B: 關係分類 | C: 桌次
+ *   A: 姓名 | B: 關係分類 | C: 桌次 | D: 人數
  *   飲食欄位已從匯入來源移除；若舊來源仍有「飲食」欄，會相容讀取但不要求存在。
  *
  * 同步回寫目標結構：
- *   A: 姓名 | B: 關係分類 | C: 飲食 | D: 桌次
+ *   A: 姓名 | B: 關係分類 | C: 飲食 | D: 桌次 | E: 人數
  * 關係分類：
  *   正式分類為「新郎親友 / 新娘親友 / 共同朋友 / 同事 / 其他」；
  *   賓客自行填寫的其他分類也會原樣讀取與回寫。
@@ -29,6 +29,15 @@ const SYNC_SHEET_NAME = '工作表1'; // 同步回寫目標：維持原本 Apps 
 // https://docs.google.com/spreadsheets/d/1VLTMQZECG_hQM8VVN9c5cJPQJ5XwJkaacpbV7XIwryU/edit?usp=sharing
 const IMPORT_SPREADSHEET_ID = '1VLTMQZECG_hQM8VVN9c5cJPQJ5XwJkaacpbV7XIwryU';
 const IMPORT_SHEET_NAME = ''; // 空字串代表讀第一個頁籤；若要指定頁籤可填入頁籤名稱
+
+function normalizeHeadcount(value) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return 1;
+  const whole = Math.floor(parsed);
+  if (whole < 1) return 1;
+  if (whole > 10) return 10;
+  return whole;
+}
 
 /**
  * doGet — 讀取賓客清單（現有功能保留）
@@ -49,6 +58,7 @@ function doGet() {
     category: headers.indexOf('關係分類'),
     diet: headers.indexOf('飲食'),
     table: headers.indexOf('桌次'),
+    headcount: headers.indexOf('人數'),
   };
   if (idx.name < 0) throw new Error('Import sheet missing required header: 姓名');
 
@@ -59,6 +69,7 @@ function doGet() {
         name: String(r[idx.name]).trim(),
         category: idx.category >= 0 ? String(r[idx.category] ?? '').trim() : '其他',
         tableLabel: idx.table >= 0 ? String(r[idx.table] ?? '').trim() : '',
+        headcount: idx.headcount >= 0 ? normalizeHeadcount(r[idx.headcount]) : 1,
       };
       if (idx.diet >= 0) guest.diet = String(r[idx.diet] ?? '').trim();
       return guest;
@@ -75,7 +86,7 @@ function doGet() {
  *
  * 預期接收的 JSON 格式：
  * [
- *   { "name": "王小明", "category": "新郎親友", "diet": "葷食", "tableLabel": "3桌" },
+ *   { "name": "王小明", "category": "新郎親友", "diet": "葷食", "tableLabel": "3桌", "headcount": 2 },
  *   ...
  * ]
  */
@@ -88,7 +99,7 @@ function doPost(e) {
     if (!sheet) throw new Error(`Sync sheet not found: ${SYNC_SHEET_NAME}`);
 
     const rows = [
-      ['姓名', '關係分類', '飲食', '桌次'],
+      ['姓名', '關係分類', '飲食', '桌次', '人數'],
       ...payload
         .filter(guest => String(guest.name ?? '').trim().length > 0)
         .map(guest => [
@@ -96,6 +107,7 @@ function doPost(e) {
           guest.category || '',
           guest.diet || '',
           guest.tableLabel || '',
+          normalizeHeadcount(guest.headcount),
         ]),
     ];
 

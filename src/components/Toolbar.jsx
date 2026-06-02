@@ -4,11 +4,12 @@ import './Toolbar.css';
 /**
  * Top toolbar: import, add table, add guest, export, stats.
  * Props:
- *   stats           — { total, assigned, unassigned }
+ *   stats           — { partyTotal, seatTotal, assignedSeats, unassignedSeats }
  *   lastSaved       — ISO string | null
  *   onImport        — () => Promise<void>
  *   onAddTable      — () => void
  *   onOpenAddGuest  — () => void
+ *   onOpenAutoSeat  — () => void
  *   onExportJSON    — () => void
  *   onExportCSV     — () => void
  *   onExportPDF     — () => void
@@ -22,6 +23,7 @@ export default function Toolbar({
   onImport,
   onAddTable,
   onOpenAddGuest,
+  onOpenAutoSeat,
   onExportJSON,
   onExportCSV,
   onExportPDF,
@@ -48,10 +50,10 @@ export default function Toolbar({
   };
 
   const syncLabel = {
-    idle:    '↗️ 同步到試算表',
+    idle:    '同步到試算表',
     syncing: '同步中…',
-    success: '✓ 同步完成',
-    error:   '⚠️ 同步失敗',
+    success: '同步完成',
+    error:   '同步失敗',
   }[syncState];
 
   const handleExportClick = (fn) => {
@@ -69,24 +71,29 @@ export default function Toolbar({
     <header className="toolbar" role="banner">
       {/* Brand */}
       <div className="toolbar__brand">
-        <span className="toolbar__logo">💍</span>
+        <span className="toolbar__logo" aria-hidden="true" />
         <h1 className="toolbar__title">排座位幫手</h1>
       </div>
 
       {/* Stats */}
       <div className="toolbar__stats" aria-label="賓客統計">
         <div className="toolbar__stat">
-          <span className="toolbar__stat-num">{stats.total}</span>
-          <span className="toolbar__stat-label">總賓客</span>
+          <span className="toolbar__stat-num">{stats.partyTotal}</span>
+          <span className="toolbar__stat-label">來源筆數</span>
         </div>
         <div className="toolbar__stat-divider" />
         <div className="toolbar__stat">
-          <span className="toolbar__stat-num toolbar__stat-num--accent">{stats.assigned}</span>
+          <span className="toolbar__stat-num">{stats.seatTotal}</span>
+          <span className="toolbar__stat-label">實際人數</span>
+        </div>
+        <div className="toolbar__stat-divider" />
+        <div className="toolbar__stat">
+          <span className="toolbar__stat-num toolbar__stat-num--accent">{stats.assignedSeats}</span>
           <span className="toolbar__stat-label">已分配</span>
         </div>
         <div className="toolbar__stat-divider" />
         <div className="toolbar__stat">
-          <span className="toolbar__stat-num toolbar__stat-num--muted">{stats.unassigned}</span>
+          <span className="toolbar__stat-num toolbar__stat-num--muted">{stats.unassignedSeats}</span>
           <span className="toolbar__stat-label">未分配</span>
         </div>
       </div>
@@ -101,7 +108,7 @@ export default function Toolbar({
           id="btn-import-sheets"
           aria-label="從 Google Sheets 匯入賓客"
         >
-          {importLoading ? '匯入中…' : '📥 匯入名單'}
+          {importLoading ? '匯入中…' : '匯入名單'}
         </button>
 
         {/* Add guest */}
@@ -111,7 +118,7 @@ export default function Toolbar({
           id="btn-add-guest"
           aria-label="手動新增賓客"
         >
-          ＋ 新增賓客
+          新增賓客
         </button>
 
         {/* Add table */}
@@ -121,7 +128,17 @@ export default function Toolbar({
           id="btn-add-table"
           aria-label="新增桌次"
         >
-          🪑 新增桌次
+          新增桌次
+        </button>
+
+        {/* Auto seating */}
+        <button
+          className="btn btn-secondary toolbar__btn"
+          onClick={onOpenAutoSeat}
+          id="btn-auto-seat"
+          aria-label="開啟自動排座規則"
+        >
+          自動排座
         </button>
 
         {/* Sync to Google Sheets */}
@@ -148,7 +165,7 @@ export default function Toolbar({
             aria-haspopup="true"
             aria-expanded={exportOpen}
           >
-            📤 匯出 ▾
+            匯出
           </button>
           {exportOpen && (
             <div className="toolbar__export-menu" role="menu">
@@ -158,7 +175,7 @@ export default function Toolbar({
                 role="menuitem"
                 id="btn-export-json"
               >
-                📄 匯出 JSON
+                匯出 JSON
               </button>
               <button
                 className="toolbar__export-item"
@@ -166,7 +183,7 @@ export default function Toolbar({
                 role="menuitem"
                 id="btn-export-csv"
               >
-                📊 匯出 Excel
+                匯出 Excel
               </button>
               <button
                 className="toolbar__export-item"
@@ -174,7 +191,7 @@ export default function Toolbar({
                 role="menuitem"
                 id="btn-export-pdf"
               >
-                🖨️ 座位清單 PDF
+                座位清單 PDF
               </button>
               <button
                 className="toolbar__export-item"
@@ -182,7 +199,7 @@ export default function Toolbar({
                 role="menuitem"
                 id="btn-export-floor-pdf"
               >
-                🗺️ 桌次圖 PDF
+                桌次圖 PDF
               </button>
             </div>
           )}
@@ -192,7 +209,7 @@ export default function Toolbar({
       {/* Last saved */}
       {lastSaved && (
         <div className="toolbar__saved" aria-live="polite">
-          ✓ 已自動儲存 {formatSaved(lastSaved)}
+          已自動儲存 {formatSaved(lastSaved)}
         </div>
       )}
     </header>

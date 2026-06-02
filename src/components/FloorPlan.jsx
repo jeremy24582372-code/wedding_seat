@@ -124,6 +124,8 @@ export default function FloorPlan({
   onRemove,
   onEdit,
   onDelete,
+  onAddTable,
+  lockedAssignments = {},
 }) {
   const canvasRef = useRef(null);
 
@@ -148,6 +150,7 @@ export default function FloorPlan({
 
   // ── Snap & Guide state ────────────────────────────────────────
   const [snapEnabled, setSnapEnabled] = useState(true);
+  const [guidesEnabled, setGuidesEnabled] = useState(true);
   const [guides, setGuides] = useState({ h: [], v: [] });
 
   // ── Inline rename state ───────────────────────────────────────
@@ -167,7 +170,7 @@ export default function FloorPlan({
   const handleCanvasPointerDown = useCallback((e) => {
     const isMiddleBtn      = e.button === 1;
     const isLeftBackground = e.button === 0 && !e.target.closest(
-      '.floor-plan__table-wrapper, .floor-plan__ctrl-btn, .floor-plan__legend'
+      '.floor-plan__table-wrapper, .floor-plan__ctrl-btn, .floor-plan__legend, .floor-plan__mode-panel'
     );
 
     if (isMiddleBtn || isLeftBackground) {
@@ -293,8 +296,23 @@ export default function FloorPlan({
       });
 
     // ── Smart guides + guide snap ──────────────────────────────
-    const { h: hGuides, v: vGuides, snappedX, snappedY, xSnapped, ySnapped } =
-      computeGuidesAndSnap(rawX, rawY, otherPositions);
+    const {
+      h: hGuides,
+      v: vGuides,
+      snappedX,
+      snappedY,
+      xSnapped,
+      ySnapped,
+    } = guidesEnabled
+      ? computeGuidesAndSnap(rawX, rawY, otherPositions)
+      : {
+        h: [],
+        v: [],
+        snappedX: rawX,
+        snappedY: rawY,
+        xSnapped: false,
+        ySnapped: false,
+      };
 
     let finalX = xSnapped ? snappedX : rawX;
     let finalY = ySnapped ? snappedY : rawY;
@@ -320,9 +338,9 @@ export default function FloorPlan({
     });
     livePosGroupRef.current = groupSnapshot;
 
-    setGuides({ h: hGuides, v: vGuides });
+    setGuides(guidesEnabled ? { h: hGuides, v: vGuides } : { h: [], v: [] });
     setLivePos({ x: finalX, y: finalY });
-  }, [zoom, snapEnabled, tables, positions]);
+  }, [zoom, snapEnabled, guidesEnabled, tables, positions]);
 
   const handleTableDragEnd = useCallback((e) => {
     if (!tableDrag.current) return;
@@ -391,40 +409,69 @@ export default function FloorPlan({
   return (
     <div className="floor-plan" id="floor-plan">
       {/* ── Controls overlay ─────────────────────────── */}
-      <div className="floor-plan__controls" aria-label="場地視圖控制">
-        <button
-          className="floor-plan__ctrl-btn"
-          onClick={() => setZoom(z => Math.min(2, z + 0.1))}
-          title="放大"
-          aria-label="放大"
-        >＋</button>
-        <button
-          className="floor-plan__ctrl-btn"
-          onClick={() => setZoom(z => Math.max(0.3, z - 0.1))}
-          title="縮小"
-          aria-label="縮小"
-        >－</button>
-        <button
-          className="floor-plan__ctrl-btn"
-          onClick={handleResetView}
-          title="重置視角"
-          aria-label="重置視角"
-        >⌂</button>
-        <div className="floor-plan__ctrl-divider" />
-        <button
-          className={`floor-plan__ctrl-btn${snapEnabled ? ' floor-plan__ctrl-btn--active' : ''}`}
-          onClick={() => setSnapEnabled(s => !s)}
-          title={snapEnabled ? '停用格線吸附' : '啟用格線吸附'}
-          aria-label={snapEnabled ? '停用格線吸附' : '啟用格線吸附'}
-          aria-pressed={snapEnabled}
-        >⊞</button>
+      <div className="floor-plan__controls floor-plan__control-panel" aria-label="場地視圖控制">
+        <div className="floor-plan__control-group" aria-label="縮放與視角">
+          <button
+            className="floor-plan__ctrl-btn"
+            onClick={() => setZoom(z => Math.min(2, z + 0.1))}
+            title="放大"
+            aria-label="放大"
+          >＋</button>
+          <button
+            className="floor-plan__ctrl-btn"
+            onClick={() => setZoom(z => Math.max(0.3, z - 0.1))}
+            title="縮小"
+            aria-label="縮小"
+          >－</button>
+          <button
+            className="floor-plan__ctrl-btn"
+            onClick={handleResetView}
+            title="重置視角"
+            aria-label="重置視角"
+          >⌂</button>
+        </div>
+        <div className="floor-plan__control-group" aria-label="吸附與輔助線">
+          <button
+            className={`floor-plan__ctrl-btn${snapEnabled ? ' floor-plan__ctrl-btn--active' : ''}`}
+            onClick={() => setSnapEnabled(s => !s)}
+            title={snapEnabled ? '停用格線吸附' : '啟用格線吸附'}
+            aria-label={snapEnabled ? '停用格線吸附' : '啟用格線吸附'}
+            aria-pressed={snapEnabled}
+          >格</button>
+          <button
+            className={`floor-plan__ctrl-btn${guidesEnabled ? ' floor-plan__ctrl-btn--active' : ''}`}
+            onClick={() => setGuidesEnabled(s => !s)}
+            title={guidesEnabled ? '停用智慧輔助線' : '啟用智慧輔助線'}
+            aria-label={guidesEnabled ? '停用智慧輔助線' : '啟用智慧輔助線'}
+            aria-pressed={guidesEnabled}
+          >線</button>
+        </div>
+        {onAddTable && (
+          <button
+            className="floor-plan__ctrl-btn floor-plan__ctrl-btn--wide"
+            onClick={onAddTable}
+            title="新增桌次"
+            aria-label="新增桌次"
+          >
+            加桌
+          </button>
+        )}
         <span className="floor-plan__zoom-label">{Math.round(zoom * 100)}%</span>
+      </div>
+
+      <div className="floor-plan__mode-panel" aria-label="畫布模式狀態">
+        <span className={`floor-plan__mode-chip${snapEnabled ? ' floor-plan__mode-chip--active' : ''}`}>
+          格線吸附 {snapEnabled ? '開' : '關'}
+        </span>
+        <span className={`floor-plan__mode-chip${guidesEnabled ? ' floor-plan__mode-chip--active' : ''}`}>
+          輔助線 {guidesEnabled ? '開' : '關'}
+        </span>
       </div>
 
       {/* ── Legend ───────────────────────────────────── */}
       <div className="floor-plan__legend" aria-label="圖例">
-        <span className="floor-plan__legend-tip">左鍵拖曳平移 · 中鍵拖曳 · 滾輪縮放</span>
-        <span className="floor-plan__legend-tip">⠿ 拖曳桌名移動桌次</span>
+        <span className="floor-plan__legend-tip">空白處拖曳平移 · 滾輪縮放</span>
+        <span className="floor-plan__legend-tip">桌名拖曳移桌 · 多選可一起移動</span>
       </div>
 
       {/* ── Scrollable viewport ───────────────────────── */}
@@ -461,7 +508,7 @@ export default function FloorPlan({
 
           {/* ── Stage / Head table indicator ── */}
           <div className="floor-plan__stage">
-            <span>♡ 主桌 / 舞台</span>
+            <span>主桌 / 舞台</span>
           </div>
 
           {/* ── Smart guide lines SVG overlay ── */}
@@ -492,7 +539,7 @@ export default function FloorPlan({
           {/* ── Multi-select tip ── */}
           {selectedTableIds.size > 0 && (
             <div className="floor-plan__select-tip">
-              已選 {selectedTableIds.size} 桌｜拖曳任一選取桌次可一起移動｜點擊空白處取消選取
+              已選 {selectedTableIds.size} 桌｜拖曳任一選取桌次可一起移動
             </div>
           )}
 
@@ -538,10 +585,10 @@ export default function FloorPlan({
                   onPointerMove={handleTableDragMove}
                   onPointerUp={handleTableDragEnd}
                   onPointerCancel={handleTableDragEnd}
-                  title="拖曳 ⠿ 圖示移動此桌"
+                  title="拖曳桌名列移動此桌"
                   aria-label={`移動 ${table.label}`}
                 >
-                  <span className="floor-plan__drag-icon" style={{ flexShrink: 0 }}>⠿</span>
+                  <span className="floor-plan__drag-icon" style={{ flexShrink: 0 }}>拖</span>
                   {renamingTableId === table.id ? (
                     <input
                       ref={renameInputRef}
@@ -566,7 +613,7 @@ export default function FloorPlan({
                       title="點擊改名"
                     >
                       {table.label}
-                      <span className="floor-plan__edit-hint">✎</span>
+                      <span className="floor-plan__edit-hint">改</span>
                     </span>
                   )}
                 </div>
@@ -575,6 +622,7 @@ export default function FloorPlan({
                 <TableZone
                   table={table}
                   guests={guests}
+                  lockedAssignments={lockedAssignments}
                   onMoveOut={onMoveOut}
                   onRename={onRename}
                   onRemove={onRemove}

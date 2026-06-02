@@ -21,6 +21,10 @@ export async function saveStateToFirebase(state) {
     tables:             state.tables,
     tablePositions:     state.tablePositions ?? {},
     unassignedGuestIds: state.unassignedGuestIds ?? [],   // ← was missing, caused pool to vanish after Firebase sync
+    partyRows:          state.partyRows ?? [],
+    guestGroups:        state.guestGroups ?? [],
+    seatingRules:       state.seatingRules ?? {},
+    lockedAssignments:  state.lockedAssignments ?? {},
     lastSaved:          new Date().toISOString(),
   });
 }

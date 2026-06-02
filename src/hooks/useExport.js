@@ -29,6 +29,9 @@ export function useExport(state) {
 
     const rows = state.guests.map(g => ({
       姓名: g.name,
+      來源姓名: getPartyForGuest(state, g.id)?.sourceName ?? g.name,
+      人數: getPartyForGuest(state, g.id)?.headcount ?? 1,
+      同行角色: g.partyId ? (g.partyRole === 'companion' ? '同行' : '主要') : '單人',
       關係分類: normalizeCategory(g.category),
       飲食: g.diet || '',
       桌次: g.tableId ? tableMap[g.tableId] || '未知' : '未分配',
@@ -129,6 +132,10 @@ function triggerDownload(url, filename) {
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
+}
+
+function getPartyForGuest(state, guestId) {
+  return (state.partyRows ?? []).find(row => (row.guestIds ?? []).includes(guestId)) ?? null;
 }
 
 function guestDot(category) {
@@ -346,7 +353,7 @@ function buildPrintHTML(state) {
 </head>
 <body>
   <h1 class="page-title">婚禮賓客座位表</h1>
-  <p class="page-meta">列印日期：${date} ｜ 總賓客：${state.guests.length} 位 ｜ 共 ${state.tables.length} 桌</p>
+  <p class="page-meta">列印日期：${date} ｜ 來源筆數：${(state.partyRows ?? []).length} 筆 ｜ 實際人數：${state.guests.length} 位 ｜ 共 ${state.tables.length} 桌</p>
   <hr class="divider">
 
   <div class="tables-grid">
@@ -589,7 +596,7 @@ function buildFloorPrintHTML(state) {
 </head>
 <body>
   <h1 class="page-title">婚禮桌次位置圖</h1>
-  <p class="page-meta">列印日期：${date} ｜ 共 ${state.tables.length} 桌 ｜ 總賓客：${state.guests.length} 位</p>
+  <p class="page-meta">列印日期：${date} ｜ 共 ${state.tables.length} 桌 ｜ 來源筆數：${(state.partyRows ?? []).length} 筆 ｜ 實際人數：${state.guests.length} 位</p>
   <hr class="divider">
 
   <svg class="floor-svg"
@@ -605,7 +612,7 @@ function buildFloorPrintHTML(state) {
     </pattern>
     <rect width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}" fill="url(#grid)"/>
 
-    <!-- ♡ Stage / Head Table — mirrors FloorPlan.jsx .floor-plan__stage
+    <!-- Stage / Head Table — mirrors FloorPlan.jsx .floor-plan__stage
          FloorPlan.css: top=28, width=280, height=52, horizontally centred -->
     <g id="stage">
       <rect x="${(CANVAS_WIDTH - 280) / 2}" y="28" width="280" height="52"
@@ -616,7 +623,7 @@ function buildFloorPrintHTML(state) {
             text-anchor="middle" dominant-baseline="central"
             font-family="${SYS_FONT}"
             font-size="20" font-weight="500" fill="#7c5c00" letter-spacing="5">
-        ♡ 主桌 / 舞台
+        主桌 / 舞台
       </text>
     </g>
 

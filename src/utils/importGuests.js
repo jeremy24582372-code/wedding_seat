@@ -1,5 +1,17 @@
 import { v4 as uuidv4 } from 'uuid';
 import { MAX_SEATS, normalizeCategory } from './constants.js';
+import {
+  buildCompanionName,
+  normalizeHeadcount,
+  normalizePartyRole,
+  normalizePartyRows,
+  PARTY_ROLE_COMPANION,
+  PARTY_ROLE_PRIMARY,
+} from './partyRows.js';
+import {
+  ensurePartyGuestGroups,
+  normalizeLockedAssignmentsForGuests,
+} from './guestGroups.js';
 
 function emptySeats() {
   return Array(MAX_SEATS).fill(null);
@@ -32,6 +44,10 @@ function getIncomingTableLabel(guest) {
   return normalizeImportedTableLabel(guest?.tableLabel ?? guest?.table ?? guest?.['桌次']);
 }
 
+function getIncomingHeadcount(guest) {
+  return normalizeHeadcount(guest?.headcount ?? guest?.['人數']);
+}
+
 function ensureImportTable(tables, label, result) {
   const normalizedLabel = normalizeImportedTableLabel(label);
   if (!normalizedLabel) return null;
@@ -54,6 +70,13 @@ function ensureImportTable(tables, label, result) {
 function removeGuestFromTableSeats(tables, guestId) {
   tables.forEach(table => {
     table.guestIds = table.guestIds.map(id => (id === guestId ? null : id));
+  });
+}
+
+function removeGuestsFromTableSeats(tables, guestIds) {
+  const ids = new Set(guestIds);
+  tables.forEach(table => {
+    table.guestIds = table.guestIds.map(id => (ids.has(id) ? null : id));
   });
 }
 
@@ -81,6 +104,7 @@ function deriveGuestTableState(guests, tables) {
 export function applyGuestImport(prev, guestList) {
   const result = {
     added: 0,
+    updated: 0,
     skipped: 0,
     assigned: 0,
     createdTables: 0,
@@ -97,74 +121,180 @@ export function applyGuestImport(prev, guestList) {
     }
     incomingByName.set(name, { ...g, name });
   });
-
   const incomingGuests = Array.from(incomingByName.values());
-  const existingNames = new Set((prev.guests ?? []).map(g => g.name));
 
-  const patchedGuests = (prev.guests ?? []).map(existing => {
-    const incoming = incomingByName.get(existing.name);
-    if (!incoming) return existing;
-
-    const nextCategory = incoming.category?.trim()
-      ? normalizeCategory(incoming.category)
-      : existing.category;
-    const nextDiet = incoming.diet?.trim()
-      ? incoming.diet.trim()
-      : existing.diet;
-
-    if (nextCategory !== existing.category || nextDiet !== existing.diet) {
-      return { ...existing, category: nextCategory, diet: nextDiet };
-    }
-    return existing;
-  });
-
-  const newGuests = [];
-  incomingGuests.forEach(g => {
-    if (existingNames.has(g.name)) {
-      result.skipped += 1;
-      return;
-    }
-
-    newGuests.push({
-      id:       uuidv4(),
-      name:     g.name,
-      category: normalizeCategory(g.category),
-      diet:     g.diet?.trim() || '',
-      tableId:  null,
-      source:   'import',
-    });
-    result.added += 1;
-  });
-
-  const guests = [...patchedGuests, ...newGuests];
-  const guestByName = new Map(guests.map(g => [g.name, g]));
   const tables = (prev.tables ?? []).map(t => ({
     ...t,
     guestIds: Array.from({ length: MAX_SEATS }, (_, i) => t.guestIds?.[i] ?? null),
   }));
+  let guests = (prev.guests ?? []).map(g => ({
+    ...g,
+    category: normalizeCategory(g.category),
+    diet: g.diet ?? g.note ?? '',
+    tableId: g.tableId ?? null,
+    partyId: g.partyId ?? null,
+    partyRole: normalizePartyRole(g.partyRole),
+  }));
+  let partyRows = normalizePartyRows(prev.partyRows);
+
+  const getPartyGuests = (partyId, partyGuestIds = []) => {
+    const orderedIds = [
+      ...partyGuestIds,
+      ...guests.filter(g => g.partyId === partyId).map(g => g.id),
+    ];
+    const seen = new Set();
+    return orderedIds
+      .filter(id => {
+        if (seen.has(id)) return false;
+        seen.add(id);
+        return true;
+      })
+      .map(id => guests.find(g => g.id === id))
+      .filter(Boolean);
+  };
+
+  const patchGuest = (guestId, patch) => {
+    guests = guests.map(g => (g.id === guestId ? { ...g, ...patch } : g));
+  };
+
+  const deleteGuestIds = (guestIds) => {
+    const removeIds = new Set(guestIds);
+    if (removeIds.size === 0) return;
+    guests = guests.filter(g => !removeIds.has(g.id));
+    removeGuestsFromTableSeats(tables, removeIds);
+  };
 
   incomingGuests.forEach(incoming => {
+    const sourceName = incoming.name;
+    const category = normalizeCategory(incoming.category);
+    const diet = incoming.diet?.trim() || '';
+    const headcount = getIncomingHeadcount(incoming);
     const tableLabel = getIncomingTableLabel(incoming);
-    if (!tableLabel) return;
 
-    const guest = guestByName.get(incoming.name);
-    if (!guest) return;
+    const existingParty = partyRows.find(row => row.sourceName === sourceName);
+    const existingPrimary = guests.find(g => g.name === sourceName);
+    const partyId = existingParty?.id ?? existingPrimary?.partyId ?? uuidv4();
+    const existingPartyGuests = getPartyGuests(partyId, existingParty?.guestIds);
+    const isExistingSource = Boolean(existingParty || existingPrimary);
+
+    let primaryGuest = existingPartyGuests.find(g => g.partyRole === PARTY_ROLE_PRIMARY)
+      ?? existingPartyGuests.find(g => g.name === sourceName)
+      ?? existingPrimary;
+
+    if (primaryGuest) {
+      patchGuest(primaryGuest.id, {
+        name: sourceName,
+        category,
+        diet,
+        source: 'import',
+        partyId,
+        partyRole: PARTY_ROLE_PRIMARY,
+      });
+    } else {
+      primaryGuest = {
+        id: uuidv4(),
+        name: sourceName,
+        category,
+        diet,
+        tableId: null,
+        source: 'import',
+        partyId,
+        partyRole: PARTY_ROLE_PRIMARY,
+      };
+      guests = [...guests, primaryGuest];
+      result.added += 1;
+    }
+
+    const refreshedPartyGuests = getPartyGuests(partyId, existingParty?.guestIds);
+    const companionGuests = refreshedPartyGuests
+      .filter(g => g.id !== primaryGuest.id)
+      .sort((a, b) => {
+        const aIndex = existingParty?.guestIds?.indexOf(a.id) ?? -1;
+        const bIndex = existingParty?.guestIds?.indexOf(b.id) ?? -1;
+        return aIndex - bIndex;
+      });
+
+    const desiredCompanionCount = headcount - 1;
+    const keptCompanions = companionGuests.slice(0, desiredCompanionCount);
+    const removedCompanions = companionGuests.slice(desiredCompanionCount);
+    deleteGuestIds(removedCompanions.map(g => g.id));
+
+    for (let i = keptCompanions.length + 1; i <= desiredCompanionCount; i += 1) {
+      const companion = {
+        id: uuidv4(),
+        name: buildCompanionName(sourceName, i),
+        category,
+        diet,
+        tableId: null,
+        source: 'import',
+        partyId,
+        partyRole: PARTY_ROLE_COMPANION,
+      };
+      guests = [...guests, companion];
+      keptCompanions.push(companion);
+      result.added += 1;
+    }
+
+    keptCompanions.forEach((companion, index) => {
+      patchGuest(companion.id, {
+        name: buildCompanionName(sourceName, index + 1),
+        category,
+        diet,
+        source: 'import',
+        partyId,
+        partyRole: PARTY_ROLE_COMPANION,
+      });
+    });
+
+    const partyGuestIds = [primaryGuest.id, ...keptCompanions.map(g => g.id)];
+    const partyRow = {
+      id: partyId,
+      sourceName,
+      category,
+      tableLabel,
+      headcount,
+      guestIds: partyGuestIds,
+      source: 'import',
+    };
+    partyRows = [
+      ...partyRows.filter(row => row.id !== partyId && row.sourceName !== sourceName),
+      partyRow,
+    ];
+
+    if (isExistingSource) result.updated += 1;
+
+    if (!tableLabel) return;
 
     const table = ensureImportTable(tables, tableLabel, result);
     if (!table) return;
 
-    removeGuestFromTableSeats(tables, guest.id);
-    const seatIndex = table.guestIds.indexOf(null);
-    if (seatIndex === -1) {
-      result.unassignedDueToFullTables += 1;
-      return;
-    }
+    partyGuestIds.forEach(guestId => removeGuestFromTableSeats(tables, guestId));
 
-    table.guestIds[seatIndex] = guest.id;
-    result.assigned += 1;
+    partyGuestIds.forEach(guestId => {
+      const seatIndex = table.guestIds.indexOf(null);
+      if (seatIndex === -1) {
+        result.unassignedDueToFullTables += 1;
+        return;
+      }
+
+      table.guestIds[seatIndex] = guestId;
+      result.assigned += 1;
+    });
   });
 
   const derived = deriveGuestTableState(guests, tables);
+  const validGuestIds = new Set(derived.guests.map(g => g.id));
+  const lockedAssignments = normalizeLockedAssignmentsForGuests(prev.lockedAssignments, validGuestIds);
+  const normalizedPartyRows = partyRows
+    .map(row => ({
+      ...row,
+      guestIds: row.guestIds.filter(guestId => validGuestIds.has(guestId)),
+    }))
+    .filter(row => row.guestIds.length > 0)
+    .map(row => ({
+      ...row,
+      headcount: row.guestIds.length,
+    }));
 
   return {
     result,
@@ -173,6 +303,9 @@ export function applyGuestImport(prev, guestList) {
       guests:             derived.guests,
       tables,
       unassignedGuestIds: derived.unassignedGuestIds,
+      partyRows:          normalizedPartyRows,
+      guestGroups:        ensurePartyGuestGroups(prev.guestGroups, normalizedPartyRows, validGuestIds, lockedAssignments),
+      lockedAssignments,
       lastSaved:          new Date().toISOString(),
     },
   };

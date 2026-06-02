@@ -40,8 +40,47 @@ if (!String(seatingRules['.validate'] ?? '').includes("hasChild('tables')")) fai
 if (!String(seatingRules['.validate'] ?? '').includes("hasChild('lastSaved')")) fail('missing lastSaved validation');
 if (seatingRules.$other?.['.validate'] !== false) fail('unknown wedding-seating children must be rejected');
 
-for (const child of ['guests', 'tables', 'unassignedGuestIds', 'tablePositions', 'lastSaved']) {
+for (const child of ['guests', 'partyRows', 'guestGroups', 'tables', 'unassignedGuestIds', 'tablePositions', 'seatingRules', 'lockedAssignments', 'lastSaved']) {
   if (!seatingRules[child]) fail(`missing validation block for ${child}`);
+}
+
+const guestRules = seatingRules.guests?.$guestIndex;
+if (!guestRules?.partyId) fail('guest validation must allow optional partyId');
+if (!guestRules?.partyRole) fail('guest validation must allow partyRole');
+
+const partyRules = seatingRules.partyRows?.$partyIndex;
+if (!String(partyRules?.headcount?.['.validate'] ?? '').includes('<= 10')) {
+  fail('partyRows headcount validation must enforce max 10');
+}
+if (partyRules?.$other?.['.validate'] !== false) {
+  fail('unknown partyRows children must be rejected');
+}
+
+const groupRules = seatingRules.guestGroups?.$groupIndex;
+if (!String(groupRules?.preference?.['.validate'] ?? '').includes('same-table')) {
+  fail('guestGroups must validate known group preferences');
+}
+if (!String(groupRules?.locked?.['.validate'] ?? '').includes('isBoolean()')) {
+  fail('guestGroups locked must validate boolean values');
+}
+if (groupRules?.$other?.['.validate'] !== false) {
+  fail('unknown guestGroups children must be rejected');
+}
+
+const autoRules = seatingRules.seatingRules;
+if (!String(autoRules?.fillStrategy?.['.validate'] ?? '').includes('category-first')) {
+  fail('seatingRules must validate known fill strategies');
+}
+if (!String(autoRules?.maxPerCategoryPerTable?.$category?.['.validate'] ?? '').includes('<= 10')) {
+  fail('seatingRules category max must enforce max 10');
+}
+if (autoRules?.$other?.['.validate'] !== false) {
+  fail('unknown seatingRules children must be rejected');
+}
+
+const lockedRules = seatingRules.lockedAssignments?.$guestId;
+if (!String(lockedRules?.['.validate'] ?? '').includes('isBoolean()')) {
+  fail('lockedAssignments must validate boolean values');
 }
 
 const serializedRules = JSON.stringify(rulesFile);

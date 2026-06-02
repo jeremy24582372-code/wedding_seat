@@ -11,7 +11,7 @@ import { useDroppable } from '@dnd-kit/core';
  *   unassignedIds     — string[] (IDs of unassigned guests)
  *   onMoveToUnassigned — (guestId) => void
  */
-export default function UnassignedPool({ guests, unassignedIds, onEdit, onDelete }) {
+export default function UnassignedPool({ guests, unassignedIds, lockedAssignments = {}, onEdit, onDelete }) {
   const [search, setSearch] = useState('');
   const [filterCat, setFilterCat] = useState('');
 
@@ -33,13 +33,24 @@ export default function UnassignedPool({ guests, unassignedIds, onEdit, onDelete
   }, [guests, unassignedIds, search, filterCat]);
 
   const categoryOptions = useMemo(() => buildCategoryOptions(guests), [guests]);
+  const visiblePartyCount = useMemo(() => {
+    return new Set(unassignedGuests.map(g => g.partyId).filter(Boolean)).size;
+  }, [unassignedGuests]);
 
   return (
     <aside className="unassigned-pool">
       {/* Title */}
       <div className="unassigned-pool__header">
-        <h2 className="unassigned-pool__title">未分配賓客</h2>
-        <span className="unassigned-pool__count">{unassignedIds.length} 人</span>
+        <div>
+          <h2 className="unassigned-pool__title">未分配座位</h2>
+          <p className="unassigned-pool__subtitle">可拖曳到空座，也可拖回此區取消安排</p>
+        </div>
+        <div className="unassigned-pool__counts" aria-label="未分配統計">
+          <span className="unassigned-pool__count">{unassignedIds.length} 位</span>
+          {visiblePartyCount > 0 && (
+            <span className="unassigned-pool__party-count">{visiblePartyCount} 組同行</span>
+          )}
+        </div>
       </div>
 
       {/* Filters */}
@@ -74,7 +85,7 @@ export default function UnassignedPool({ guests, unassignedIds, onEdit, onDelete
         {unassignedGuests.length === 0 ? (
           <div className="unassigned-pool__empty">
             {unassignedIds.length === 0
-              ? '🎉 所有賓客已分配桌次！'
+              ? '所有座位需求已分配桌次'
               : '沒有符合條件的賓客'}
           </div>
         ) : (
@@ -86,6 +97,7 @@ export default function UnassignedPool({ guests, unassignedIds, onEdit, onDelete
                 onRemove={undefined} // already unassigned, no remove action
                 onEdit={onEdit}
                 onDelete={onDelete}
+                locked={Boolean(lockedAssignments?.[guest.id])}
               />
             ))}
           </div>

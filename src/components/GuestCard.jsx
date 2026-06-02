@@ -3,6 +3,7 @@ import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import './GuestCard.css';
 import { getCategoryVisual } from '../utils/constants';
+import LockBadge from './LockBadge';
 
 /**
  * Draggable guest card.
@@ -12,18 +13,24 @@ import { getCategoryVisual } from '../utils/constants';
  *   onEdit    — (guest) => void  (pencil icon click: open edit modal)
  *   onDelete  — (guestId) => void  (trash icon: permanently delete with 2-step confirm)
  *   compact   — bool (smaller variant used inside TableZone)
+ *   className — optional visual variant, e.g. drag overlay
  */
-export default function GuestCard({ guest, onRemove, onEdit, onDelete, compact = false }) {
+export default function GuestCard({ guest, onRemove, onEdit, onDelete, compact = false, className = '', locked = false }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: guest.id,
     data: { guestId: guest.id, tableId: guest.tableId },
   });
 
+  const categoryVisual = getCategoryVisual(guest.category);
+  const partyLabel = guest.partyId
+    ? guest.partyRole === 'companion' ? '同行' : '主要'
+    : '';
+
   const style = {
     transform: CSS.Translate.toString(transform),
+    '--guest-cat-color': categoryVisual.color,
+    '--guest-cat-bg': categoryVisual.background,
   };
-
-  const categoryVisual = getCategoryVisual(guest.category);
 
   // ── 二次確認刪除狀態 ────────────────────────────────────────────
   const [pendingDelete, setPendingDelete] = useState(false);
@@ -69,6 +76,10 @@ export default function GuestCard({ guest, onRemove, onEdit, onDelete, compact =
         'guest-card',
         compact ? 'guest-card--compact' : '',
         isDragging ? 'guest-card--dragging' : '',
+        guest.partyId ? 'guest-card--party' : '',
+        guest.partyRole === 'companion' ? 'guest-card--companion' : '',
+        locked ? 'guest-card--locked' : '',
+        className,
       ].join(' ')}
       {...listeners}
       {...attributes}
@@ -77,12 +88,11 @@ export default function GuestCard({ guest, onRemove, onEdit, onDelete, compact =
         onRemove?.();
       }}
       onMouseLeave={handleMouseLeave}
-      title={`${guest.name}｜${categoryVisual.label}${guest.diet ? `｜飲食: ${guest.diet}` : ''}\n右鍵 → 移回未分配`}
+      title={`${guest.name}｜${categoryVisual.label}${guest.diet ? `｜飲食: ${guest.diet}` : ''}\n右鍵移回未分配`}
     >
       {/* Category color bar */}
       <span
         className="guest-card__cat-bar"
-        style={{ background: categoryVisual.color }}
         aria-label={categoryVisual.label}
       />
 
@@ -92,18 +102,23 @@ export default function GuestCard({ guest, onRemove, onEdit, onDelete, compact =
           <span className="guest-card__note">{guest.diet}</span>
         )}
         {compact && guest.diet && (
-          <span className="guest-card__note guest-card__note--dot" title={guest.diet}>●</span>
+          <span className="guest-card__note guest-card__note--dot" title={guest.diet}>註</span>
         )}
       </div>
 
       {!compact && (
         <span
           className="guest-card__cat-badge"
-          style={{ color: categoryVisual.color }}
         >
           {categoryVisual.label}
         </span>
       )}
+      {partyLabel && (
+        <span className={`guest-card__party-badge${compact ? ' guest-card__party-badge--compact' : ''}`}>
+          {partyLabel}
+        </span>
+      )}
+      <LockBadge locked={locked} compact={compact} />
 
       {/* Action buttons — visible on hover, suppresses drag */}
       <div className="guest-card__actions">
@@ -117,7 +132,7 @@ export default function GuestCard({ guest, onRemove, onEdit, onDelete, compact =
             title="編輯賓客資料"
             tabIndex={0}
           >
-            ✏️
+            編
           </button>
         )}
 
@@ -131,7 +146,7 @@ export default function GuestCard({ guest, onRemove, onEdit, onDelete, compact =
             title={pendingDelete ? '再按一次確認刪除' : '刪除賓客'}
             tabIndex={0}
           >
-            {pendingDelete ? '確認？' : '🗑️'}
+            {pendingDelete ? '確認' : '刪'}
           </button>
         )}
       </div>

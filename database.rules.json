@@ -27,6 +27,74 @@
           "tableId": {
             ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 80"
           },
+          "partyId": {
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 80"
+          },
+          "partyRole": {
+            ".validate": "newData.isString() && (newData.val() === 'primary' || newData.val() === 'companion')"
+          },
+          "$other": {
+            ".validate": false
+          }
+        }
+      },
+      "partyRows": {
+        "$partyIndex": {
+          ".validate": "newData.hasChildren(['id', 'sourceName', 'category', 'headcount', 'guestIds', 'source'])",
+          "id": {
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 80"
+          },
+          "sourceName": {
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 100"
+          },
+          "category": {
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 50"
+          },
+          "tableLabel": {
+            ".validate": "newData.isString() && newData.val().length <= 30"
+          },
+          "headcount": {
+            ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 10"
+          },
+          "guestIds": {
+            "$guestIndex": {
+              ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 80"
+            }
+          },
+          "source": {
+            ".validate": "newData.isString() && (newData.val() === 'manual' || newData.val() === 'import')"
+          },
+          "$other": {
+            ".validate": false
+          }
+        }
+      },
+      "guestGroups": {
+        "$groupIndex": {
+          ".validate": "newData.hasChildren(['id', 'name', 'guestIds', 'preference', 'locked', 'notes'])",
+          "id": {
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 80"
+          },
+          "name": {
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 100"
+          },
+          "guestIds": {
+            "$guestIndex": {
+              ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 80"
+            }
+          },
+          "sourcePartyId": {
+            ".validate": "newData.isString() && newData.val().length <= 80"
+          },
+          "preference": {
+            ".validate": "newData.isString() && (newData.val() === 'same-table' || newData.val() === 'nearby' || newData.val() === 'separate')"
+          },
+          "locked": {
+            ".validate": "newData.isBoolean()"
+          },
+          "notes": {
+            ".validate": "newData.isString() && newData.val().length <= 200"
+          },
           "$other": {
             ".validate": false
           }
@@ -71,6 +139,34 @@
           "$other": {
             ".validate": false
           }
+        }
+      },
+      "seatingRules": {
+        ".validate": "newData.hasChildren(['fillStrategy', 'respectExistingAssignments', 'preferFillIncompleteTables', 'keepGroupsTogether'])",
+        "fillStrategy": {
+          ".validate": "newData.isString() && (newData.val() === 'balanced' || newData.val() === 'category-first' || newData.val() === 'keep-existing')"
+        },
+        "respectExistingAssignments": {
+          ".validate": "newData.isBoolean()"
+        },
+        "maxPerCategoryPerTable": {
+          "$category": {
+            ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 10"
+          }
+        },
+        "preferFillIncompleteTables": {
+          ".validate": "newData.isBoolean()"
+        },
+        "keepGroupsTogether": {
+          ".validate": "newData.isBoolean()"
+        },
+        "$other": {
+          ".validate": false
+        }
+      },
+      "lockedAssignments": {
+        "$guestId": {
+          ".validate": "newData.isBoolean()"
         }
       },
       "lastSaved": {

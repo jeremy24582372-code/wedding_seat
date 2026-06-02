@@ -9,11 +9,16 @@ import {
 } from '@dnd-kit/core';
 
 import './App.css';
+import AppShell from './components/AppShell';
+import DashboardHome from './components/DashboardHome';
+import GuestDashboard from './components/GuestDashboard';
+import GroupManager from './components/GroupManager';
 import Toolbar from './components/Toolbar';
 import UnassignedPool from './components/UnassignedPool';
 import FloorPlan from './components/FloorPlan';
 import GuestCard from './components/GuestCard';
 import AddGuestModal from './components/AddGuestModal';
+import AutoSeatRulesModal from './components/AutoSeatRulesModal';
 import ToastContainer from './components/Toast';
 
 import { useSeatingState } from './hooks/useSeatingState';
@@ -21,6 +26,7 @@ import { useGoogleSheets } from './hooks/useGoogleSheets';
 import { useExport } from './hooks/useExport';
 import { syncToGoogleSheets, useFirebaseStatus } from './hooks/useFirebase';
 import { useToast } from './hooks/useToast';
+import { createAutoSeatPreview } from './utils/autoSeatPlanner';
 
 /**
  * Find which table + seat a guest currently occupies.
@@ -49,6 +55,13 @@ export default function App() {
     removeTable,
     renameTable,
     importGuests,
+    applyAutoSeatPlan,
+    createGuestGroup,
+    updateGuestGroup,
+    removeGuestFromGroup,
+    removeGuestGroup,
+    toggleGuestLock,
+    toggleGroupLock,
     updateTablePosition,
   } = useSeatingState();
 
@@ -66,9 +79,77 @@ export default function App() {
   // Modal state
   const [showAddGuest, setShowAddGuest] = useState(false);
   const [editingGuest, setEditingGuest] = useState(null); // Guest object being edited
+  const [showAutoSeatRules, setShowAutoSeatRules] = useState(false);
+  const [autoSeatPreview, setAutoSeatPreview] = useState(null);
+  const [activeTab, setActiveTab] = useState('overview');
+  const [lastImportSummary, setLastImportSummary] = useState(null);
 
   const handleOpenEdit = (guest) => setEditingGuest(guest);
   const handleCloseEdit = () => setEditingGuest(null);
+  const handleOpenAutoSeat = () => {
+    setAutoSeatPreview(null);
+    setShowAutoSeatRules(true);
+  };
+  const handleCloseAutoSeat = () => {
+    setAutoSeatPreview(null);
+    setShowAutoSeatRules(false);
+  };
+
+  const handleCreateAutoSeatPreview = (rules) => {
+    const preview = createAutoSeatPreview(state, rules);
+    setAutoSeatPreview(preview);
+
+    if (preview.summary.candidateMoveCount === 0 && preview.summary.createdTableCount === 0) {
+      toast.info('目前沒有可套用的自動排座建議');
+    } else {
+      toast.success(`已產生預覽：建議安排 ${preview.summary.candidateMoveCount} 位`);
+    }
+  };
+
+  const handleApplyAutoSeatPreview = () => {
+    if (!autoSeatPreview) {
+      toast.warn('請先產生自動排座預覽');
+      return;
+    }
+
+    const result = applyAutoSeatPlan(autoSeatPreview.plan);
+    if (!result.success) {
+      toast.warn(result.reason ?? '無法套用自動排座預覽');
+      return;
+    }
+
+    toast.success(`已套用自動排座：安排 ${autoSeatPreview.summary.candidateMoveCount} 位`);
+    handleCloseAutoSeat();
+    setActiveTab('seating');
+  };
+
+  const confirmLockedManualMove = (guestIds) => {
+    const lockedGuests = guestIds
+      .map(id => getGuestById(id))
+      .filter(guest => guest && state.lockedAssignments?.[guest.id]);
+    if (lockedGuests.length === 0) return true;
+
+    const names = lockedGuests.map(guest => guest.name).join('、');
+    return window.confirm(`「${names}」已鎖定座位。仍要手動移動或交換嗎？`);
+  };
+
+  const moveGuestWithLockPrompt = (guestId, targetTableId, seatIndex = null) => {
+    if (!confirmLockedManualMove([guestId])) {
+      toast.info('已保留鎖定座位');
+      return { success: false, reason: '鎖定座位未移動' };
+    }
+    return moveGuest(guestId, targetTableId, seatIndex);
+  };
+
+  const swapGuestsWithLockPrompt = (fromTableId, fromSeatIndex, toTableId, toSeatIndex) => {
+    const fromGuestId = state.tables.find(table => table.id === fromTableId)?.guestIds?.[fromSeatIndex];
+    const toGuestId = state.tables.find(table => table.id === toTableId)?.guestIds?.[toSeatIndex];
+    if (!confirmLockedManualMove([fromGuestId, toGuestId].filter(Boolean))) {
+      toast.info('已保留鎖定座位');
+      return;
+    }
+    swapGuestsBetweenSeats(fromTableId, fromSeatIndex, toTableId, toSeatIndex);
+  };
 
   // ─────────────────────────────────────────────────────────────
   // KEY FIX: Track exact pointer position on every move/up event.
@@ -110,11 +191,23 @@ export default function App() {
 
         const {
           added,
+          updated = 0,
           skipped,
           assigned = 0,
           createdTables = 0,
           unassignedDueToFullTables = 0,
         } = importGuests(guests);
+
+        setLastImportSummary({
+          added,
+          updated,
+          skipped,
+          assigned,
+          createdTables,
+          unassignedDueToFullTables,
+          sourceRows: guests.length,
+          importedAt: new Date().toISOString(),
+        });
 
         const details = [];
         if (assigned > 0) details.push(`依桌次安排 ${assigned} 位`);
@@ -123,15 +216,16 @@ export default function App() {
           details.push(`${unassignedDueToFullTables} 位因桌次已滿保留未分配`);
         }
         const suffix = details.length > 0 ? `（${details.join('，')}）` : '';
+        const updatedText = updated > 0 ? `，更新 ${updated} 筆既有來源` : '';
 
-        if (added === 0 && details.length === 0) {
-          toast.info(`所有 ${skipped} 位賓客已存在（含桌次圖座位），無需重複匯入`);
+        if (added === 0 && updated === 0 && details.length === 0) {
+          toast.info(`沒有新增資料${skipped > 0 ? `，略過 ${skipped} 筆重複來源` : ''}`);
         } else if (added === 0) {
-          toast.success(`已更新既有賓客${suffix}`);
+          toast.success(`已更新 ${updated} 筆既有來源${skipped > 0 ? `，略過 ${skipped} 筆重複來源` : ''}${suffix}`);
         } else if (skipped > 0) {
-          toast.success(`新增 ${added} 位賓客，略過 ${skipped} 位已存在或重複${suffix}`);
+          toast.success(`新增 ${added} 位座位需求${updatedText}，略過 ${skipped} 筆重複來源${suffix}`);
         } else {
-          toast.success(`已匯入 ${added} 位賓客${suffix}`);
+          toast.success(`已匯入 ${added} 位座位需求${updatedText}${suffix}`);
         }
       }
     } catch (err) {
@@ -146,9 +240,11 @@ export default function App() {
     const result = await syncToGoogleSheets(state, sheetsUrl);
     if (!result.success) {
       toast.error(`同步失敗：${result.error ?? '未知錯誤'}`);
+      throw new Error(result.error ?? '未知錯誤');
     } else {
       toast.success('已成功同步至 Google Sheets');
     }
+    return result;
   };
 
   // --- DnD handlers ---
@@ -193,13 +289,13 @@ export default function App() {
         // Seat is occupied → swap atomically
         const from = findGuestSeat(state.tables, guestId);
         if (from) {
-          swapGuestsBetweenSeats(from.tableId, from.seatIndex, targetTableId, seatIndex);
+          swapGuestsWithLockPrompt(from.tableId, from.seatIndex, targetTableId, seatIndex);
         } else {
           toast.warn('此座位已有人；請拖到空位，或先移出原賓客。');
         }
         return;
       }
-      const result = moveGuest(guestId, targetTableId, seatIndex);
+      const result = moveGuestWithLockPrompt(guestId, targetTableId, seatIndex);
       if (!result.success) {
         console.warn('[DnD] moveGuest rejected:', result.reason);
         toast.warn(result.reason ?? '無法放入此桌');
@@ -216,13 +312,13 @@ export default function App() {
       // Seat is occupied → swap atomically
       const from = findGuestSeat(state.tables, guestId);
       if (from) {
-        swapGuestsBetweenSeats(from.tableId, from.seatIndex, hit.tableId, hit.seatIndex);
+        swapGuestsWithLockPrompt(from.tableId, from.seatIndex, hit.tableId, hit.seatIndex);
       } else {
         toast.warn('此座位已有人；請拖到空位，或先移出原賓客。');
       }
       return;
     }
-    const result = moveGuest(guestId, hit.tableId, hit.seatIndex);
+    const result = moveGuestWithLockPrompt(guestId, hit.tableId, hit.seatIndex);
     if (!result.success) {
       console.warn('[DnD] moveGuest rejected:', result.reason);
       toast.warn(result.reason ?? '無法放入此桌');
@@ -243,6 +339,13 @@ export default function App() {
     );
   }
 
+  const plannerTabs = [
+    { id: 'overview', label: '總覽', meta: `${stats.assignedSeats}/${stats.seatTotal}` },
+    { id: 'guests', label: '賓客', meta: `${stats.partyTotal} 筆` },
+    { id: 'groups', label: '群組', meta: `${state.guestGroups?.length ?? 0} 組` },
+    { id: 'seating', label: '座位圖', meta: `${state.tables.length} 桌` },
+  ];
+
   return (
     <>
       {/* Add Guest Modal */}
@@ -262,6 +365,17 @@ export default function App() {
         />
       )}
 
+      {showAutoSeatRules && (
+        <AutoSeatRulesModal
+          initialRules={state.seatingRules}
+          preview={autoSeatPreview}
+          onPreview={handleCreateAutoSeatPreview}
+          onApply={handleApplyAutoSeatPreview}
+          onDraftChange={() => setAutoSeatPreview(null)}
+          onClose={handleCloseAutoSeat}
+        />
+      )}
+
       {/* Global toast notifications */}
       <ToastContainer toasts={toasts} onDismiss={toast.dismiss} />
 
@@ -277,7 +391,13 @@ export default function App() {
         onDragEnd={handleDragEnd}
         onDragCancel={handleDragCancel}
       >
-        <div id="root-layout">
+        <AppShell
+          activeTab={activeTab}
+          tabs={plannerTabs}
+          onTabChange={setActiveTab}
+          firebaseStatus={firebaseStatus}
+          lastSaved={state.lastSaved}
+        >
           {/* Firebase connection status badge */}
           <div className={`firebase-status firebase-status--${firebaseStatus}`} title={
             firebaseStatus === 'connected' ? 'Firebase 已連線' :
@@ -291,62 +411,119 @@ export default function App() {
                   '本機模式'}
             </span>
           </div>
-          {/* Toolbar */}
-          <Toolbar
-            stats={stats}
-            lastSaved={state.lastSaved}
-            onImport={handleImport}
-            onAddTable={addTable}
-            onOpenAddGuest={() => setShowAddGuest(true)}
-            onExportJSON={exportJSON}
-            onExportCSV={exportCSV}
-            onExportPDF={() => exportPDF(floorPlanRef)}
-            onExportFloorPDF={exportFloorPDF}
-            onSyncSheets={handleSyncSheets}
-            importLoading={importLoading}
-          />
 
-          {/* App body */}
-          <div className="app-layout">
-            {/* Left sidebar — unassigned guests */}
-            <div className="app-sidebar">
-              <UnassignedPool
-                guests={state.guests}
-                unassignedIds={state.unassignedGuestIds}
-                onMoveToUnassigned={(guestId) => moveGuest(guestId, null)}
-                onEdit={handleOpenEdit}
-                onDelete={removeGuest}
+          {activeTab === 'overview' ? (
+            <DashboardHome
+              state={state}
+              stats={stats}
+              firebaseStatus={firebaseStatus}
+              lastSaved={state.lastSaved}
+              importLoading={importLoading}
+              onImport={handleImport}
+              onOpenAddGuest={() => setShowAddGuest(true)}
+              onGoToSeats={() => setActiveTab('seating')}
+              onExportPDF={() => exportPDF(floorPlanRef)}
+              onSyncSheets={handleSyncSheets}
+            />
+          ) : activeTab === 'guests' ? (
+            <GuestDashboard
+              state={state}
+              stats={stats}
+              importSummary={lastImportSummary}
+              importLoading={importLoading}
+              onImport={handleImport}
+              onOpenAddGuest={() => setShowAddGuest(true)}
+              onGoToSeats={() => setActiveTab('seating')}
+              onEditGuest={handleOpenEdit}
+              onDeleteGuest={removeGuest}
+            />
+          ) : activeTab === 'groups' ? (
+            <GroupManager
+              state={state}
+              onCreateGroup={createGuestGroup}
+              onUpdateGroup={updateGuestGroup}
+              onRemoveGuestFromGroup={removeGuestFromGroup}
+              onRemoveGuestGroup={removeGuestGroup}
+              onToggleGuestLock={toggleGuestLock}
+              onToggleGroupLock={toggleGroupLock}
+              onGoToSeats={() => setActiveTab('seating')}
+            />
+          ) : (
+            <div className="planner-workspace seating-workspace">
+              {/* Toolbar */}
+              <Toolbar
+                stats={stats}
+                lastSaved={state.lastSaved}
+                onImport={handleImport}
+                onAddTable={addTable}
+                onOpenAddGuest={() => setShowAddGuest(true)}
+                onOpenAutoSeat={handleOpenAutoSeat}
+                onExportJSON={exportJSON}
+                onExportCSV={exportCSV}
+                onExportPDF={() => exportPDF(floorPlanRef)}
+                onExportFloorPDF={exportFloorPDF}
+                onSyncSheets={handleSyncSheets}
+                importLoading={importLoading}
               />
-            </div>
 
-            {/* Main area — Floor Plan canvas */}
-            <main className="app-main" ref={floorPlanRef} id="tables-area">
-              {state.tables.length === 0 ? (
-                <div className="app-empty-tables">
-                  <p>尚無桌次</p>
-                  <button
-                    className="btn btn-primary"
-                    onClick={addTable}
-                  >
-                    新增第一張桌
-                  </button>
+              <section className="seating-workspace__statusbar" aria-label="座位圖操作提示">
+                <div className="seating-workspace__status-copy">
+                  <strong>座位圖工作區</strong>
+                  <span>拖曳賓客到空位；滿桌可交換座位，點擊已安排座位可移回未分配。</span>
                 </div>
-              ) : (
-                <FloorPlan
-                  tables={state.tables}
-                  guests={state.guests}
-                  positions={state.tablePositions ?? {}}
-                  onUpdatePosition={updateTablePosition}
-                  onMoveOut={(guestId) => moveGuest(guestId, null)}
-                  onRename={renameTable}
-                  onRemove={removeTable}
-                  onEdit={handleOpenEdit}
-                  onDelete={removeGuest}
-                />
-              )}
-            </main>
-          </div>
-        </div>
+                <div className="seating-workspace__status-metrics" aria-label="座位圖統計">
+                  <span><b>{stats.unassignedSeats}</b> 未分配</span>
+                  <span><b>{state.tables.filter(t => t.guestIds.filter(Boolean).length >= 10).length}</b> 滿桌</span>
+                  <span><b>{state.partyRows?.length ?? 0}</b> 來源列</span>
+                </div>
+              </section>
+
+              {/* App body */}
+              <div className="app-layout seating-workspace__layout">
+                {/* Left sidebar — unassigned guests */}
+                <div className="app-sidebar">
+                  <UnassignedPool
+                    guests={state.guests}
+                    unassignedIds={state.unassignedGuestIds}
+                    onMoveToUnassigned={(guestId) => moveGuestWithLockPrompt(guestId, null)}
+                    lockedAssignments={state.lockedAssignments ?? {}}
+                    onEdit={handleOpenEdit}
+                    onDelete={removeGuest}
+                  />
+                </div>
+
+                {/* Main area — Floor Plan canvas */}
+                <main className="app-main" ref={floorPlanRef} id="tables-area">
+                  {state.tables.length === 0 ? (
+                    <div className="app-empty-tables">
+                      <p>尚無桌次</p>
+                      <button
+                        className="btn btn-primary"
+                        onClick={addTable}
+                      >
+                        新增第一張桌
+                      </button>
+                    </div>
+                  ) : (
+                    <FloorPlan
+                      tables={state.tables}
+                      guests={state.guests}
+                      positions={state.tablePositions ?? {}}
+                      onUpdatePosition={updateTablePosition}
+                      onMoveOut={(guestId) => moveGuestWithLockPrompt(guestId, null)}
+                      onRename={renameTable}
+                      onRemove={removeTable}
+                      onEdit={handleOpenEdit}
+                      onDelete={removeGuest}
+                      onAddTable={addTable}
+                      lockedAssignments={state.lockedAssignments ?? {}}
+                    />
+                  )}
+                </main>
+              </div>
+            </div>
+          )}
+        </AppShell>
 
         {/* Drag overlay — the "ghost" card following the cursor */}
         <DragOverlay dropAnimation={{
@@ -357,6 +534,7 @@ export default function App() {
             <GuestCard
               guest={activeGuest}
               className="guest-card-drag-overlay"
+              locked={Boolean(state.lockedAssignments?.[activeGuest.id])}
             />
           ) : null}
         </DragOverlay>

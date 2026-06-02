@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import './TableZone.css';
 import { MAX_SEATS, getCategoryVisual } from '../utils/constants';
+import LockBadge from './LockBadge';
 
 /**
  * Calculate the (x, y) position of a seat on a circle.
@@ -17,7 +18,7 @@ function seatPosition(index, total, radius) {
 
 // ── Per-seat droppable slot ──────────────────────────────────────
 // SeatSlot needs its own confirm state, so we isolate it.
-function SeatSlot({ tableId, seatIndex, guest, onMoveOut, onEdit, onDelete, cx, cy, seatR }) {
+function SeatSlot({ tableId, seatIndex, guest, locked, onMoveOut, onEdit, onDelete, cx, cy, seatR }) {
   const isEmpty = !guest;
   // Always register as droppable (even occupied) so dnd-kit tracks it;
   // actual accept/reject logic is in handleDragEnd via elementFromPoint.
@@ -27,6 +28,9 @@ function SeatSlot({ tableId, seatIndex, guest, onMoveOut, onEdit, onDelete, cx, 
   });
 
   const categoryVisual = guest ? getCategoryVisual(guest.category) : null;
+  const partyLabel = guest?.partyId
+    ? guest.partyRole === 'companion' ? '同行座位' : '主要座位'
+    : '';
 
   const style = {
     left:   cx - seatR,
@@ -84,14 +88,29 @@ function SeatSlot({ tableId, seatIndex, guest, onMoveOut, onEdit, onDelete, cx, 
   return (
     <button
       ref={setNodeRef}
-      className="table-zone__seat table-zone__seat--filled"
+      className={[
+        'table-zone__seat',
+        'table-zone__seat--filled',
+        isOver ? 'table-zone__seat--swap-target' : '',
+        guest.partyId ? 'table-zone__seat--party' : '',
+        guest.partyRole === 'companion' ? 'table-zone__seat--companion' : '',
+        locked ? 'table-zone__seat--locked' : '',
+      ].filter(Boolean).join(' ')}
       style={style}
       onClick={() => onMoveOut(guest.id)}
-      title={`${guest.name}（${categoryVisual.label}）${guest.diet ? '\n飲食: ' + guest.diet : ''}\n點擊移回未分配`}
-      aria-label={`${guest.name}，點擊移回未分配`}
+      title={`${guest.name}（${categoryVisual.label}）${partyLabel ? '\n' + partyLabel : ''}${guest.diet ? '\n飲食: ' + guest.diet : ''}\n點擊移回未分配`}
+      aria-label={`${guest.name}，${partyLabel || categoryVisual.label}，點擊移回未分配`}
       {...dataAttrs}
     >
       <span className="table-zone__seat-name" style={{ pointerEvents: 'none' }}>{guest.name}</span>
+      {partyLabel && (
+        <span className="table-zone__seat-party" aria-hidden="true">
+          {guest.partyRole === 'companion' ? '同' : '主'}
+        </span>
+      )}
+      <span className="table-zone__seat-lock">
+        <LockBadge locked={locked} compact />
+      </span>
 
       {/* Seat action overlay: edit + delete */}
       {(onEdit || onDelete) && (
@@ -107,7 +126,7 @@ function SeatSlot({ tableId, seatIndex, guest, onMoveOut, onEdit, onDelete, cx, 
               tabIndex={0}
               onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); onEdit(guest); } }}
             >
-              ✏️
+              編
             </span>
           )}
           {onDelete && (
@@ -130,9 +149,11 @@ function SeatSlot({ tableId, seatIndex, guest, onMoveOut, onEdit, onDelete, cx, 
   );
 }
 
-export default function TableZone({ table, guests, onMoveOut, onRename, onRemove, onEdit, onDelete }) {
+export default function TableZone({ table, guests, lockedAssignments = {}, onMoveOut, onRename, onRemove, onEdit, onDelete }) {
   const filledCount = table.guestIds.filter(Boolean).length;
   const isFull      = filledCount >= MAX_SEATS;
+  const remainingSeats = Math.max(0, MAX_SEATS - filledCount);
+  const isAlmostFull = remainingSeats > 0 && remainingSeats <= 2;
 
   // Inline rename (double-click on centre label)
   const [editing, setEditing]       = useState(false);
@@ -167,6 +188,7 @@ export default function TableZone({ table, guests, onMoveOut, onRename, onRemove
       className={[
         'table-zone',
         isFull ? 'table-zone--full table-zone--locked' : '',
+        isAlmostFull ? 'table-zone--almost-full' : '',
       ].filter(Boolean).join(' ')}
       data-full={isFull ? 'true' : 'false'}
       aria-label={`${table.label}，${filledCount}/${MAX_SEATS} 人${isFull ? '，已滿桌' : ''}`}
@@ -213,6 +235,7 @@ export default function TableZone({ table, guests, onMoveOut, onRename, onRemove
               tableId={table.id}
               seatIndex={i}
               guest={guest}
+              locked={Boolean(guest && lockedAssignments?.[guest.id])}
               onMoveOut={onMoveOut}
               onEdit={onEdit}
               onDelete={onDelete}
@@ -262,9 +285,10 @@ export default function TableZone({ table, guests, onMoveOut, onRename, onRemove
           title="刪除此桌（賓客移回未分配）"
           aria-label={`刪除 ${table.label}`}
         >
-          ✕ 刪除
+          刪除此桌
         </button>
         {isFull && <span className="table-zone__full-badge">已滿 · 10 人</span>}
+        {isAlmostFull && <span className="table-zone__almost-full-badge">剩 {remainingSeats} 位</span>}
       </footer>
     </article>
   );

@@ -4,6 +4,19 @@ import { saveStateToFirebase, useFirebaseListener } from './useFirebase';
 import { db } from '../firebase';
 import { MAX_SEATS, DEFAULT_TABLE_COUNT, AUTOSAVE_DEBOUNCE_MS, normalizeCategory } from '../utils/constants';
 import { applyGuestImport } from '../utils/importGuests.js';
+import { normalizePartyRole, normalizePartyRows, PARTY_ROLE_PRIMARY } from '../utils/partyRows.js';
+import {
+  DEFAULT_SEATING_RULES,
+  buildAutoSeatFingerprint,
+  normalizeLockedAssignments,
+  normalizeSeatingRules,
+} from '../utils/autoSeatPlanner.js';
+import {
+  normalizeGuestGroups,
+  normalizeGroupPreference,
+  normalizeLockedAssignmentsForGuests,
+  syncGuestGroupLocks,
+} from '../utils/guestGroups.js';
 
 /** Build an empty fixed-length seat array */
 function emptySeats() {
@@ -24,8 +37,18 @@ function buildInitialState() {
     tables,
     unassignedGuestIds: [],
     tablePositions: {},
+    partyRows: [],
+    guestGroups: [],
+    seatingRules: DEFAULT_SEATING_RULES,
+    lockedAssignments: {},
     lastSaved: null,
   };
+}
+
+function validateTableCapacity(tables) {
+  return (tables ?? []).every(table =>
+    (table.guestIds ?? []).filter(Boolean).length <= MAX_SEATS
+  );
 }
 
 function computeGuestMove(prev, guestId, targetTableId, seatIndex = null) {
@@ -204,13 +227,23 @@ export function useSeatingState() {
       source: g.source ?? 'manual',
       // 舊資料 note → diet 遷移（防止舊備份資料的飲食欄位消失）
       diet: g.diet ?? g.note ?? '',
+      partyId: g.partyId ?? null,
+      partyRole: normalizePartyRole(g.partyRole),
     }));
 
+    const lockedAssignments = normalizeLockedAssignmentsForGuests(
+      normalizeLockedAssignments(fbData.lockedAssignments),
+      normalisedGuests.map(guest => guest.id)
+    );
     const nextState = {
       guests: normalisedGuests,
       tables: normalisedTables,
       unassignedGuestIds: fbData.unassignedGuestIds ?? [],
       tablePositions: fbData.tablePositions ?? {},
+      partyRows: normalizePartyRows(fbData.partyRows),
+      guestGroups: normalizeGuestGroups(fbData.guestGroups, normalisedGuests.map(guest => guest.id), lockedAssignments),
+      seatingRules: normalizeSeatingRules(fbData.seatingRules),
+      lockedAssignments,
       lastSaved: fbData.lastSaved ?? null,
     };
 
@@ -229,6 +262,8 @@ export function useSeatingState() {
       diet: guestData.diet?.trim() || '',
       tableId: null,
       source: 'manual', // 手動新增 → 允許回寫 Google Sheets
+      partyId: null,
+      partyRole: PARTY_ROLE_PRIMARY,
     };
     setState(prev => ({
       ...prev,
@@ -242,6 +277,10 @@ export function useSeatingState() {
     setState(prev => {
       const guest = prev.guests.find(g => g.id === guestId);
       if (!guest) return prev;
+      const validGuestIds = prev.guests
+        .filter(g => g.id !== guestId)
+        .map(g => g.id);
+      const lockedAssignments = normalizeLockedAssignmentsForGuests(prev.lockedAssignments, validGuestIds);
 
       return {
         ...prev,
@@ -251,26 +290,59 @@ export function useSeatingState() {
           guestIds: t.guestIds.map(id => (id === guestId ? null : id)),
         })),
         unassignedGuestIds: prev.unassignedGuestIds.filter(id => id !== guestId),
+        partyRows: (prev.partyRows ?? [])
+          .map(row => {
+            const guestIds = row.guestIds.filter(id => id !== guestId);
+            return { ...row, guestIds, headcount: guestIds.length };
+          })
+          .filter(row => row.guestIds.length > 0),
+        guestGroups: normalizeGuestGroups(
+          (prev.guestGroups ?? []).map(group => ({
+            ...group,
+            guestIds: group.guestIds.filter(id => id !== guestId),
+          })),
+          validGuestIds,
+          lockedAssignments
+        ),
+        lockedAssignments,
         lastSaved: new Date().toISOString(),
       };
     });
   }, [setState]);
 
   const updateGuest = useCallback((guestId, patch) => {
-    setState(prev => ({
-      ...prev,
-      guests: prev.guests.map(g =>
-        g.id === guestId
-          ? {
-            ...g,
-            name: patch.name?.trim() ?? g.name,
-            category: patch.category !== undefined ? normalizeCategory(patch.category) : g.category,
-            diet: patch.diet?.trim() ?? g.diet,
-          }
-          : g
-      ),
-      lastSaved: new Date().toISOString(),
-    }));
+    setState(prev => {
+      const current = prev.guests.find(g => g.id === guestId);
+      if (!current) return prev;
+
+      const nextName = patch.name?.trim() ?? current.name;
+      const nextCategory = patch.category !== undefined ? normalizeCategory(patch.category) : current.category;
+      const nextDiet = patch.diet?.trim() ?? current.diet;
+
+      return {
+        ...prev,
+        guests: prev.guests.map(g =>
+          g.id === guestId
+            ? {
+              ...g,
+              name: nextName,
+              category: nextCategory,
+              diet: nextDiet,
+            }
+            : g
+        ),
+        partyRows: (prev.partyRows ?? []).map(row =>
+          row.id === current.partyId && current.partyRole === PARTY_ROLE_PRIMARY
+            ? {
+              ...row,
+              sourceName: nextName,
+              category: nextCategory,
+            }
+            : row
+        ),
+        lastSaved: new Date().toISOString(),
+      };
+    });
   }, [setState]);
 
   const moveGuest = useCallback((guestId, targetTableId, seatIndex = null) => {
@@ -394,6 +466,7 @@ export function useSeatingState() {
   const importGuests = useCallback((guestList) => {
     let importResult = {
       added: 0,
+      updated: 0,
       skipped: 0,
       assigned: 0,
       createdTables: 0,
@@ -409,6 +482,161 @@ export function useSeatingState() {
     return importResult;
   }, [setState]);
 
+  const applyAutoSeatPlan = useCallback((plan) => {
+    if (!plan?.nextState) {
+      return { success: false, reason: '沒有可套用的自動排座預覽' };
+    }
+
+    const currentFingerprint = buildAutoSeatFingerprint(stateRef.current, plan.rules);
+    if (currentFingerprint !== plan.sourceFingerprint) {
+      return { success: false, reason: '座位資料已變更，請重新產生預覽。' };
+    }
+
+    const nextState = {
+      ...plan.nextState,
+      seatingRules: normalizeSeatingRules(plan.rules),
+      lockedAssignments: normalizeLockedAssignments(plan.nextState.lockedAssignments),
+      guestGroups: normalizeGuestGroups(
+        plan.nextState.guestGroups,
+        plan.nextState.guests.map(guest => guest.id),
+        plan.nextState.lockedAssignments
+      ),
+      lastSaved: new Date().toISOString(),
+    };
+
+    if (!validateTableCapacity(nextState.tables)) {
+      return { success: false, reason: `自動排座結果超過每桌 ${MAX_SEATS} 位限制，已取消套用。` };
+    }
+
+    setState(nextState);
+    return { success: true };
+  }, [setState]);
+
+  const createGuestGroup = useCallback((groupInput) => {
+    setState(prev => {
+      const validGuestIds = prev.guests.map(guest => guest.id);
+      const guestIds = Array.from(new Set(groupInput.guestIds ?? []))
+        .filter(guestId => validGuestIds.includes(guestId));
+      if (guestIds.length === 0) return prev;
+
+      const nextGroups = normalizeGuestGroups([
+        ...(prev.guestGroups ?? []),
+        {
+          id: uuidv4(),
+          name: groupInput.name?.trim() || `群組 ${((prev.guestGroups ?? []).length + 1)}`,
+          guestIds,
+          sourcePartyId: null,
+          preference: normalizeGroupPreference(groupInput.preference),
+          locked: false,
+          notes: groupInput.notes?.trim() ?? '',
+        },
+      ], validGuestIds, prev.lockedAssignments);
+
+      return {
+        ...prev,
+        guestGroups: nextGroups,
+        lastSaved: new Date().toISOString(),
+      };
+    });
+  }, [setState]);
+
+  const updateGuestGroup = useCallback((groupId, patch) => {
+    setState(prev => {
+      const validGuestIds = prev.guests.map(guest => guest.id);
+      const nextGroups = normalizeGuestGroups(
+        (prev.guestGroups ?? []).map(group => {
+          if (group.id !== groupId) return group;
+          return {
+            ...group,
+            ...patch,
+            name: patch.name !== undefined ? patch.name : group.name,
+            preference: patch.preference !== undefined
+              ? normalizeGroupPreference(patch.preference)
+              : group.preference,
+          };
+        }),
+        validGuestIds,
+        prev.lockedAssignments
+      );
+
+      return {
+        ...prev,
+        guestGroups: nextGroups,
+        lastSaved: new Date().toISOString(),
+      };
+    });
+  }, [setState]);
+
+  const removeGuestFromGroup = useCallback((groupId, guestId) => {
+    setState(prev => ({
+      ...prev,
+      guestGroups: normalizeGuestGroups(
+        (prev.guestGroups ?? []).map(group =>
+          group.id === groupId
+            ? { ...group, guestIds: group.guestIds.filter(id => id !== guestId) }
+            : group
+        ),
+        prev.guests.map(guest => guest.id),
+        prev.lockedAssignments
+      ),
+      lastSaved: new Date().toISOString(),
+    }));
+  }, [setState]);
+
+  const removeGuestGroup = useCallback((groupId) => {
+    setState(prev => ({
+      ...prev,
+      guestGroups: (prev.guestGroups ?? []).filter(group => group.id !== groupId),
+      lastSaved: new Date().toISOString(),
+    }));
+  }, [setState]);
+
+  const toggleGuestLock = useCallback((guestId, locked) => {
+    setState(prev => {
+      const guestExists = prev.guests.some(guest => guest.id === guestId);
+      if (!guestExists) return prev;
+
+      const lockedAssignments = { ...(prev.lockedAssignments ?? {}) };
+      if (locked) lockedAssignments[guestId] = true;
+      else delete lockedAssignments[guestId];
+
+      return {
+        ...prev,
+        lockedAssignments,
+        guestGroups: syncGuestGroupLocks(prev.guestGroups, lockedAssignments),
+        lastSaved: new Date().toISOString(),
+      };
+    });
+  }, [setState]);
+
+  const toggleGroupLock = useCallback((groupId, locked) => {
+    setState(prev => {
+      const targetGroup = (prev.guestGroups ?? []).find(group => group.id === groupId);
+      if (!targetGroup) return prev;
+
+      const validGuestIds = new Set(prev.guests.map(guest => guest.id));
+      const lockedAssignments = { ...(prev.lockedAssignments ?? {}) };
+      targetGroup.guestIds
+        .filter(guestId => validGuestIds.has(guestId))
+        .forEach(guestId => {
+          if (locked) lockedAssignments[guestId] = true;
+          else delete lockedAssignments[guestId];
+        });
+
+      return {
+        ...prev,
+        lockedAssignments,
+        guestGroups: syncGuestGroupLocks(
+          (prev.guestGroups ?? []).map(group =>
+            group.id === groupId ? { ...group, locked } : group
+          ),
+          lockedAssignments
+        ),
+        lastSaved: new Date().toISOString(),
+      };
+    });
+  }, [setState]);
+
   const resetAll = useCallback(() => {
     setState(buildInitialState());
   }, [setState]);
@@ -420,11 +648,15 @@ export function useSeatingState() {
 
   const stats = {
     total: state.guests.length,
+    partyTotal: (state.partyRows ?? []).length,
+    seatTotal: state.guests.length,
     // Use != null (not !==) to catch both null and undefined (Firebase omits null fields)
     assigned: state.guests.filter(g => g.tableId != null).length,
+    assignedSeats: state.guests.filter(g => g.tableId != null).length,
     // Derive unassigned from guests array (same source as `assigned`) to stay consistent
     // during Firebase sync. unassignedGuestIds may lag one tick behind guests in edge cases.
     unassigned: state.guests.filter(g => g.tableId == null).length,
+    unassignedSeats: state.guests.filter(g => g.tableId == null).length,
   };
 
   return {
@@ -443,6 +675,13 @@ export function useSeatingState() {
     removeTable,
     renameTable,
     importGuests,
+    applyAutoSeatPlan,
+    createGuestGroup,
+    updateGuestGroup,
+    removeGuestFromGroup,
+    removeGuestGroup,
+    toggleGuestLock,
+    toggleGroupLock,
     updateTablePosition,
     resetAll,
   };

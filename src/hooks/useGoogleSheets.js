@@ -1,16 +1,17 @@
 import { useState, useCallback } from 'react';
 import { normalizeCategory } from '../utils/constants';
+import { normalizeHeadcount } from '../utils/partyRows';
 
 /**
  * Fetches guest data from Google Apps Script Web App.
  *
  * Expected Google Sheets columns (order independent, matched by header name):
- *   姓名 | 關係分類 | 桌次
+ *   姓名 | 關係分類 | 桌次 | 人數
  * 飲食 is optional legacy data; the current import source no longer includes it.
  * 關係分類 accepts built-in values and guest-provided custom labels.
  *
  * Expected JSON shape from Apps Script:
- *   [{ name: string, category: string, tableLabel?: string, diet?: string }, ...]
+ *   [{ name: string, category: string, tableLabel?: string, headcount?: number, diet?: string }, ...]
  */
 export function useGoogleSheets() {
   const [loading, setLoading] = useState(false);
@@ -23,7 +24,7 @@ export function useGoogleSheets() {
       const msg = '尚未設定 VITE_SHEETS_URL，請在 .env 檔案中填入 Google Apps Script 網址後重啟開發伺服器';
       setError(msg);
       console.error('[useGoogleSheets]', msg);
-      return null;
+      throw new Error(msg);
     }
 
     // Guard: prevent concurrent requests if already loading
@@ -43,15 +44,16 @@ export function useGoogleSheets() {
         name:     String(row.name     || row['姓名']   || '').trim(),
         category: normalizeCategory(row.category ?? row['關係分類'] ?? row['關係']),
         tableLabel: String(row.tableLabel ?? row.table ?? row['桌次'] ?? '').trim(),
+        headcount: normalizeHeadcount(row.headcount ?? row['人數']),
         // Legacy optional field; current source sheets do not need it.
         diet:     String(row.diet     || row['飲食']   || '').trim(),
       })).filter(g => g.name.length > 0);
 
     } catch (err) {
-      const msg = `匯入失敗：${err.message}`;
+      const msg = err.message;
       setError(msg);
       console.error('[useGoogleSheets]', err);
-      return null;
+      throw err;
     } finally {
       setLoading(false);
     }
