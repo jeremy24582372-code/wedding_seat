@@ -30,10 +30,13 @@ export default function PasswordGate({ children }) {
   const [showPw, setShowPw] = useState(false);
   const [checking, setChecking] = useState(false);
   const inputRef = useRef(null);
+  const shakeTimerRef = useRef(null);
 
   useEffect(() => {
     if (!unlocked) inputRef.current?.focus();
   }, [unlocked]);
+
+  useEffect(() => () => clearTimeout(shakeTimerRef.current), []);
 
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
@@ -47,7 +50,8 @@ export default function PasswordGate({ children }) {
       } else {
         setShake(true);
         setInput('');
-        setTimeout(() => {
+        clearTimeout(shakeTimerRef.current);
+        shakeTimerRef.current = setTimeout(() => {
           setShake(false);
           inputRef.current?.focus();
         }, 600);

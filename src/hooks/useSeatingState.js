@@ -1,12 +1,9 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { saveStateToFirebase, useFirebaseListener } from './useFirebase';
-import { db } from '../firebase';
-import { MAX_SEATS, DEFAULT_TABLE_COUNT, AUTOSAVE_DEBOUNCE_MS, normalizeCategory } from '../utils/constants';
+import { MAX_SEATS, normalizeCategory } from '../utils/constants';
 import { applyGuestImport } from '../utils/importGuests.js';
-import { normalizePartyRole, normalizePartyRows, PARTY_ROLE_PRIMARY } from '../utils/partyRows.js';
+import { PARTY_ROLE_PRIMARY } from '../utils/partyRows.js';
 import {
-  DEFAULT_SEATING_RULES,
   buildAutoSeatFingerprint,
   normalizeLockedAssignments,
   normalizeSeatingRules,
@@ -17,240 +14,20 @@ import {
   normalizeLockedAssignmentsForGuests,
   syncGuestGroupLocks,
 } from '../utils/guestGroups.js';
-
-/** Build an empty fixed-length seat array */
-function emptySeats() {
-  return Array(MAX_SEATS).fill(null);
-}
-
-/** Build the initial app state: default tables, no guests */
-function buildInitialState() {
-  const tables = Array.from({ length: DEFAULT_TABLE_COUNT }, (_, i) => ({
-    id: uuidv4(),
-    label: `${i + 1}桌`,
-    seats: MAX_SEATS,
-    guestIds: emptySeats(),
-  }));
-
-  return {
-    guests: [],
-    tables,
-    unassignedGuestIds: [],
-    tablePositions: {},
-    partyRows: [],
-    guestGroups: [],
-    seatingRules: DEFAULT_SEATING_RULES,
-    lockedAssignments: {},
-    lastSaved: null,
-  };
-}
-
-function validateTableCapacity(tables) {
-  return (tables ?? []).every(table =>
-    (table.guestIds ?? []).filter(Boolean).length <= MAX_SEATS
-  );
-}
-
-function computeGuestMove(prev, guestId, targetTableId, seatIndex = null) {
-  const guest = prev.guests.find(g => g.id === guestId);
-  if (!guest) {
-    return { nextState: prev, result: { success: false, reason: '賓客不存在' } };
-  }
-
-  // Clear the guest from any previous seat before evaluating the target.
-  // The transition remains pure; callers decide whether to commit nextState.
-  const updatedTables = prev.tables.map(t => ({
-    ...t,
-    guestIds: t.guestIds.map(id => (id === guestId ? null : id)),
-  }));
-  let updatedUnassigned = prev.unassignedGuestIds.filter(id => id !== guestId);
-
-  if (targetTableId !== null) {
-    const tableIdx = updatedTables.findIndex(t => t.id === targetTableId);
-    if (tableIdx === -1) {
-      return { nextState: prev, result: { success: false, reason: '桌次不存在' } };
-    }
-
-    const seats = [...updatedTables[tableIdx].guestIds];
-
-    if (seatIndex !== null) {
-      if (!Number.isInteger(seatIndex) || seatIndex < 0 || seatIndex >= MAX_SEATS) {
-        return { nextState: prev, result: { success: false, reason: '座位不存在' } };
-      }
-
-      if (seats[seatIndex] !== null && seats[seatIndex] !== guestId) {
-        return { nextState: prev, result: { success: false, reason: '該座位已有人' } };
-      }
-      seats[seatIndex] = guestId;
-    } else {
-      const emptyIdx = seats.indexOf(null);
-      if (emptyIdx === -1) {
-        return {
-          nextState: prev,
-          result: { success: false, reason: `${updatedTables[tableIdx].label} 已滿 (${MAX_SEATS} 人)` },
-        };
-      }
-      seats[emptyIdx] = guestId;
-    }
-
-    updatedTables[tableIdx] = { ...updatedTables[tableIdx], guestIds: seats };
-  } else {
-    updatedUnassigned = [...updatedUnassigned, guestId];
-  }
-
-  return {
-    nextState: {
-      ...prev,
-      guests: prev.guests.map(g =>
-        g.id === guestId ? { ...g, tableId: targetTableId } : g
-      ),
-      tables: updatedTables,
-      unassignedGuestIds: updatedUnassigned,
-      lastSaved: new Date().toISOString(),
-    },
-    result: { success: true },
-  };
-}
+import {
+  createNextTableLabel,
+  removeTableFromState,
+} from '../utils/seatingIntegrity.js';
+import { emptySeats } from '../utils/seatingHelpers.js';
+import { usePersistedSeatingStore } from './usePersistedSeatingStore.js';
+import { buildInitialState, computeGuestMove, validateTableCapacity } from '../utils/seatingStateCore.js';
 
 /**
  * Core seating state management backed by Firebase Realtime Database.
  * Firebase is the single source of truth — all mutations auto-save with debounce.
  */
 export function useSeatingState() {
-  const [state, setStateRaw] = useState(buildInitialState);
-  const stateRef = useRef(state);
-  // Debounced Firebase save
-  const saveTimer = useRef(null);
-  const pendingState = useRef(null);
-
-  useEffect(() => {
-    stateRef.current = state;
-  }, [state]);
-
-  const flushToFirebase = useCallback(() => {
-    if (saveTimer.current && pendingState.current) {
-      clearTimeout(saveTimer.current);
-      saveTimer.current = null;
-      saveStateToFirebase(pendingState.current).catch(err =>
-        console.error('[useSeatingState] Firebase flush failed:', err)
-      );
-      pendingState.current = null;
-    }
-  }, []);
-
-  const scheduleFirebaseSave = useCallback((next) => {
-    pendingState.current = next;
-
-    if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(() => {
-      saveStateToFirebase(next).catch(err =>
-        console.error('[useSeatingState] Firebase save failed:', err)
-      );
-      saveTimer.current = null;
-      pendingState.current = null;
-    }, AUTOSAVE_DEBOUNCE_MS);
-  }, []);
-
-  // Flush on tab hide / close
-  useEffect(() => {
-    const onHide = () => { if (document.visibilityState === 'hidden') flushToFirebase(); };
-    const onUnload = () => flushToFirebase();
-    document.addEventListener('visibilitychange', onHide);
-    window.addEventListener('beforeunload', onUnload);
-    return () => {
-      flushToFirebase();
-      document.removeEventListener('visibilitychange', onHide);
-      window.removeEventListener('beforeunload', onUnload);
-    };
-  }, [flushToFirebase]);
-
-  /**
-   * Replace local state and schedule a debounced Firebase write.
-   * Accepts a next-state value or a functional updater (same API as useState).
-   */
-  const setState = useCallback((valueOrUpdater) => {
-    const prev = stateRef.current;
-    const next = typeof valueOrUpdater === 'function' ? valueOrUpdater(prev) : valueOrUpdater;
-
-    if (Object.is(next, prev)) return next;
-
-    stateRef.current = next;
-    scheduleFirebaseSave(next);
-    setStateRaw(next);
-    return next;
-  }, [scheduleFirebaseSave]);
-
-  // When Firebase is unconfigured (db === null), subscribeToState is a no-op and
-  // never calls our callback — fbReady would stay false forever. Initialise to
-  // true immediately when db is null so the app renders in local-only mode.
-  // (Avoids calling setState synchronously inside an effect — react-hooks/set-state-in-effect)
-  const [fbReady, setFbReady] = useState(() => !db);
-
-  // Subscribe to Firebase — loads initial state and reacts to external changes
-  useFirebaseListener((fbData) => {
-    if (!fbData) {
-      // No data in Firebase yet — keep the local initial state and mark ready
-      setFbReady(true);
-      return;
-    }
-
-    // ─── 防止 Firebase 舊資料回滾本地較新的狀態 ──────────────────────────────
-    // 當 debounce 尚未寫入 Firebase 時，Firebase listener 可能收到「比本地還舊」
-    // 的快照，若直接覆蓋 stateRef 會導致剛匯入的賓客消失，下次匯入誤判無重複。
-    const localLastSaved = stateRef.current.lastSaved;
-    const remoteLastSaved = fbData.lastSaved ?? null;
-    if (
-      localLastSaved &&
-      remoteLastSaved &&
-      new Date(remoteLastSaved) < new Date(localLastSaved)
-    ) {
-      // Firebase 資料較舊 — 等待 debounce 把本地狀態寫上去後再同步
-      // 仍要標記 fbReady，避免 UI 永久 loading
-      setFbReady(true);
-      return;
-    }
-
-    // Normalise: Firebase drops null values in arrays; restore them
-    const normalisedTables = (fbData.tables ?? []).map(t => ({
-      ...t,
-      guestIds: Array.from({ length: MAX_SEATS }, (_, i) => t.guestIds?.[i] ?? null),
-    }));
-
-    // Firebase also drops null on object fields (e.g. guest.tableId becomes undefined).
-    // Normalise back to null so strict equality checks (tableId !== null) work correctly.
-    // Legacy normalization: old records stored dietary info in `note`; migrate to `diet`.
-    const normalisedGuests = (fbData.guests ?? []).map(g => ({
-      ...g,
-      tableId: g.tableId ?? null,
-      category: normalizeCategory(g.category),
-      // 舊資料無 source 欄位時，預設為 'manual'（保守策略，避免回寫遺漏）
-      source: g.source ?? 'manual',
-      // 舊資料 note → diet 遷移（防止舊備份資料的飲食欄位消失）
-      diet: g.diet ?? g.note ?? '',
-      partyId: g.partyId ?? null,
-      partyRole: normalizePartyRole(g.partyRole),
-    }));
-
-    const lockedAssignments = normalizeLockedAssignmentsForGuests(
-      normalizeLockedAssignments(fbData.lockedAssignments),
-      normalisedGuests.map(guest => guest.id)
-    );
-    const nextState = {
-      guests: normalisedGuests,
-      tables: normalisedTables,
-      unassignedGuestIds: fbData.unassignedGuestIds ?? [],
-      tablePositions: fbData.tablePositions ?? {},
-      partyRows: normalizePartyRows(fbData.partyRows),
-      guestGroups: normalizeGuestGroups(fbData.guestGroups, normalisedGuests.map(guest => guest.id), lockedAssignments),
-      seatingRules: normalizeSeatingRules(fbData.seatingRules),
-      lockedAssignments,
-      lastSaved: fbData.lastSaved ?? null,
-    };
-
-    stateRef.current = nextState;
-    setStateRaw(nextState);
-    setFbReady(true);
-  });
+  const { state, stateRef, setState, fbReady } = usePersistedSeatingStore();
 
   // ─── Guest operations ───────────────────────────────────────────────────────
 
@@ -355,7 +132,7 @@ export function useSeatingState() {
 
     if (result.success) setState(nextState);
     return result;
-  }, [setState]);
+  }, [setState, stateRef]);
 
   const swapSeatsInTable = useCallback((tableId, fromIndex, toIndex) => {
     setState(prev => {
@@ -403,10 +180,9 @@ export function useSeatingState() {
 
   const addTable = useCallback(() => {
     setState(prev => {
-      const nextNum = prev.tables.length + 1;
       const newTable = {
         id: uuidv4(),
-        label: `${nextNum}桌`,
+        label: createNextTableLabel(prev.tables),
         seats: MAX_SEATS,
         guestIds: emptySeats(),
       };
@@ -415,19 +191,7 @@ export function useSeatingState() {
   }, [setState]);
 
   const removeTable = useCallback((tableId) => {
-    setState(prev => {
-      const table = prev.tables.find(t => t.id === tableId);
-      if (!table) return prev;
-
-      const releasedIds = table.guestIds.filter(Boolean);
-      return {
-        ...prev,
-        guests: prev.guests.map(g => releasedIds.includes(g.id) ? { ...g, tableId: null } : g),
-        tables: prev.tables.filter(t => t.id !== tableId),
-        unassignedGuestIds: [...prev.unassignedGuestIds, ...releasedIds],
-        lastSaved: new Date().toISOString(),
-      };
-    });
+    setState(prev => removeTableFromState(prev, tableId));
   }, [setState]);
 
   const renameTable = useCallback((tableId, newLabel) => {
@@ -468,6 +232,7 @@ export function useSeatingState() {
       added: 0,
       updated: 0,
       skipped: 0,
+      sourceDuplicateRows: 0,
       assigned: 0,
       createdTables: 0,
       unassignedDueToFullTables: 0,
@@ -510,7 +275,7 @@ export function useSeatingState() {
 
     setState(nextState);
     return { success: true };
-  }, [setState]);
+  }, [setState, stateRef]);
 
   const createGuestGroup = useCallback((groupInput) => {
     setState(prev => {

@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import './GuestCard.css';
@@ -35,6 +35,8 @@ export default function GuestCard({ guest, onRemove, onEdit, onDelete, compact =
   // ── 二次確認刪除狀態 ────────────────────────────────────────────
   const [pendingDelete, setPendingDelete] = useState(false);
   const resetTimer = useRef(null);
+
+  useEffect(() => () => clearTimeout(resetTimer.current), []);
 
   const handleDeleteClick = useCallback((e) => {
     e.stopPropagation();

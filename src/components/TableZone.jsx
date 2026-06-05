@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
-import { useDroppable } from '@dnd-kit/core';
+import { useDraggable, useDroppable } from '@dnd-kit/core';
+import { CSS } from '@dnd-kit/utilities';
 import './TableZone.css';
 import { MAX_SEATS, getCategoryVisual } from '../utils/constants';
 import LockBadge from './LockBadge';
@@ -22,10 +23,27 @@ function SeatSlot({ tableId, seatIndex, guest, locked, onMoveOut, onEdit, onDele
   const isEmpty = !guest;
   // Always register as droppable (even occupied) so dnd-kit tracks it;
   // actual accept/reject logic is in handleDragEnd via elementFromPoint.
-  const { setNodeRef, isOver } = useDroppable({
+  const { setNodeRef: setDroppableNodeRef, isOver } = useDroppable({
     id: `${tableId}:seat:${seatIndex}`,
     data: { tableId, seatIndex, isEmpty }, // isEmpty passed for accurate drop validation
   });
+  const {
+    attributes,
+    listeners,
+    setNodeRef: setDraggableNodeRef,
+    transform,
+    isDragging,
+  } = useDraggable({
+    id: guest?.id ?? `${tableId}:seat:${seatIndex}:empty`,
+    data: { guestId: guest?.id ?? null, tableId, seatIndex },
+    disabled: isEmpty,
+  });
+  const draggableListeners = listeners ?? {};
+  const draggableAttributes = attributes ?? {};
+  const setNodeRef = (node) => {
+    setDroppableNodeRef(node);
+    setDraggableNodeRef(node);
+  };
 
   const categoryVisual = guest ? getCategoryVisual(guest.category) : null;
   const partyLabel = guest?.partyId
@@ -38,6 +56,7 @@ function SeatSlot({ tableId, seatIndex, guest, locked, onMoveOut, onEdit, onDele
     width:  seatR * 2,
     height: seatR * 2,
     position: 'absolute',
+    transform: CSS.Translate.toString(transform),
     ...(categoryVisual
       ? {
         '--seat-cat-border': categoryVisual.floorBorder,
@@ -56,6 +75,8 @@ function SeatSlot({ tableId, seatIndex, guest, locked, onMoveOut, onEdit, onDele
   // ── Seat-level delete confirm state ──
   const [pendingDelete, setPendingDelete] = useState(false);
   const resetTimer = useRef(null);
+
+  useEffect(() => () => clearTimeout(resetTimer.current), []);
 
   const handleSeatDeleteClick = (e) => {
     e.stopPropagation();
@@ -85,8 +106,16 @@ function SeatSlot({ tableId, seatIndex, guest, locked, onMoveOut, onEdit, onDele
     );
   }
 
+  const handleFilledSeatKeyDown = (e) => {
+    if (e.target !== e.currentTarget) return;
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onMoveOut(guest.id);
+    }
+  };
+
   return (
-    <button
+    <div
       ref={setNodeRef}
       className={[
         'table-zone__seat',
@@ -95,12 +124,18 @@ function SeatSlot({ tableId, seatIndex, guest, locked, onMoveOut, onEdit, onDele
         guest.partyId ? 'table-zone__seat--party' : '',
         guest.partyRole === 'companion' ? 'table-zone__seat--companion' : '',
         locked ? 'table-zone__seat--locked' : '',
+        isDragging ? 'table-zone__seat--dragging' : '',
       ].filter(Boolean).join(' ')}
       style={style}
+      {...draggableListeners}
+      {...draggableAttributes}
       onClick={() => onMoveOut(guest.id)}
       title={`${guest.name}（${categoryVisual.label}）${partyLabel ? '\n' + partyLabel : ''}${guest.diet ? '\n飲食: ' + guest.diet : ''}\n點擊移回未分配`}
       aria-label={`${guest.name}，${partyLabel || categoryVisual.label}，點擊移回未分配`}
       {...dataAttrs}
+      role="button"
+      tabIndex={0}
+      onKeyDown={handleFilledSeatKeyDown}
     >
       <span className="table-zone__seat-name" style={{ pointerEvents: 'none' }}>{guest.name}</span>
       {partyLabel && (
@@ -145,7 +180,7 @@ function SeatSlot({ tableId, seatIndex, guest, locked, onMoveOut, onEdit, onDele
           )}
         </span>
       )}
-    </button>
+    </div>
   );
 }
 
@@ -159,10 +194,14 @@ export default function TableZone({ table, guests, lockedAssignments = {}, onMov
   const [editing, setEditing]       = useState(false);
   const [labelDraft, setLabelDraft] = useState(table.label);
   const inputRef = useRef(null);
+  const [pendingRemove, setPendingRemove] = useState(false);
+  const removeResetTimer = useRef(null);
 
   useEffect(() => {
     if (editing) inputRef.current?.select();
   }, [editing]);
+
+  useEffect(() => () => clearTimeout(removeResetTimer.current), []);
 
   const commitRename = () => {
     setEditing(false);
@@ -174,6 +213,24 @@ export default function TableZone({ table, guests, lockedAssignments = {}, onMov
   const handleKeyDown = (e) => {
     if (e.key === 'Enter')  commitRename();
     if (e.key === 'Escape') { setLabelDraft(table.label); setEditing(false); }
+  };
+
+  const handleRemoveClick = () => {
+    if (filledCount === 0) {
+      onRemove(table.id);
+      return;
+    }
+
+    if (!pendingRemove) {
+      setPendingRemove(true);
+      clearTimeout(removeResetTimer.current);
+      removeResetTimer.current = setTimeout(() => setPendingRemove(false), 4000);
+      return;
+    }
+
+    clearTimeout(removeResetTimer.current);
+    setPendingRemove(false);
+    onRemove(table.id);
   };
 
   // Layout constants
@@ -280,12 +337,24 @@ export default function TableZone({ table, guests, lockedAssignments = {}, onMov
       {/* ── Controls ── */}
       <footer className="table-zone__footer">
         <button
-          className="table-zone__remove-btn"
-          onClick={() => onRemove(table.id)}
-          title="刪除此桌（賓客移回未分配）"
-          aria-label={`刪除 ${table.label}`}
+          className={`table-zone__remove-btn${pendingRemove ? ' table-zone__remove-btn--confirm' : ''}`}
+          onClick={handleRemoveClick}
+          title={
+            filledCount === 0
+              ? '刪除此空桌'
+              : pendingRemove
+                ? `再按一次確認，將 ${filledCount} 位賓客移回未分配`
+                : `此桌有 ${filledCount} 位賓客，需二次確認`
+          }
+          aria-label={
+            filledCount === 0
+              ? `刪除空桌 ${table.label}`
+              : pendingRemove
+                ? `確認刪除 ${table.label}，釋放 ${filledCount} 位賓客`
+                : `刪除 ${table.label}，此桌有 ${filledCount} 位賓客，需二次確認`
+          }
         >
-          刪除此桌
+          {filledCount > 0 && pendingRemove ? `確認釋放 ${filledCount} 位` : '刪除此桌'}
         </button>
         {isFull && <span className="table-zone__full-badge">已滿 · 10 人</span>}
         {isAlmostFull && <span className="table-zone__almost-full-badge">剩 {remainingSeats} 位</span>}

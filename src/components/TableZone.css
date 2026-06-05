@@ -399,6 +399,19 @@
   background: color-mix(in oklch, var(--color-danger), white 90%);
 }
 
+.table-zone__remove-btn--confirm {
+  color: var(--color-text-inverse);
+  border-color: var(--color-danger);
+  background: var(--color-danger);
+  font-weight: 700;
+}
+
+.table-zone__remove-btn--confirm:hover {
+  color: var(--color-text-inverse);
+  border-color: var(--color-danger);
+  background: color-mix(in oklch, var(--color-danger), black 10%);
+}
+
 .table-zone__full-badge {
   font-size: var(--text-xs);
   font-weight: 600;

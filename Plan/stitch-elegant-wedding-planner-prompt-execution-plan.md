@@ -25,6 +25,16 @@
 | 5 | Phase 3：座位畫布整理 | `@designer` | 完成 | 整理 FloorPlan 工具列、未分配側欄與拖拉視覺回饋 |
 | 6 | Phase 4：自動排座規則設定 | `@engineer` | 完成 | 完成規則資料結構、preview-first auto seat planner 與套用流程 |
 | 7 | Phase 5：群組關聯與鎖定 | `@engineer` | 完成 | 完成 guestGroups、lockedAssignments、群組 UI 與 Firebase 保存 |
+| 8 | Phase 6：死碼清理與依賴瘦身 | `@engineer` | 待執行 | 移除未使用依賴、死碼、重複工具函式 |
+| 9 | Phase 7：App.jsx 與 useSeatingState 拆分 | `@engineer` | 待執行 | 將 App.jsx 拆為 < 150 行 + 子 hooks；useSeatingState 拆為多個 focused hooks |
+| 10 | Phase 8：FloorPlan 互動邏輯抽離 | `@designer` | 待執行 | 將 pan/zoom/snap/guide/multiselect 抽為 custom hooks |
+| 11 | Phase 9：資料完整性補強 | `@engineer` | 待執行 | 修正 removeTable 鎖定清理、刪桌二次確認、匯入 skip 計數語意 |
+| 12 | Phase 10：匯出功能增強 | `@engineer` | 待執行 | 拆分匯出 HTML builder、CSV 加入群組/鎖定欄位、總覽加入桌次圖匯出 |
+| 13 | Phase 11：Firebase 同步防護 | `@engineer` | 待執行 | 改進 lastSaved 比較策略、消除重複 Firebase badge |
+| 14 | Phase 12：UI 一致性整理 | `@designer` | 待執行 | 拆分 App.css 為 design-tokens.css + 各元件 CSS 歸位 |
+| 15 | Phase 13：QA 綜合驗收 | `@qa` | 待執行 | 建立基礎 smoke test checklist 並驗證所有修正不回歸 |
+
+> Phase 6–13 來自 QA 全面審查，詳細計畫見 `Plan/qa-full-review-improvement-plan.md`。
 
 ## 3. Prompt 執行模板
 

@@ -1,6 +1,6 @@
 import { useDeferredValue, useMemo, useState } from 'react';
 import GroupCard from './GroupCard';
-import { GROUP_PREFERENCES } from '../utils/guestGroups';
+import { GROUP_PREFERENCES, findGuestGroupConflicts } from '../utils/guestGroups';
 import './GroupManager.css';
 
 export default function GroupManager({
@@ -33,6 +33,10 @@ export default function GroupManager({
 
   const lockedCount = Object.keys(state.lockedAssignments ?? {}).length;
   const autoGroupCount = (state.guestGroups ?? []).filter(group => group.sourcePartyId).length;
+  const groupConflicts = useMemo(
+    () => findGuestGroupConflicts(state.guestGroups ?? [], state.guests ?? []),
+    [state.guestGroups, state.guests]
+  );
 
   const toggleSelected = (guestId) => {
     setSelectedIds(prev =>
@@ -71,8 +75,31 @@ export default function GroupManager({
         <Metric label="群組數" value={(state.guestGroups ?? []).length} note={`${autoGroupCount} 組由人數自動建立`} />
         <Metric label="鎖定座位" value={lockedCount} note="auto-seat 不會移動" />
         <Metric label="同桌優先" value={(state.guestGroups ?? []).filter(group => group.preference === 'same-table').length} note="會進入自動排座分組" />
-        <Metric label="分開安排" value={(state.guestGroups ?? []).filter(group => group.preference === 'separate').length} note="目前作為人工警示" />
+        <Metric label="分開安排" value={(state.guestGroups ?? []).filter(group => group.preference === 'separate').length} note="auto-seat 會避免同桌" />
+        <Metric label="群組衝突" value={groupConflicts.length} note="同一賓客多重歸屬" />
       </section>
+
+      {groupConflicts.length > 0 && (
+        <section className="group-manager__conflicts" aria-label="群組衝突">
+          <div className="group-manager__section-head">
+            <div>
+              <p className="group-manager__kicker">需整理</p>
+              <h3>同一賓客出現在多個群組</h3>
+            </div>
+          </div>
+          <ul>
+            {groupConflicts.slice(0, 6).map(conflict => (
+              <li key={conflict.guestId}>
+                <strong>{conflict.guestName}</strong>
+                <span>{conflict.groupNames.join('、')}</span>
+              </li>
+            ))}
+          </ul>
+          {groupConflicts.length > 6 ? (
+            <p>另有 {groupConflicts.length - 6} 位賓客也有群組衝突。</p>
+          ) : null}
+        </section>
+      )}
 
       <section className="group-manager__create" aria-label="建立群組">
         <div className="group-manager__section-head">

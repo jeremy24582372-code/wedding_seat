@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import ProgressSummary from './ProgressSummary';
 import './DashboardHome.css';
 
@@ -18,21 +18,32 @@ export default function DashboardHome({
   onOpenAddGuest,
   onGoToSeats,
   onExportPDF,
+  onExportFloorPDF,
   onSyncSheets,
 }) {
   const [syncState, setSyncState] = useState('idle');
+  const syncTimerRef = useRef(null);
+  const mountedRef = useRef(true);
   const dashboard = useMemo(() => buildDashboardState(state, stats, firebaseStatus), [state, stats, firebaseStatus]);
+
+  useEffect(() => () => {
+    mountedRef.current = false;
+    if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
+  }, []);
 
   const handleSync = async () => {
     setSyncState('syncing');
     try {
       await onSyncSheets();
+      if (!mountedRef.current) return;
       setSyncState('success');
     } catch {
+      if (!mountedRef.current) return;
       setSyncState('error');
-    } finally {
-      window.setTimeout(() => setSyncState('idle'), 3000);
     }
+
+    if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
+    syncTimerRef.current = window.setTimeout(() => setSyncState('idle'), 3000);
   };
 
   return (
@@ -51,6 +62,9 @@ export default function DashboardHome({
           </button>
           <button className="btn btn-secondary" type="button" onClick={onExportPDF}>
             匯出座位表
+          </button>
+          <button className="btn btn-secondary" type="button" onClick={onExportFloorPDF}>
+            匯出桌次圖
           </button>
         </div>
       </section>
@@ -94,6 +108,10 @@ export default function DashboardHome({
             >
               <span>{syncState === 'syncing' ? '同步中' : syncState === 'error' ? '同步失敗' : syncState === 'success' ? '同步完成' : '同步試算表'}</span>
               <small>把目前排位結果回寫</small>
+            </button>
+            <button className="dashboard-home__action" type="button" onClick={onExportFloorPDF}>
+              <span>匯出桌次圖</span>
+              <small>交付場地的桌位位置圖</small>
             </button>
           </div>
         </section>

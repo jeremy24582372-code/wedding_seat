@@ -110,11 +110,11 @@
             ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 30"
           },
           "seats": {
-            ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 20"
+            ".validate": "newData.isNumber() && newData.val() === 10"
           },
           "guestIds": {
             "$seatIndex": {
-              ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 80"
+              ".validate": "($seatIndex === '0' || $seatIndex === '1' || $seatIndex === '2' || $seatIndex === '3' || $seatIndex === '4' || $seatIndex === '5' || $seatIndex === '6' || $seatIndex === '7' || $seatIndex === '8' || $seatIndex === '9') && newData.isString() && newData.val().length > 0 && newData.val().length <= 80"
             }
           },
           "$other": {

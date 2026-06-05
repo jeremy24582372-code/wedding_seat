@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { CATEGORIES, MAX_SEATS, defaultTablePosition, normalizeCategory } from './constants.js';
-import { normalizeGuestGroups } from './guestGroups.js';
+import { findGuestGroupConflicts, normalizeGuestGroups } from './guestGroups.js';
+import { deriveGuestTableState, emptySeats, normalizeSeatArray } from './seatingHelpers.js';
 
 export const DEFAULT_SEATING_RULES = {
   fillStrategy: 'balanced',
@@ -11,10 +12,6 @@ export const DEFAULT_SEATING_RULES = {
 };
 
 const FILL_STRATEGIES = new Set(['balanced', 'category-first', 'keep-existing']);
-
-function emptySeats() {
-  return Array(MAX_SEATS).fill(null);
-}
 
 function normalizeTableLabelKey(label) {
   return String(label ?? '').trim().replace(/\s+/g, '').toLowerCase();
@@ -113,7 +110,7 @@ export function createAutoSeatPreview(state, rulesArg = state?.seatingRules) {
     seats: table.seats ?? MAX_SEATS,
     guestIds: normalizeSeatArray(table.guestIds),
   }));
-  let guests = deriveGuestTableState(state?.guests ?? [], tables);
+  let { guests } = deriveGuestTableState(state?.guests ?? [], tables, { normalizeCategories: true });
   const originalTableByGuestId = new Map(guests.map(guest => [guest.id, guest.tableId ?? null]));
   const guestById = new Map(guests.map(guest => [guest.id, guest]));
   tables.forEach(table => {
@@ -156,10 +153,42 @@ export function createAutoSeatPreview(state, rulesArg = state?.seatingRules) {
     });
   });
 
+  const mainTableGuestIds = new Set(
+    tables
+      .filter(isMainTableForAutoSeat)
+      .flatMap(table => table.guestIds.filter(Boolean))
+  );
   const candidateIds = new Set(guests
     .filter(guest => !lockedAssignments[guest.id])
+    .filter(guest => !mainTableGuestIds.has(guest.id))
     .filter(guest => rules.respectExistingAssignments ? guest.tableId == null : true)
     .map(guest => guest.id));
+
+  if (!rules.respectExistingAssignments && mainTableGuestIds.size > 0) {
+    blocked.push({
+      id: 'main-table-protection',
+      sourceName: '主桌保護',
+      guestNames: Array.from(mainTableGuestIds).map(guestId => guestById.get(guestId)?.name).filter(Boolean),
+      reason: '即使關閉「保留目前已安排座位」，1桌 / 主桌既有賓客仍受保護，不會被自動排座移動。',
+    });
+  }
+
+  const normalizedGroups = normalizeGuestGroups(
+    state?.guestGroups,
+    guests.map(guest => guest.id),
+    lockedAssignments
+  );
+  const groupConflicts = findGuestGroupConflicts(normalizedGroups, guests);
+  groupConflicts.forEach(conflict => {
+    if (!candidateIds.has(conflict.guestId)) return;
+    candidateIds.delete(conflict.guestId);
+    blocked.push({
+      id: `group-conflict:${conflict.guestId}`,
+      sourceName: conflict.guestName,
+      guestNames: [conflict.guestName],
+      reason: `此賓客同時出現在 ${conflict.groupNames.join('、')}，請先整理群組後再產生自動排座預覽。`,
+    });
+  });
 
   if (!rules.respectExistingAssignments) {
     tables.forEach(table => {
@@ -180,6 +209,7 @@ export function createAutoSeatPreview(state, rulesArg = state?.seatingRules) {
     rules,
     originalTableByGuestId,
     tableByLabel,
+    normalizedGroups,
   });
 
   groups.forEach(group => {
@@ -289,33 +319,12 @@ function stripTableRuntimeFields(table) {
   return cleanTable;
 }
 
-function normalizeSeatArray(guestIds = []) {
-  return Array.from({ length: MAX_SEATS }, (_, index) => guestIds?.[index] ?? null);
-}
-
-function deriveGuestTableState(guests, tables) {
-  const tableIdByGuestId = new Map();
-  tables.forEach(table => {
-    table.guestIds.forEach(guestId => {
-      if (guestId) tableIdByGuestId.set(guestId, table.id);
-    });
-  });
-
-  return guests.map(guest => ({
-    ...guest,
-    category: normalizeCategory(guest.category),
-    tableId: tableIdByGuestId.get(guest.id) ?? null,
-  }));
-}
-
-function buildCandidateGroups({ state, guests, guestById, candidateIds, rules, originalTableByGuestId, tableByLabel }) {
+function buildCandidateGroups({ state, guests, guestById, candidateIds, rules, originalTableByGuestId, tableByLabel, normalizedGroups }) {
   const seen = new Set();
   const groups = [];
   let groupContextByGuestId = new Map();
 
   if (rules.keepGroupsTogether) {
-    const normalizedGroups = normalizeGuestGroups(state?.guestGroups, guests.map(guest => guest.id), state?.lockedAssignments);
-
     normalizedGroups
       .filter(group => group.preference === 'same-table')
       .forEach(group => {

@@ -1,106 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap');
-
-/* ============================================================
-   DESIGN TOKENS
-   ============================================================ */
-:root {
-  /* Backgrounds */
-  --color-bg-base:       oklch(97.5% 0.012 82);
-  --color-bg-surface:    oklch(99% 0.006 82 / 0.9);
-  --color-bg-card:       oklch(99.6% 0.004 82);
-  --color-bg-card-hover: oklch(97.2% 0.014 82);
-  --color-bg-input:      oklch(99% 0.006 82);
-  --color-bg-overlay:    oklch(22% 0.026 42 / 0.42);
-  --color-bg-canvas:     oklch(95.5% 0.014 82);
-
-  /* Accent — restrained deep rose + warm gold */
-  --color-accent:       oklch(47% 0.135 18);
-  --color-accent-light: oklch(58% 0.11 18);
-  --color-accent-dim:   oklch(94% 0.045 18);
-  --color-accent-glow:  oklch(47% 0.135 18 / 0.16);
-  --color-gold:         oklch(60% 0.105 78);
-  --color-gold-dim:     oklch(94% 0.04 78);
-
-  /* Text */
-  --color-text-primary:   oklch(23% 0.026 42);
-  --color-text-secondary: oklch(42% 0.026 42);
-  --color-text-muted:     oklch(58% 0.022 42);
-  --color-text-inverse:   oklch(98% 0.006 82);
-
-  /* Borders */
-  --color-border:        oklch(86% 0.018 82);
-  --color-border-light:  oklch(76% 0.028 82);
-  --color-border-accent: oklch(64% 0.07 78 / 0.45);
-
-  /* Status */
-  --color-success: oklch(45% 0.12 155);
-  --color-warning: oklch(56% 0.12 72);
-  --color-danger:  oklch(50% 0.15 25);
-  --color-drop-active: oklch(48% 0.12 205);
-  --color-drop-active-bg: oklch(93% 0.045 205);
-  --color-full-table: oklch(93% 0.045 25);
-
-  /* Guest Category Colors — WCAG AA + Colorblind-safe */
-  --color-cat-groom:     oklch(43% 0.13 260);
-  --color-cat-groom-bg:  oklch(94% 0.04 260);
-  --color-cat-bride:     oklch(44% 0.14 18);
-  --color-cat-bride-bg:  oklch(94% 0.045 18);
-  --color-cat-mutual:    oklch(42% 0.11 158);
-  --color-cat-mutual-bg: oklch(94% 0.04 158);
-  --color-cat-colleague: oklch(43% 0.095 78);
-  --color-cat-colleague-bg: oklch(94% 0.04 78);
-  --color-cat-other:     oklch(40% 0.025 250);
-  --color-cat-other-bg:  oklch(94% 0.012 250);
-
-  /* Typography
-   * 中文 Fallback 順序：繁體優先 (JhengHei / PingFang TC)，次為簡體，再回退 system-ui
-   */
-  --font-display: 'Geist', 'Noto Sans TC', 'Microsoft JhengHei', 'PingFang TC', system-ui, sans-serif;
-  --font-body:    'Geist', 'Noto Sans TC', 'Microsoft JhengHei', 'PingFang TC', system-ui, sans-serif;
-
-  --text-xs:   0.75rem;
-  --text-sm:   0.875rem;
-  --text-base: 1rem;
-  --text-lg:   1.125rem;
-  --text-xl:   1.25rem;
-  --text-2xl:  1.5rem;
-  --text-3xl:  2rem;
-  --text-4xl:  2.75rem;
-
-  /* Spacing */
-  --space-1: 0.25rem;
-  --space-2: 0.5rem;
-  --space-3: 0.75rem;
-  --space-4: 1rem;
-  --space-5: 1.25rem;
-  --space-6: 1.5rem;
-  --space-8: 2rem;
-  --space-10: 2.5rem;
-  --space-12: 3rem;
-
-  /* Radius */
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-  --radius-xl: 18px;
-  --radius-full: 9999px;
-
-  /* Shadows */
-  --shadow-card: 0 1px 2px oklch(30% 0.03 60 / 0.06), 0 14px 34px oklch(30% 0.03 60 / 0.10);
-  --shadow-card-hover: 0 2px 4px oklch(30% 0.03 60 / 0.08), 0 18px 42px oklch(30% 0.03 60 / 0.14);
-  --shadow-drag: 0 20px 48px oklch(30% 0.03 60 / 0.18), 0 0 0 1px var(--color-accent);
-  --shadow-glow: 0 8px 22px var(--color-accent-glow);
-
-  /* Transitions */
-  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --transition-fast: 160ms var(--ease-out);
-  --transition-base: 240ms var(--ease-out);
-  --transition-slow: 380ms var(--ease-out);
-
-  /* Layout */
-  --sidebar-width: 360px;
-  --toolbar-height: 64px;
-}
+@import './design-tokens.css';
 
 /* ============================================================
    RESET & BASE
@@ -420,7 +318,6 @@ input, textarea, select {
   .toolbar,
   .app-sidebar,
   .seating-workspace__statusbar,
-  .firebase-status,
   .toast-container,
   .floor-plan__controls,
   .floor-plan__mode-panel,
@@ -477,60 +374,6 @@ input, textarea, select {
 
 @keyframes fb-spin {
   to { transform: rotate(360deg); }
-}
-
-/* ============================================================
-   FIREBASE STATUS BADGE
-   ============================================================ */
-.firebase-status {
-  position: fixed;
-  bottom: var(--space-4);
-  right: var(--space-4);
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-full);
-  font-size: var(--text-xs);
-  font-weight: 500;
-  letter-spacing: 0.03em;
-  background: var(--color-bg-surface);
-  border: 1px solid var(--color-border);
-  backdrop-filter: blur(12px);
-  z-index: 500;
-  cursor: default;
-  transition: opacity var(--transition-base);
-  opacity: 0.7;
-}
-.firebase-status:hover { opacity: 1; }
-
-.firebase-status__dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-/* Connected — green pulse */
-.firebase-status--connected { color: var(--color-success); border-color: color-mix(in oklch, var(--color-success), white 68%); }
-.firebase-status--connected .firebase-status__dot {
-  background: var(--color-success);
-  box-shadow: 0 0 0 0 color-mix(in oklch, var(--color-success), transparent 40%);
-  animation: fb-pulse 2s ease-in-out infinite;
-}
-
-/* Disconnected — red static */
-.firebase-status--disconnected { color: var(--color-danger); border-color: color-mix(in oklch, var(--color-danger), white 68%); }
-.firebase-status--disconnected .firebase-status__dot { background: var(--color-danger); }
-
-/* Unconfigured — muted */
-.firebase-status--unconfigured { color: var(--color-text-muted); }
-.firebase-status--unconfigured .firebase-status__dot { background: var(--color-text-muted); }
-
-@keyframes fb-pulse {
-  0%   { box-shadow: 0 0 0 0 color-mix(in oklch, var(--color-success), transparent 40%); }
-  70%  { box-shadow: 0 0 0 6px color-mix(in oklch, var(--color-success), transparent 100%); }
-  100% { box-shadow: 0 0 0 0 color-mix(in oklch, var(--color-success), transparent 100%); }
 }
 
 /* ============================================================

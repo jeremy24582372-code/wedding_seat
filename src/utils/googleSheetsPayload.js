@@ -29,7 +29,6 @@ export function buildGoogleSheetsPayload(state) {
         name: String(row.sourceName).trim(),
         category: row.category || primaryGuest?.category || '其他',
         diet: primaryGuest?.diet || '',
-        source: row.source || 'import',
         tableLabel: summarizePartyTableLabels(guestIds, guestTableLabelMap),
       };
     });
@@ -41,7 +40,6 @@ export function buildGoogleSheetsPayload(state) {
       name:       String(g.name).trim(),
       category:   g.category || '其他',
       diet:       g.diet || '',
-      source:     g.source || '',
       tableLabel: guestTableLabelMap[g.id] ?? (g.tableId ? (tableLabelMap[g.tableId] ?? '') : ''),
     }));
 

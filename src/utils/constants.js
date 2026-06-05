@@ -123,9 +123,6 @@ export function buildCategoryOptions(guests = []) {
   ];
 }
 
-// localStorage key for persisting app state
-export const STORAGE_KEY = 'wedding-seating-v1';
-
 // Debounce delay for auto-save (ms)
 export const AUTOSAVE_DEBOUNCE_MS = 500;
 

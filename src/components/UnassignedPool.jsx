@@ -9,7 +9,6 @@ import { useDroppable } from '@dnd-kit/core';
  * Props:
  *   guests            — Guest[] (all guests)
  *   unassignedIds     — string[] (IDs of unassigned guests)
- *   onMoveToUnassigned — (guestId) => void
  */
 export default function UnassignedPool({ guests, unassignedIds, lockedAssignments = {}, onEdit, onDelete }) {
   const [search, setSearch] = useState('');

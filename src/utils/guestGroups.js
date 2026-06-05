@@ -30,6 +30,35 @@ export function getGroupPreferenceLabel(value) {
   return GROUP_PREFERENCES.find(item => item.id === value)?.label ?? '同桌優先';
 }
 
+export function findGuestGroupConflicts(groups = [], guests = []) {
+  const guestNameById = new Map((guests ?? []).map(guest => [guest.id, guest.name]));
+  const memberships = new Map();
+
+  (groups ?? []).forEach(group => {
+    (group.guestIds ?? []).forEach(guestId => {
+      const id = String(guestId ?? '').trim();
+      if (!id) return;
+      const current = memberships.get(id) ?? [];
+      current.push({
+        groupId: group.id,
+        groupName: group.name,
+        preference: normalizeGroupPreference(group.preference),
+      });
+      memberships.set(id, current);
+    });
+  });
+
+  return Array.from(memberships.entries())
+    .filter(([, groupRefs]) => groupRefs.length > 1)
+    .map(([guestId, groupRefs]) => ({
+      guestId,
+      guestName: guestNameById.get(guestId) ?? '未知賓客',
+      groupIds: groupRefs.map(group => group.groupId),
+      groupNames: groupRefs.map(group => group.groupName),
+      preferences: groupRefs.map(group => group.preference),
+    }));
+}
+
 export function syncGuestGroupLocks(groups, lockedAssignments = {}) {
   return (groups ?? []).map(group => ({
     ...group,

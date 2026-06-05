@@ -92,7 +92,7 @@ export default function AutoSeatRulesModal({
                   checked={draftRules.keepGroupsTogether}
                   onChange={event => updateRule({ keepGroupsTogether: event.target.checked })}
                 />
-                <span>同行 party 盡量同桌</span>
+                <span>套用同行與群組偏好</span>
               </label>
             </div>
 

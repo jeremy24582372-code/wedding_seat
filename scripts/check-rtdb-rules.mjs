@@ -67,6 +67,15 @@ if (groupRules?.$other?.['.validate'] !== false) {
   fail('unknown guestGroups children must be rejected');
 }
 
+const tableRules = seatingRules.tables?.$tableIndex;
+if (!String(tableRules?.seats?.['.validate'] ?? '').includes('=== 10')) {
+  fail('tables seats validation must enforce the fixed 10-seat contract');
+}
+const seatIndexRule = String(tableRules?.guestIds?.$seatIndex?.['.validate'] ?? '');
+if (!seatIndexRule.includes("$seatIndex === '0'") || !seatIndexRule.includes("$seatIndex === '9'")) {
+  fail('table guestIds validation must restrict seat indexes to 0..9');
+}
+
 const autoRules = seatingRules.seatingRules;
 if (!String(autoRules?.fillStrategy?.['.validate'] ?? '').includes('category-first')) {
   fail('seatingRules must validate known fill strategies');

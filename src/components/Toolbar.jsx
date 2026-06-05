@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import './Toolbar.css';
 
 /**
@@ -35,18 +35,26 @@ export default function Toolbar({
   const [syncState, setSyncState] = useState('idle'); // 'idle' | 'syncing' | 'success' | 'error'
   const exportRef = useRef(null);
   const syncTimerRef = useRef(null);
+  const mountedRef = useRef(true);
+
+  useEffect(() => () => {
+    mountedRef.current = false;
+    if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
+  }, []);
 
   const handleSyncSheets = async () => {
     setSyncState('syncing');
     try {
       await onSyncSheets();
+      if (!mountedRef.current) return;
       setSyncState('success');
     } catch {
+      if (!mountedRef.current) return;
       setSyncState('error');
-    } finally {
-      if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
-      syncTimerRef.current = setTimeout(() => setSyncState('idle'), 3000);
     }
+
+    if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
+    syncTimerRef.current = setTimeout(() => setSyncState('idle'), 3000);
   };
 
   const syncLabel = {

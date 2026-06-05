@@ -209,22 +209,24 @@ function buildQualitySummary(rows, importSummary) {
     sourceName: row.sourceName,
   })));
 
-  if (importSummary?.missingHeadcountRows > 0) {
+  const headcountIssueDetail = formatHeadcountImportIssue(importSummary);
+  if (headcountIssueDetail) {
     items.unshift({
       level: 'warning',
-      label: '匯入來源缺少人數欄',
-      detail: `最近一次匯入有 ${importSummary.missingHeadcountRows} 筆未回傳「人數」，系統已暫以 1 位處理；請重新部署 Apps Script 後再匯入。`,
-      rowId: 'import-missing-headcount',
+      label: '匯入人數需確認',
+      detail: headcountIssueDetail,
+      rowId: 'import-headcount-diagnostics',
       sourceName: '最近一次匯入',
     });
   }
 
-  if (importSummary?.skipped > 0 || importSummary?.updated > 0) {
+  const sourceDuplicateRows = importSummary?.sourceDuplicateRows ?? importSummary?.skipped ?? 0;
+  if (sourceDuplicateRows > 0 || importSummary?.updated > 0) {
     items.unshift({
-      level: importSummary.skipped > 0 ? 'notice' : 'info',
+      level: sourceDuplicateRows > 0 ? 'notice' : 'info',
       label: '重複匯入摘要',
       detail: [
-        importSummary.skipped > 0 ? `略過 ${importSummary.skipped} 筆重複來源` : '',
+        sourceDuplicateRows > 0 ? `略過 ${sourceDuplicateRows} 筆來源內重複列` : '',
         importSummary.updated > 0 ? `更新 ${importSummary.updated} 筆既有來源` : '',
       ].filter(Boolean).join('，'),
       rowId: 'import-summary',
@@ -244,6 +246,34 @@ function buildQualitySummary(rows, importSummary) {
     hasBlockingIssue: counts.danger > 0 || counts.warning > 0,
     lastImportSummary: importSummary,
   };
+}
+
+function formatHeadcountRawValue(value) {
+  const text = String(value ?? '').trim();
+  return text || '空白';
+}
+
+function formatHeadcountImportIssue(importSummary) {
+  const diagnostics = importSummary?.headcountDiagnostics ?? [];
+  if (diagnostics.length === 0) return '';
+
+  const counts = importSummary?.headcountIssueCounts ?? {};
+  const parts = [
+    counts.missing > 0 ? `缺少 ${counts.missing} 筆` : '',
+    counts.invalid > 0 ? `非法 ${counts.invalid} 筆` : '',
+    counts['below-min'] > 0 ? `小於 1 共 ${counts['below-min']} 筆` : '',
+    counts['non-integer'] > 0 ? `非整數 ${counts['non-integer']} 筆` : '',
+    counts.truncated > 0 ? `超過 ${MAX_SEATS} 已截斷 ${counts.truncated} 筆` : '',
+  ].filter(Boolean);
+
+  const examples = diagnostics.slice(0, 3).map(item =>
+    `${item.name}：${formatHeadcountRawValue(item.rawValue)} → ${item.normalizedValue}`
+  );
+
+  return [
+    `最近一次匯入人數資料已用安全值處理（${parts.join('，')}）。`,
+    examples.length > 0 ? `範例：${examples.join('；')}。` : '',
+  ].filter(Boolean).join('');
 }
 
 function formatTableSummary(labels, unassignedCount) {

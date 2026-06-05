@@ -1,97 +1,10 @@
-import { useRef, useState, useEffect, useCallback } from 'react';
+import { useRef, useState, useCallback } from 'react';
 import TableZone from './TableZone';
 import './FloorPlan.css';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, defaultTablePosition } from '../utils/constants';
-
-// ── Alignment constants ────────────────────────────────────────────────────
-const GRID_SIZE       = 40;   // matches dot-grid background-size
-const SNAP_THRESHOLD  = 12;   // px — snap zone around each grid line
-const GUIDE_THRESHOLD = 8;    // px — smart guide detection tolerance
-const TABLE_W         = 280;  // approximate table card width
-const TABLE_H         = 320;  // approximate table card height (handle + zone)
-
-/** Snap a value to the nearest grid line if within SNAP_THRESHOLD. */
-function snapToGrid(value) {
-  const snapped = Math.round(value / GRID_SIZE) * GRID_SIZE;
-  return Math.abs(value - snapped) < SNAP_THRESHOLD ? snapped : value;
-}
-
-/**
- * Compute smart guide lines for the primary dragging table vs all other tables.
- * Returns guide line canvas coordinates + snapped position if within tolerance.
- *
- * Guide types checked per axis:
- *   Vertical guides (X):  left=left, right=right, center=center, left=right, right=left
- *   Horizontal guides (Y): top=top, bottom=bottom, center=center, top=bottom, bottom=top
- *
- * @param {number}   dragX          Raw X of dragging table
- * @param {number}   dragY          Raw Y of dragging table
- * @param {{x,y}[]} otherPositions  Positions of non-dragging tables
- * @returns {{ h: number[], v: number[], snappedX: number, snappedY: number }}
- */
-function computeGuidesAndSnap(dragX, dragY, otherPositions) {
-  const dragL  = dragX,              dragR  = dragX + TABLE_W, dragCX = dragX + TABLE_W / 2;
-  const dragT  = dragY,              dragB  = dragY + TABLE_H, dragCY = dragY + TABLE_H / 2;
-
-  const hLines = new Set();
-  const vLines = new Set();
-  let snappedX = dragX, snappedY = dragY;
-  let xSnapped = false, ySnapped = false;
-
-  for (const pos of otherPositions) {
-    const oL  = pos.x,              oR  = pos.x + TABLE_W, oCX = pos.x + TABLE_W / 2;
-    const oT  = pos.y,              oB  = pos.y + TABLE_H, oCY = pos.y + TABLE_H / 2;
-
-    // ── Vertical guides (compare X) ──
-    if (!xSnapped) {
-      const vChecks = [
-        { dv: dragCX, ov: oCX, snap: oCX - TABLE_W / 2 },
-        { dv: dragL,  ov: oL,  snap: oL                 },
-        { dv: dragR,  ov: oR,  snap: oR - TABLE_W       },
-        { dv: dragL,  ov: oR,  snap: oR                 },
-        { dv: dragR,  ov: oL,  snap: oL - TABLE_W       },
-      ];
-      for (const { dv, ov, snap } of vChecks) {
-        if (Math.abs(dv - ov) <= GUIDE_THRESHOLD) {
-          vLines.add(ov);
-          snappedX = snap;
-          xSnapped = true;
-          break;
-        }
-      }
-    }
-
-    // ── Horizontal guides (compare Y) ──
-    if (!ySnapped) {
-      const hChecks = [
-        { dv: dragCY, ov: oCY, snap: oCY - TABLE_H / 2 },
-        { dv: dragT,  ov: oT,  snap: oT                 },
-        { dv: dragB,  ov: oB,  snap: oB - TABLE_H       },
-        { dv: dragT,  ov: oB,  snap: oB                 },
-        { dv: dragB,  ov: oT,  snap: oT - TABLE_H       },
-      ];
-      for (const { dv, ov, snap } of hChecks) {
-        if (Math.abs(dv - ov) <= GUIDE_THRESHOLD) {
-          hLines.add(ov);
-          snappedY = snap;
-          ySnapped = true;
-          break;
-        }
-      }
-    }
-
-    if (xSnapped && ySnapped) break;
-  }
-
-  return {
-    h: [...hLines],
-    v: [...vLines],
-    snappedX,
-    snappedY,
-    xSnapped,
-    ySnapped,
-  };
-}
+import { useFloorPlanSelection } from '../hooks/useFloorPlanSelection';
+import { useFloorPlanTableDrag } from '../hooks/useFloorPlanTableDrag';
+import { useFloorPlanViewport } from '../hooks/useFloorPlanViewport';
 
 /**
  * FloorPlan — A large, pannable canvas where tables can be freely dragged.
@@ -127,32 +40,6 @@ export default function FloorPlan({
   onAddTable,
   lockedAssignments = {},
 }) {
-  const canvasRef = useRef(null);
-
-  // ── Canvas pan state ──────────────────────────────────────────
-  const [pan, setPan] = useState({ x: 0, y: 0 });
-  const [zoom, setZoom] = useState(0.85);
-  const panStart = useRef(null); // { x, y, panX, panY, hasMoved }
-  // Ref to block canvas onClick deselect when pan just finished with movement
-  const panMovedRef = useRef(false);
-
-  // ── Table drag state ──────────────────────────────────────────
-  const tableDrag = useRef(null);
-  const [draggingTableId, setDraggingTableId] = useState(null);
-  const [livePos, setLivePos] = useState(null);
-  const [dragGroupState, setDragGroupState]         = useState([]);
-  const [dragOriginalsState, setDragOriginalsState] = useState({});
-  // Stores the latest snapped positions for ALL tables in the drag group (guide+grid applied)
-  const livePosGroupRef = useRef({});
-
-  // ── Multi-select state ────────────────────────────────────────
-  const [selectedTableIds, setSelectedTableIds] = useState(new Set());
-
-  // ── Snap & Guide state ────────────────────────────────────────
-  const [snapEnabled, setSnapEnabled] = useState(true);
-  const [guidesEnabled, setGuidesEnabled] = useState(true);
-  const [guides, setGuides] = useState({ h: [], v: [] });
-
   // ── Inline rename state ───────────────────────────────────────
   const [renamingTableId, setRenamingTableId] = useState(null);
   const [renameDraft, setRenameDraft]         = useState('');
@@ -160,59 +47,48 @@ export default function FloorPlan({
 
   // Resolve position: use stored or compute default
   const getPos = useCallback((table, index) => {
-    return positions?.[table.id] ?? defaultTablePosition(index);
+    return table ? positions?.[table.id] ?? defaultTablePosition(index) : defaultTablePosition(index);
   }, [positions]);
 
-  // ── Canvas pan ────────────────────────────────────────────────
-  // Panning is triggered by:
-  //   • Middle mouse button (button === 1)
-  //   • Left click on empty canvas background (button === 0, not over a table)
-  const handleCanvasPointerDown = useCallback((e) => {
-    const isMiddleBtn      = e.button === 1;
-    const isLeftBackground = e.button === 0 && !e.target.closest(
-      '.floor-plan__table-wrapper, .floor-plan__ctrl-btn, .floor-plan__legend, .floor-plan__mode-panel'
-    );
+  const {
+    selectedTableIds,
+    clearSelectedTables,
+    selectTableFromPointer,
+    handleTableWrapperClick,
+  } = useFloorPlanSelection();
 
-    if (isMiddleBtn || isLeftBackground) {
-      e.preventDefault();
-      panMovedRef.current = false;
-      panStart.current = { x: e.clientX, y: e.clientY, panX: pan.x, panY: pan.y };
-      canvasRef.current?.setPointerCapture(e.pointerId);
-      canvasRef.current?.classList.add('floor-plan__canvas--panning');
-    }
-  }, [pan]);
+  const {
+    canvasRef,
+    pan,
+    zoom,
+    zoomIn,
+    zoomOut,
+    resetView,
+    handleCanvasClick,
+    handleCanvasPointerDown,
+    handleCanvasPointerMove,
+    handleCanvasPointerUp,
+  } = useFloorPlanViewport({ onBackgroundClick: clearSelectedTables });
 
-  const handleCanvasPointerMove = useCallback((e) => {
-    if (!panStart.current) return;
-    const dx = e.clientX - panStart.current.x;
-    const dy = e.clientY - panStart.current.y;
-    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) panMovedRef.current = true;
-    setPan({ x: panStart.current.panX + dx, y: panStart.current.panY + dy });
-  }, []);
-
-  const handleCanvasPointerUp = useCallback((e) => {
-    if (!panStart.current) return;
-    panStart.current = null;
-    canvasRef.current?.releasePointerCapture(e.pointerId);
-    canvasRef.current?.classList.remove('floor-plan__canvas--panning');
-  }, []);
-
-  // Zoom with wheel
-  const handleWheel = useCallback((e) => {
-    e.preventDefault();
-    const delta = e.deltaY > 0 ? -0.06 : 0.06;
-    setZoom(z => Math.min(2, Math.max(0.3, z + delta)));
-  }, []);
-
-  useEffect(() => {
-    const el = canvasRef.current;
-    if (!el) return;
-    el.addEventListener('wheel', handleWheel, { passive: false });
-    return () => el.removeEventListener('wheel', handleWheel);
-  }, [handleWheel]);
-
-  // Reset view
-  const handleResetView = () => { setPan({ x: 0, y: 0 }); setZoom(0.85); };
+  const {
+    guides,
+    guidesEnabled,
+    snapEnabled,
+    setGuidesEnabled,
+    setSnapEnabled,
+    getLivePosForTable,
+    handleTableDragStart,
+    handleTableDragMove,
+    handleTableDragEnd,
+  } = useFloorPlanTableDrag({
+    tables,
+    positions,
+    zoom,
+    selectedTableIds,
+    getPos,
+    onUpdatePosition,
+    onSelectTableFromPointer: selectTableFromPointer,
+  });
 
   // ── Rename helpers ────────────────────────────────────────────
   const startRename = useCallback((e, table) => {
@@ -239,173 +115,6 @@ export default function FloorPlan({
     if (e.key === 'Escape') { e.preventDefault(); cancelRename(table); }
   }, [commitRename, cancelRename]);
 
-  // ── Table drag handle ─────────────────────────────────────────
-  const handleTableDragStart = useCallback((e, tableId, index) => {
-    e.stopPropagation();
-    e.preventDefault();
-    const orig = getPos(tables.find(t => t.id === tableId), index);
-
-    const dragGroup = selectedTableIds.has(tableId)
-      ? [...selectedTableIds]
-      : [tableId];
-
-    const originals = {};
-    dragGroup.forEach(tid => {
-      const t   = tables.find(tt => tt.id === tid);
-      const idx = tables.findIndex(tt => tt.id === tid);
-      if (t) originals[tid] = getPos(t, idx);
-    });
-
-    tableDrag.current = {
-      tableId,
-      startX: e.clientX,
-      startY: e.clientY,
-      origX: orig.x,
-      origY: orig.y,
-      pointerId: e.pointerId,
-      dragGroup,
-      originals,
-      hasMoved: false,
-    };
-    setDragGroupState(dragGroup);
-    setDragOriginalsState(originals);
-    setDraggingTableId(tableId);
-    setLivePos({ x: orig.x, y: orig.y });
-    e.currentTarget.setPointerCapture(e.pointerId);
-  }, [getPos, tables, selectedTableIds]);
-
-  const handleTableDragMove = useCallback((e) => {
-    if (!tableDrag.current) return;
-    const rawDx = e.clientX - tableDrag.current.startX;
-    const rawDy = e.clientY - tableDrag.current.startY;
-    if (Math.abs(rawDx) > 4 || Math.abs(rawDy) > 4) tableDrag.current.hasMoved = true;
-
-    const dx = rawDx / zoom;
-    const dy = rawDy / zoom;
-    const { origX, origY, originals, dragGroup } = tableDrag.current;
-
-    let rawX = Math.max(0, Math.min(CANVAS_WIDTH  - TABLE_W, origX + dx));
-    let rawY = Math.max(0, Math.min(CANVAS_HEIGHT - TABLE_H, origY + dy));
-
-    // Collect positions of tables NOT in the drag group
-    const otherPositions = tables
-      .filter(t => !dragGroup.includes(t.id))
-      .map(t => {
-        const idx = tables.findIndex(tt => tt.id === t.id);
-        return positions?.[t.id] ?? defaultTablePosition(idx);
-      });
-
-    // ── Smart guides + guide snap ──────────────────────────────
-    const {
-      h: hGuides,
-      v: vGuides,
-      snappedX,
-      snappedY,
-      xSnapped,
-      ySnapped,
-    } = guidesEnabled
-      ? computeGuidesAndSnap(rawX, rawY, otherPositions)
-      : {
-        h: [],
-        v: [],
-        snappedX: rawX,
-        snappedY: rawY,
-        xSnapped: false,
-        ySnapped: false,
-      };
-
-    let finalX = xSnapped ? snappedX : rawX;
-    let finalY = ySnapped ? snappedY : rawY;
-
-    // ── Grid snap (lower priority — only when no guide snap on that axis) ──
-    if (snapEnabled) {
-      if (!xSnapped) finalX = snapToGrid(finalX);
-      if (!ySnapped) finalY = snapToGrid(finalY);
-    }
-
-    // ── Record final snapped positions for ALL tables in the drag group ──
-    // (used by handleTableDragEnd to commit exactly what the user sees)
-    const snapDx = finalX - origX;
-    const snapDy = finalY - origY;
-    const groupSnapshot = {};
-    dragGroup.forEach(tid => {
-      const orig = originals[tid];
-      if (!orig) return;
-      groupSnapshot[tid] = {
-        x: Math.max(0, Math.min(CANVAS_WIDTH  - TABLE_W, orig.x + snapDx)),
-        y: Math.max(0, Math.min(CANVAS_HEIGHT - TABLE_H, orig.y + snapDy)),
-      };
-    });
-    livePosGroupRef.current = groupSnapshot;
-
-    setGuides(guidesEnabled ? { h: hGuides, v: vGuides } : { h: [], v: [] });
-    setLivePos({ x: finalX, y: finalY });
-  }, [zoom, snapEnabled, guidesEnabled, tables, positions]);
-
-  const handleTableDragEnd = useCallback((e) => {
-    if (!tableDrag.current) return;
-    const { tableId, dragGroup, hasMoved } = tableDrag.current;
-
-    // Clear guides regardless of whether we moved
-    setGuides({ h: [], v: [] });
-
-    if (!hasMoved) {
-      // Treat as a click → toggle selection
-      if (e.shiftKey || e.ctrlKey || e.metaKey) {
-        setSelectedTableIds(prev => {
-          const next = new Set(prev);
-          next.has(tableId) ? next.delete(tableId) : next.add(tableId);
-          return next;
-        });
-      } else {
-        setSelectedTableIds(prev =>
-          prev.size === 1 && prev.has(tableId) ? new Set() : new Set([tableId])
-        );
-      }
-      tableDrag.current = null;
-      setDraggingTableId(null);
-      setLivePos(null);
-      setDragGroupState([]);
-      setDragOriginalsState({});
-      livePosGroupRef.current = {};
-      return;
-    }
-
-    // Real drag → commit the exact positions already computed (with guide+grid snap)
-    // from the last handleTableDragMove call, stored in livePosGroupRef.
-    const snapshot = livePosGroupRef.current;
-    dragGroup.forEach(tid => {
-      const pos = snapshot[tid];
-      if (pos) onUpdatePosition(tid, pos);
-    });
-
-    tableDrag.current = null;
-    setDraggingTableId(null);
-    setLivePos(null);
-    setDragGroupState([]);
-    setDragOriginalsState({});
-    livePosGroupRef.current = {};
-  }, [onUpdatePosition]);
-
-  /**
-   * Compute the live (in-drag) canvas position for any table in the current drag group.
-   * Reads only from state — safe to call during render.
-   */
-  function getLivePosForTable(tableId) {
-    if (!draggingTableId || !livePos) return null;
-    if (!dragGroupState.includes(tableId)) return null;
-    if (tableId === draggingTableId) return livePos;
-    const primaryOrig = dragOriginalsState[draggingTableId];
-    const otherOrig   = dragOriginalsState[tableId];
-    if (!primaryOrig || !otherOrig) return null;
-    const dx = livePos.x - primaryOrig.x;
-    const dy = livePos.y - primaryOrig.y;
-    return {
-      x: Math.max(0, Math.min(CANVAS_WIDTH  - TABLE_W, otherOrig.x + dx)),
-      y: Math.max(0, Math.min(CANVAS_HEIGHT - TABLE_H, otherOrig.y + dy)),
-    };
-  }
-
   return (
     <div className="floor-plan" id="floor-plan">
       {/* ── Controls overlay ─────────────────────────── */}
@@ -413,19 +122,19 @@ export default function FloorPlan({
         <div className="floor-plan__control-group" aria-label="縮放與視角">
           <button
             className="floor-plan__ctrl-btn"
-            onClick={() => setZoom(z => Math.min(2, z + 0.1))}
+            onClick={zoomIn}
             title="放大"
             aria-label="放大"
           >＋</button>
           <button
             className="floor-plan__ctrl-btn"
-            onClick={() => setZoom(z => Math.max(0.3, z - 0.1))}
+            onClick={zoomOut}
             title="縮小"
             aria-label="縮小"
           >－</button>
           <button
             className="floor-plan__ctrl-btn"
-            onClick={handleResetView}
+            onClick={resetView}
             title="重置視角"
             aria-label="重置視角"
           >⌂</button>
@@ -491,17 +200,7 @@ export default function FloorPlan({
             transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
             transformOrigin: '0 0',
           }}
-          onClick={(e) => {
-            // Skip deselect if we just finished a pan drag
-            if (panMovedRef.current) {
-              panMovedRef.current = false;
-              return;
-            }
-            if (!e.shiftKey && !e.ctrlKey && !e.metaKey &&
-                !e.target.closest('.floor-plan__table-wrapper')) {
-              setSelectedTableIds(new Set());
-            }
-          }}
+          onClick={handleCanvasClick}
         >
           {/* ── Room label ── */}
           <div className="floor-plan__room-label">婚宴廳</div>
@@ -564,16 +263,7 @@ export default function FloorPlan({
                   position: 'absolute',
                   zIndex: isDragging ? 100 : isSelected ? 10 : 1,
                 }}
-                onClick={(e) => {
-                  if (e.shiftKey || e.ctrlKey || e.metaKey) {
-                    e.stopPropagation();
-                    setSelectedTableIds(prev => {
-                      const next = new Set(prev);
-                      next.has(table.id) ? next.delete(table.id) : next.add(table.id);
-                      return next;
-                    });
-                  }
-                }}
+                onClick={(event) => handleTableWrapperClick(event, table.id)}
               >
                 {/* Drag handle — sits above the table diagram */}
                 <div

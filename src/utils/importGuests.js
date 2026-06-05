@@ -12,10 +12,7 @@ import {
   ensurePartyGuestGroups,
   normalizeLockedAssignmentsForGuests,
 } from './guestGroups.js';
-
-function emptySeats() {
-  return Array(MAX_SEATS).fill(null);
-}
+import { deriveGuestTableState, emptySeats, normalizeSeatArray } from './seatingHelpers.js';
 
 export function normalizeImportedTableLabel(value) {
   const raw = String(value ?? '').trim();
@@ -80,32 +77,12 @@ function removeGuestsFromTableSeats(tables, guestIds) {
   });
 }
 
-function deriveGuestTableState(guests, tables) {
-  const tableIdByGuestId = new Map();
-  tables.forEach(table => {
-    table.guestIds.forEach(guestId => {
-      if (guestId) tableIdByGuestId.set(guestId, table.id);
-    });
-  });
-
-  const nextGuests = guests.map(g => ({
-    ...g,
-    tableId: tableIdByGuestId.get(g.id) ?? null,
-  }));
-
-  return {
-    guests: nextGuests,
-    unassignedGuestIds: nextGuests
-      .filter(g => g.tableId == null)
-      .map(g => g.id),
-  };
-}
-
 export function applyGuestImport(prev, guestList) {
   const result = {
     added: 0,
     updated: 0,
     skipped: 0,
+    sourceDuplicateRows: 0,
     assigned: 0,
     createdTables: 0,
     unassignedDueToFullTables: 0,
@@ -117,6 +94,7 @@ export function applyGuestImport(prev, guestList) {
     if (!name) return;
     if (incomingByName.has(name)) {
       result.skipped += 1;
+      result.sourceDuplicateRows += 1;
       return;
     }
     incomingByName.set(name, { ...g, name });
@@ -125,7 +103,7 @@ export function applyGuestImport(prev, guestList) {
 
   const tables = (prev.tables ?? []).map(t => ({
     ...t,
-    guestIds: Array.from({ length: MAX_SEATS }, (_, i) => t.guestIds?.[i] ?? null),
+    guestIds: normalizeSeatArray(t.guestIds),
   }));
   let guests = (prev.guests ?? []).map(g => ({
     ...g,

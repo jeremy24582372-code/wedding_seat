@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ref, set, get, onValue } from 'firebase/database';
 import { db } from '../firebase';
 import { buildGoogleSheetsPayload } from '../utils/googleSheetsPayload';
+import { parseGoogleSheetsSyncResponse } from '../utils/googleSheetsSyncResponse';
 
 const FIREBASE_ROOT = 'wedding-seating';
 
@@ -69,13 +70,12 @@ export async function syncToGoogleSheets(state, sheetsUrl) {
   const payload = buildGoogleSheetsPayload(state);
 
   try {
-    // Apps Script CORS workaround: use no-cors mode, no response body expected
-    await fetch(sheetsUrl, {
+    const response = await fetch(sheetsUrl, {
       method:  'POST',
       headers: { 'Content-Type': 'text/plain' }, // avoid preflight with text/plain
       body:    JSON.stringify(payload),
     });
-    return { success: true };
+    return await parseGoogleSheetsSyncResponse(response);
   } catch (err) {
     return { success: false, error: err.message };
   }

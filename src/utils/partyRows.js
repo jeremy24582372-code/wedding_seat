@@ -3,15 +3,67 @@ import { MAX_SEATS, normalizeCategory } from './constants.js';
 export const PARTY_ROLE_PRIMARY = 'primary';
 export const PARTY_ROLE_COMPANION = 'companion';
 
-export function normalizeHeadcount(value) {
-  const raw = typeof value === 'string' ? value.trim() : value;
-  const parsed = Number(raw);
-  if (!Number.isFinite(parsed)) return 1;
+export function normalizeHeadcountWithDiagnostics(value, options = {}) {
+  const hasField = options.hasField !== false;
+  const rawValue = value;
+  const rawText = String(value ?? '').trim();
 
-  const whole = Math.floor(parsed);
-  if (whole < 1) return 1;
-  if (whole > MAX_SEATS) return MAX_SEATS;
-  return whole;
+  if (!hasField || rawText === '') {
+    return {
+      value: 1,
+      rawValue,
+      status: 'missing',
+      message: '未提供人數，已暫以 1 位處理。',
+    };
+  }
+
+  const parsed = Number(rawText);
+  if (!Number.isFinite(parsed)) {
+    return {
+      value: 1,
+      rawValue,
+      status: 'invalid',
+      message: '人數不是有效數字，已暫以 1 位處理。',
+    };
+  }
+
+  if (parsed < 1) {
+    return {
+      value: 1,
+      rawValue,
+      status: 'below-min',
+      message: '人數小於 1，已暫以 1 位處理。',
+    };
+  }
+
+  if (parsed > MAX_SEATS) {
+    return {
+      value: MAX_SEATS,
+      rawValue,
+      status: 'truncated',
+      message: `人數超過每桌 ${MAX_SEATS} 位上限，已截斷為 ${MAX_SEATS} 位。`,
+    };
+  }
+
+  if (!Number.isInteger(parsed)) {
+    return {
+      value: Math.floor(parsed),
+      rawValue,
+      status: 'non-integer',
+      message: '人數不是整數，已取整數位數處理。',
+    };
+  }
+
+  return {
+    value: parsed,
+    rawValue,
+    status: 'ok',
+    message: '',
+  };
+}
+
+export function normalizeHeadcount(value) {
+  return normalizeHeadcountWithDiagnostics(value).value;
 }
 
 export function normalizePartyRole(value) {
