@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import * as XLSX from 'xlsx';
 import { buildCsvExportRows } from '../utils/csvExportBuilder';
-import { buildFloorPrintHTML } from '../utils/floorPrintHTMLBuilder';
+import { buildWeddingFloorPrintHTML } from '../utils/floorPrintHTMLBuilder';
 import { buildJsonBackup } from '../utils/jsonExportBuilder';
 import { buildPrintHTML } from '../utils/printHTMLBuilder';
 import { formatExportDate } from '../utils/exportShared';
@@ -53,7 +53,7 @@ export function useExport(state) {
 
     try {
       openPrintDocument({
-        html: buildFloorPrintHTML(state),
+        html: buildWeddingFloorPrintHTML(state),
         popupMessage: '請先允許瀏覽器開啟彈出視窗，再點選「匯出桌次圖」。\n（網址列右方通常有封鎖提示）',
         failureMessage: '桌次圖 PDF 匯出失敗，請稍後再試',
         logLabel: 'Floor PDF export',

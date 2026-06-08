@@ -175,7 +175,7 @@ function SeatSlot({ tableId, seatIndex, guest, locked, onMoveOut, onEdit, onDele
               tabIndex={0}
               onKeyDown={(e) => { if (e.key === 'Enter') handleSeatDeleteClick(e); }}
             >
-              {pendingDelete ? '!' : '×'}
+              {pendingDelete ? '!' : '刪'}
             </span>
           )}
         </span>

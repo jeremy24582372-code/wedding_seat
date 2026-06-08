@@ -6,6 +6,9 @@ import {
   getCategoryVisual,
 } from './constants.js';
 import { escHtml, formatExportDate } from './exportShared.js';
+import { buildWeddingFloorPrintHTML } from './weddingFloorPrintRenderer.js';
+
+export { buildWeddingFloorPrintHTML };
 
 const SYS_FONT = "'Microsoft JhengHei','PingFang TC','Noto Sans TC',system-ui,sans-serif";
 
@@ -26,7 +29,11 @@ function seatPositions(cx, cy, n, orbitR) {
   return positions;
 }
 
-export function buildFloorPrintHTML(state) {
+export function buildFloorPrintHTML(state, options = {}) {
+  return buildWeddingFloorPrintHTML(state, options);
+}
+
+export function buildLegacyFloorPrintHTML(state) {
   const date = formatExportDate();
   const guests = state?.guests ?? [];
   const tables = state?.tables ?? [];

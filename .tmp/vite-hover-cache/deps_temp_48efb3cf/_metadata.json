@@ -1,0 +1,84 @@
+{
+  "hash": "ecbdaedd",
+  "configHash": "1b7e60d5",
+  "lockfileHash": "f71888a7",
+  "browserHash": "8ca44718",
+  "optimized": {
+    "@dnd-kit/core": {
+      "src": "../../../node_modules/@dnd-kit/core/dist/core.esm.js",
+      "file": "@dnd-kit_core.js",
+      "fileHash": "36790421",
+      "needsInterop": false
+    },
+    "@dnd-kit/utilities": {
+      "src": "../../../node_modules/@dnd-kit/utilities/dist/utilities.esm.js",
+      "file": "@dnd-kit_utilities.js",
+      "fileHash": "0020cc75",
+      "needsInterop": false
+    },
+    "firebase/app": {
+      "src": "../../../node_modules/firebase/app/dist/esm/index.esm.js",
+      "file": "firebase_app.js",
+      "fileHash": "948f0c04",
+      "needsInterop": false
+    },
+    "firebase/database": {
+      "src": "../../../node_modules/firebase/database/dist/esm/index.esm.js",
+      "file": "firebase_database.js",
+      "fileHash": "019260bf",
+      "needsInterop": false
+    },
+    "react-dom": {
+      "src": "../../../node_modules/react-dom/index.js",
+      "file": "react-dom.js",
+      "fileHash": "11b3c5f4",
+      "needsInterop": true
+    },
+    "react-dom/client": {
+      "src": "../../../node_modules/react-dom/client.js",
+      "file": "react-dom_client.js",
+      "fileHash": "d39be04a",
+      "needsInterop": true
+    },
+    "react": {
+      "src": "../../../node_modules/react/index.js",
+      "file": "react.js",
+      "fileHash": "2b3ec221",
+      "needsInterop": true
+    },
+    "react/jsx-dev-runtime": {
+      "src": "../../../node_modules/react/jsx-dev-runtime.js",
+      "file": "react_jsx-dev-runtime.js",
+      "fileHash": "d6c16eeb",
+      "needsInterop": true
+    },
+    "react/jsx-runtime": {
+      "src": "../../../node_modules/react/jsx-runtime.js",
+      "file": "react_jsx-runtime.js",
+      "fileHash": "f1038e4a",
+      "needsInterop": true
+    },
+    "uuid": {
+      "src": "../../../node_modules/uuid/dist/index.js",
+      "file": "uuid.js",
+      "fileHash": "2f593708",
+      "needsInterop": false
+    },
+    "xlsx": {
+      "src": "../../../node_modules/xlsx/xlsx.mjs",
+      "file": "xlsx.js",
+      "fileHash": "765200ee",
+      "needsInterop": false
+    }
+  },
+  "chunks": {
+    "index.esm-ChIRQqpa": {
+      "file": "index.esm-ChIRQqpa.js",
+      "isDynamicEntry": false
+    },
+    "react-DTjSBzeh": {
+      "file": "react-DTjSBzeh.js",
+      "isDynamicEntry": false
+    }
+  }
+}

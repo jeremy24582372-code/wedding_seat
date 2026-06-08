@@ -161,6 +161,7 @@
 .table-zone__seat--filled {
   border-color: var(--seat-cat-border, var(--color-cat-other));
   background: var(--seat-cat-bg, var(--color-bg-card));
+  overflow: visible;
   box-shadow:
     inset 0 1px 0 oklch(100% 0 0 / 0.9),
     0 2px 8px oklch(40% 0.04 75 / 0.14);
@@ -196,7 +197,12 @@
   box-shadow:
     0 10px 20px oklch(40% 0.04 75 / 0.16),
     0 0 0 1px color-mix(in oklch, var(--color-gold), white 54%);
-  z-index: 10;
+  z-index: 60;
+}
+
+.table-zone__seat:focus-visible,
+.table-zone__seat:focus-within {
+  z-index: 60;
 }
 
 .table-zone__seat:active {
@@ -251,38 +257,81 @@
 /* ── Seat action overlay (edit + delete) ── */
 .table-zone__seat-actions {
   position: absolute;
-  bottom: -8px;
-  left: 50%;
-  transform: translateX(-50%);
+  top: 50%;
+  left: calc(100% - 2px);
+  transform: translate(6px, -50%) scale(0.94);
   display: flex;
-  gap: 3px;
+  flex-direction: column;
+  gap: var(--space-2);
   align-items: center;
-  pointer-events: auto;
-  z-index: 20;
+  justify-content: center;
+  min-width: 44px;
+  padding: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: color-mix(in oklch, var(--color-bg-surface), white 8%);
+  backdrop-filter: blur(14px);
+  box-shadow:
+    inset 0 1px 0 oklch(100% 0 0 / 0.86),
+    0 16px 34px oklch(32% 0.035 58 / 0.2),
+    0 0 0 1px oklch(100% 0 0 / 0.62);
+  pointer-events: none;
+  z-index: 80;
   opacity: 0;
-  transition: opacity var(--transition-fast);
+  transition:
+    opacity var(--transition-fast),
+    transform var(--transition-fast),
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
-.table-zone__seat:hover .table-zone__seat-actions {
+.table-zone__seat-actions::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -6px;
+  width: 10px;
+  height: 10px;
+  transform: translateY(-50%) rotate(45deg);
+  border-left: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+  border-radius: 2px;
+  background: color-mix(in oklch, var(--color-bg-surface), white 8%);
+}
+
+.table-zone__seat:hover .table-zone__seat-actions,
+.table-zone__seat:focus-within .table-zone__seat-actions {
   opacity: 1;
+  transform: translate(0, -50%) scale(1);
+  pointer-events: auto;
+  border-color: color-mix(in oklch, var(--color-gold), white 35%);
+  box-shadow:
+    inset 0 1px 0 oklch(100% 0 0 / 0.9),
+    0 18px 38px oklch(32% 0.035 58 / 0.24),
+    0 0 0 1px color-mix(in oklch, var(--color-gold), white 58%);
 }
 
 .table-zone__seat-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 16px;
-  height: 16px;
-  font-size: 9px;
+  width: 30px;
+  height: 30px;
+  font-size: 12px;
+  font-weight: 800;
   line-height: 1;
   text-align: center;
-  background: var(--color-bg-card);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
+  background: var(--color-gold-dim);
+  border: 1px solid color-mix(in oklch, var(--color-gold), white 48%);
+  border-radius: var(--radius-full);
+  color: color-mix(in oklch, var(--color-gold), black 28%);
   cursor: pointer;
   pointer-events: auto;
-  box-shadow: 0 4px 12px oklch(40% 0.04 75 / 0.16);
+  box-shadow:
+    inset 0 1px 0 oklch(100% 0 0 / 0.78),
+    0 6px 15px oklch(40% 0.04 75 / 0.15);
   transition:
+    transform var(--transition-fast),
     background var(--transition-fast),
     border-color var(--transition-fast),
     color var(--transition-fast),
@@ -290,15 +339,33 @@
 }
 
 .table-zone__seat-btn:hover {
-  background: var(--color-accent-dim);
+  transform: translateY(-1px);
   border-color: var(--color-accent);
+  background: var(--color-accent-dim);
+  color: var(--color-accent);
+  box-shadow:
+    inset 0 1px 0 oklch(100% 0 0 / 0.86),
+    0 8px 18px var(--color-accent-glow);
+}
+
+.table-zone__seat-btn:active {
+  transform: scale(0.96);
 }
 
 /* Delete micro-btn — normal */
+.table-zone__seat-delete {
+  background: color-mix(in oklch, var(--color-danger), white 90%);
+  border-color: color-mix(in oklch, var(--color-danger), white 60%);
+  color: var(--color-danger);
+}
+
 .table-zone__seat-delete:hover {
   background: color-mix(in oklch, var(--color-danger), white 88%);
   border-color: var(--color-danger);
   color: var(--color-danger);
+  box-shadow:
+    inset 0 1px 0 oklch(100% 0 0 / 0.72),
+    0 8px 18px color-mix(in oklch, var(--color-danger), transparent 72%);
 }
 
 /* Delete micro-btn — confirm state */
@@ -307,7 +374,7 @@
   border-color: var(--color-danger) !important;
   color: var(--color-text-inverse) !important;
   font-weight: 700;
-  font-size: 10px;
+  font-size: 12px;
   box-shadow: 0 0 0 2px color-mix(in oklch, var(--color-danger), transparent 65%);
   animation: seat-pulse-confirm 0.8s ease infinite alternate;
 }

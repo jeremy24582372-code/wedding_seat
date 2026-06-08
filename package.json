@@ -8,6 +8,8 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "check:floor-pdf-layout": "node scripts/check-wedding-floor-pdf-layout.mjs",
+    "check:floor-pdf-renderer": "node scripts/check-wedding-floor-print-renderer.mjs",
     "rules:check": "node scripts/check-rtdb-rules.mjs",
     "rules:deploy": "npx firebase-tools@latest deploy --only database"
   },

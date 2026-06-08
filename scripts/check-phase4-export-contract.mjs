@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict';
 import { buildCsvExportRows } from '../src/utils/csvExportBuilder.js';
-import { buildFloorPrintHTML } from '../src/utils/floorPrintHTMLBuilder.js';
+import {
+  buildFloorPrintHTML,
+  buildLegacyFloorPrintHTML,
+  buildWeddingFloorPrintHTML,
+} from '../src/utils/floorPrintHTMLBuilder.js';
 import { buildJsonBackup } from '../src/utils/jsonExportBuilder.js';
 import { buildPrintHTML } from '../src/utils/printHTMLBuilder.js';
 import { openPrintDocument } from '../src/utils/printWindow.js';
@@ -13,7 +17,7 @@ const sampleState = {
       category: '新郎親友',
       diet: '',
       source: 'import',
-      tableId: 't1',
+      tableId: 'main',
       partyId: 'p1',
       partyRole: 'primary',
     },
@@ -23,7 +27,7 @@ const sampleState = {
       category: '新郎親友',
       diet: '素食',
       source: 'import',
-      tableId: 't1',
+      tableId: 'main',
       partyId: 'p1',
       partyRole: 'companion',
     },
@@ -37,25 +41,42 @@ const sampleState = {
       partyId: null,
       partyRole: 'primary',
     },
+    {
+      id: 'g4',
+      name: '自訂貴賓<&">',
+      category: '長輩貴賓',
+      diet: '',
+      source: 'manual',
+      tableId: null,
+      partyId: null,
+      partyRole: 'primary',
+    },
   ],
   tables: [
     {
-      id: 't1',
-      label: '2桌',
+      id: 'main',
+      label: '主桌',
       seats: 10,
       guestIds: ['g1', 'g2'],
     },
+    {
+      id: 't2',
+      label: '2桌',
+      seats: 10,
+      guestIds: [],
+    },
   ],
   tablePositions: {
-    t1: { x: 100, y: 220 },
+    main: { x: 100, y: 220 },
+    t2: { x: 420, y: 220 },
   },
-  unassignedGuestIds: ['g3'],
+  unassignedGuestIds: ['g3', 'g4'],
   partyRows: [
     {
       id: 'p1',
       sourceName: '王小明',
       category: '新郎親友',
-      tableLabel: '2桌',
+      tableLabel: '主桌',
       headcount: 2,
       guestIds: ['g1', 'g2'],
       source: 'import',
@@ -99,7 +120,7 @@ function checkCsvContract() {
   assert.equal(rows.length, sampleState.guests.length, 'CSV row count must equal guest count');
 
   const primary = rows.find(row => row.姓名 === '王小明');
-  assert.equal(primary.桌次, '2桌');
+  assert.equal(primary.桌次, '主桌');
   assert.equal(primary.來源姓名, '王小明');
   assert.equal(primary.人數, 2);
   assert.equal(primary.同行角色, '主要');
@@ -117,8 +138,8 @@ function checkCsvContract() {
 
 function checkJsonContract() {
   const backup = buildJsonBackup(sampleState);
-  assert.equal(backup.guests.length, 3);
-  assert.equal(backup.tables.length, 1);
+  assert.equal(backup.guests.length, 4);
+  assert.equal(backup.tables.length, 2);
   assert.equal(backup.partyRows.length, 1);
   assert.equal(backup.guestGroups.length, 1);
   assert.equal(backup.lockedAssignments.g1, true);
@@ -127,29 +148,49 @@ function checkJsonContract() {
 
 function checkPrintHtmlContract() {
   const html = buildPrintHTML(sampleState);
-  assert.match(html, /實際人數：3 位/);
-  assert.match(html, /共 1 桌/);
+  assert.match(html, /實際人數：4 位/);
+  assert.match(html, /共 2 桌/);
   assert.match(html, /王小明/);
   assert.match(html, /王小明 同行1/);
   assert.match(html, /陳美麗/);
+  assert.match(html, /自訂貴賓&lt;&amp;&quot;&gt;/);
   assert.match(html, /群組：王家同行/);
   assert.match(html, /已鎖定/);
-  assert.match(html, /尚未分配座位（1 位）/);
+  assert.match(html, /尚未分配座位（2 位）/);
 
   const emptyHtml = buildPrintHTML(emptyState);
   assert.match(emptyHtml, /實際人數：0 位/);
 }
 
 function checkFloorPrintHtmlContract() {
-  const html = buildFloorPrintHTML(sampleState);
-  assert.match(html, /婚禮桌次位置圖/);
-  assert.match(html, /實際人數：3 位/);
-  assert.match(html, /共 1 桌/);
+  const options = { date: new Date(2026, 5, 8) };
+  const html = buildFloorPrintHTML(sampleState, options);
+  const directWeddingHtml = buildWeddingFloorPrintHTML(sampleState, options);
+  assert.equal(html, directWeddingHtml, 'Official floor export must use the wedding print renderer');
+
+  assert.match(html, /Jeremy &amp; Yuri/);
+  assert.match(html, /婚 禮 桌 次 位 置 圖/);
+  assert.match(html, /WEDDING SEATING CHART/);
+  assert.match(html, /實際人數：4 位/);
+  assert.match(html, /共 2 桌/);
+  assert.match(html, /來源筆數：1 筆/);
+  assert.match(html, /主桌 \/ 舞台/);
+  assert.match(html, /wfp-main-table/);
+  assert.match(html, /wfp-regular-grid/);
+  assert.match(html, /座位圖例/);
+  assert.match(html, /完整桌次名單/);
+  assert.match(html, /未分配賓客/);
+  assert.match(html, /長輩貴賓/);
+  assert.match(html, /自訂貴賓&lt;&amp;&quot;&gt;/);
+  assert.doesNotMatch(html, /viewBox="0 0 1850 2400"/);
+
+  const legacyHtml = buildLegacyFloorPrintHTML(sampleState);
+  assert.match(legacyHtml, /viewBox="0 0 1850 2400"/, 'Legacy coordinate renderer must remain explicitly named');
   assert.match(html, /2桌/);
-  assert.match(html, /viewBox="0 0 1850 2400"/);
 
   const emptyHtml = buildFloorPrintHTML(emptyState);
   assert.match(emptyHtml, /實際人數：0 位/);
+  assert.match(emptyHtml, /Jeremy &amp; Yuri/);
 }
 
 function checkPrintWindowOneShotGuard() {
