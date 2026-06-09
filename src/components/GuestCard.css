@@ -47,12 +47,13 @@
   cursor: grabbing;
 }
 
-/* Dragging state */
+/* Dragging state — original card stays in place as a dim placeholder */
 .guest-card--dragging {
-  opacity: 0.35;
+  opacity: 0.25;
   box-shadow: none;
-  cursor: grabbing;
-  transform: scale(0.985);
+  border-style: dashed;
+  cursor: default;
+  pointer-events: none;
 }
 
 /* Compact mode — inside table zone grid */

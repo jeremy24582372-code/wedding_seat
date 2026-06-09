@@ -2,14 +2,6 @@ import { useState } from 'react';
 import { getCategoryVisual } from '../utils/constants';
 import './GuestDashboard.css';
 
-const STATUS_LABELS = {
-  assigned: '已分配',
-  unassigned: '未分配',
-  partial: '部分安排',
-  split: '拆桌',
-  'target-conflict': '指定衝突',
-};
-
 export default function GuestTable({ rows, onEditGuest, onDeleteGuest }) {
   const [pendingDeleteId, setPendingDeleteId] = useState(null);
 
@@ -41,9 +33,7 @@ export default function GuestTable({ rows, onEditGuest, onDeleteGuest }) {
               <th>來源 / Party</th>
               <th>分類</th>
               <th>人數</th>
-              <th>桌次狀態</th>
               <th>座位單位</th>
-              <th>品質</th>
             </tr>
           </thead>
           <tbody>
@@ -63,14 +53,6 @@ export default function GuestTable({ rows, onEditGuest, onDeleteGuest }) {
                   <div className="guest-table__number">
                     <strong>{row.headcount}</strong>
                     <span>展開 {row.units.length} 位</span>
-                  </div>
-                </td>
-                <td>
-                  <div className="guest-table__status-block">
-                    <span className={`guest-table__status guest-table__status--${row.status}`}>
-                      {STATUS_LABELS[row.status] ?? '狀態未知'}
-                    </span>
-                    <small>{row.tableSummary}</small>
                   </div>
                 </td>
                 <td>
@@ -96,19 +78,6 @@ export default function GuestTable({ rows, onEditGuest, onDeleteGuest }) {
                       </div>
                     ))}
                   </div>
-                </td>
-                <td>
-                  {row.issues.length === 0 ? (
-                    <span className="guest-table__quality guest-table__quality--ok">正常</span>
-                  ) : (
-                    <div className="guest-table__issue-list">
-                      {row.issues.map(issue => (
-                        <span className={`guest-table__quality guest-table__quality--${issue.level}`} key={`${issue.label}-${issue.detail}`}>
-                          {issue.label}
-                        </span>
-                      ))}
-                    </div>
-                  )}
                 </td>
               </tr>
             ))}

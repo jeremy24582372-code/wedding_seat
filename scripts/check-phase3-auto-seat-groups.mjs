@@ -1,7 +1,11 @@
 import assert from 'node:assert/strict';
 import { createAutoSeatPreview } from '../src/utils/autoSeatPlanner.js';
 import { buildGuestDashboardModel } from '../src/utils/guestDashboard.js';
-import { findGuestGroupConflicts } from '../src/utils/guestGroups.js';
+import {
+  appendGuestToGroup,
+  ensurePartyGuestGroups,
+  findGuestGroupConflicts,
+} from '../src/utils/guestGroups.js';
 import { normalizeSheetGuestRows } from '../src/utils/googleSheetsRows.js';
 import { emptySeats } from '../src/utils/seatingHelpers.js';
 
@@ -121,6 +125,57 @@ function makeState(patch = {}) {
   assert.equal(preview.moves.some(move => move.guestId === 'guest'), false);
   assert.equal(preview.plan.nextState.unassignedGuestIds.includes('guest'), true);
   assert.equal(preview.blocked.some(item => item.id === 'group-conflict:guest'), true);
+}
+
+{
+  const groups = [
+    {
+      id: 'manual',
+      name: '既有群組',
+      guestIds: ['a'],
+      sourcePartyId: null,
+      preference: 'same-table',
+      locked: true,
+      notes: '',
+    },
+  ];
+  const appended = appendGuestToGroup(groups, 'manual', 'b', ['a', 'b', 'c'], { a: true, b: true });
+  assert.deepEqual(appended[0].guestIds, ['a', 'b'], 'existing group should support adding a new member');
+  assert.equal(appended[0].locked, true, 'locked group should stay locked when the added member is locked too');
+
+  const duplicate = appendGuestToGroup(appended, 'manual', 'b', ['a', 'b', 'c'], { a: true, b: true });
+  assert.deepEqual(duplicate[0].guestIds, ['a', 'b'], 'adding an existing member should not duplicate guestIds');
+}
+
+{
+  const existingGroups = [
+    {
+      id: 'party-group',
+      name: '林家同行',
+      guestIds: ['p1', 'p2', 'extra'],
+      sourcePartyId: 'party-1',
+      preference: 'same-table',
+      locked: false,
+      notes: '',
+    },
+  ];
+  const partyRows = [
+    {
+      id: 'party-1',
+      sourceName: '林家',
+      category: '新郎親友',
+      tableLabel: '',
+      headcount: 2,
+      guestIds: ['p1', 'p2'],
+      source: 'import',
+    },
+  ];
+  const reconciled = ensurePartyGuestGroups(existingGroups, partyRows, ['p1', 'p2', 'extra'], {});
+  assert.deepEqual(
+    reconciled[0].guestIds,
+    ['p1', 'p2', 'extra'],
+    'auto party groups should preserve manually added members during import reconciliation'
+  );
 }
 
 {

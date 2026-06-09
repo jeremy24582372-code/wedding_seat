@@ -1,0 +1,78 @@
+.drag-guest-token {
+  width: 52px;
+  height: 52px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 2.5px solid var(--drag-token-border, var(--color-accent));
+  background: var(--drag-token-bg, var(--color-bg-card));
+  color: var(--color-text-primary);
+  box-shadow:
+    inset 0 1px 0 oklch(100% 0 0 / 0.9),
+    0 14px 26px oklch(32% 0.035 58 / 0.22),
+    0 0 0 4px color-mix(in oklch, var(--color-accent), transparent 72%);
+  cursor: grabbing;
+  pointer-events: none;
+  user-select: none;
+  overflow: visible;
+}
+
+.drag-guest-token--party {
+  box-shadow:
+    inset 0 1px 0 oklch(100% 0 0 / 0.9),
+    inset 0 0 0 2px color-mix(in oklch, var(--drag-token-border, var(--color-accent)), white 66%),
+    0 14px 26px oklch(32% 0.035 58 / 0.22),
+    0 0 0 4px color-mix(in oklch, var(--color-accent), transparent 72%);
+}
+
+.drag-guest-token--companion {
+  border-style: double;
+}
+
+.drag-guest-token--locked {
+  border-color: var(--color-accent);
+  background: var(--color-accent-dim);
+}
+
+.drag-guest-token__name {
+  max-width: 44px;
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: 0;
+  text-align: center;
+  word-break: break-all;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.drag-guest-token__party {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: var(--radius-full);
+  background: var(--color-bg-card);
+  border: 1px solid var(--drag-token-border, var(--color-border));
+  color: var(--drag-token-border, var(--color-text-secondary));
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1;
+  box-shadow: 0 3px 8px oklch(40% 0.04 75 / 0.14);
+}
+
+.drag-guest-token__lock {
+  position: absolute;
+  bottom: -5px;
+  left: -4px;
+}

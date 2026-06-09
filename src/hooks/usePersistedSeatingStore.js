@@ -88,10 +88,23 @@ export function usePersistedSeatingStore() {
     setFbReady(true);
   });
 
+  /** Immediately save current state to Firebase, bypassing debounce. */
+  const saveNow = useCallback(() => {
+    // Flush any pending debounced save first
+    if (saveTimer.current) {
+      clearTimeout(saveTimer.current);
+      saveTimer.current = null;
+      pendingState.current = null;
+    }
+    // Save current state
+    return saveStateToFirebase(stateRef.current);
+  }, []);
+
   return {
     state,
     stateRef,
     setState,
     fbReady,
+    saveNow,
   };
 }

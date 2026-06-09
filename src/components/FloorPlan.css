@@ -72,6 +72,12 @@
   transform: scale(0.96);
 }
 
+.floor-plan__ctrl-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 /* Snap toggle — active state */
 .floor-plan__ctrl-btn--active {
   background: var(--color-accent);
@@ -370,6 +376,22 @@
 
 .floor-plan__table-wrapper--selected .table-zone {
   box-shadow: 0 0 0 2px color-mix(in oklch, var(--color-accent), white 28%), var(--shadow-card-hover);
+}
+
+.floor-plan__table-wrapper--locked > .floor-plan__drag-handle {
+  cursor: not-allowed;
+  background: color-mix(in oklch, var(--color-bg-card), var(--color-accent-dim) 18%);
+  border-color: color-mix(in oklch, var(--color-accent), white 52%);
+}
+
+.floor-plan__table-wrapper--locked > .floor-plan__drag-handle:hover {
+  color: var(--color-accent);
+  box-shadow: 0 -1px 10px var(--color-accent-glow);
+  transform: none;
+}
+
+.floor-plan__table-wrapper--locked .floor-plan__drag-icon {
+  color: var(--color-accent);
 }
 
 /* Selection tip banner that appears inside the canvas */

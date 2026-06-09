@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { moveGuestByDropTarget, resolveDropTarget } from '../utils/dndDrop';
+import { createCenterOnPointerModifier } from '../utils/dndOverlay';
 
 export function useGuestDragAndDrop({
   state,
@@ -27,6 +28,12 @@ export function useGuestDragAndDrop({
       window.removeEventListener('pointerup', track);
     };
   }, []);
+
+  // Modifier array for DragOverlay — keeps ghost centred on cursor
+  const dragOverlayModifiers = useMemo(
+    () => [createCenterOnPointerModifier(lastPointer)],
+    [] // lastPointer ref identity is stable
+  );
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -67,5 +74,6 @@ export function useGuestDragAndDrop({
     handleDragStart,
     handleDragEnd,
     handleDragCancel,
+    dragOverlayModifiers,
   };
 }

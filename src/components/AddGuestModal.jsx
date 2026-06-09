@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import './AddGuestModal.css';
 import { CATEGORIES, isBuiltinCategory, normalizeCategory } from '../utils/constants';
+import { PARTY_ROLE_COMPANION } from '../utils/partyRows';
 
 /**
  * Modal for adding a new guest OR editing an existing one.
@@ -13,11 +14,13 @@ import { CATEGORIES, isBuiltinCategory, normalizeCategory } from '../utils/const
  */
 export default function AddGuestModal({ onAdd, onUpdate, onClose, initialGuest }) {
   const isEditMode = Boolean(initialGuest);
+  const isCompanion = isEditMode && initialGuest?.partyRole === PARTY_ROLE_COMPANION;
 
-  const [name, setName]         = useState(initialGuest?.name     ?? '');
-  const [category, setCategory] = useState(normalizeCategory(initialGuest?.category));
-  const [diet, setDiet]         = useState(initialGuest?.diet     ?? '葷食');
-  const [error, setError]       = useState('');
+  const [name, setName]             = useState(initialGuest?.name     ?? '');
+  const [category, setCategory]     = useState(normalizeCategory(initialGuest?.category));
+  const [diet, setDiet]             = useState(initialGuest?.diet     ?? '葷食');
+  const [nameEdited, setNameEdited] = useState(initialGuest?.nameEdited === true);
+  const [error, setError]           = useState('');
 
   const categoryOptions = useMemo(() => {
     if (!category || isBuiltinCategory(category)) return CATEGORIES;
@@ -32,7 +35,12 @@ export default function AddGuestModal({ onAdd, onUpdate, onClose, initialGuest }
     }
 
     if (isEditMode) {
-      onUpdate(initialGuest.id, { name: name.trim(), category: normalizeCategory(category), diet });
+      onUpdate(initialGuest.id, {
+        name: name.trim(),
+        category: normalizeCategory(category),
+        diet,
+        ...(isCompanion ? { nameEdited } : {}),
+      });
     } else {
       onAdd({ name: name.trim(), category: normalizeCategory(category), diet });
     }
@@ -82,6 +90,22 @@ export default function AddGuestModal({ onAdd, onUpdate, onClose, initialGuest }
               maxLength={30}
             />
             {error && <span className="modal__error">{error}</span>}
+
+            {/* Name lock toggle — only visible when editing a companion */}
+            {isCompanion && (
+              <button
+                type="button"
+                id="btn-toggle-name-lock"
+                className={`modal__name-lock-btn ${nameEdited ? 'modal__name-lock-btn--locked' : ''}`}
+                onClick={() => setNameEdited(prev => !prev)}
+                aria-pressed={nameEdited}
+              >
+                <span className="modal__name-lock-icon">{nameEdited ? '🔒' : '🔓'}</span>
+                <span className="modal__name-lock-text">
+                  {nameEdited ? '匯入時保留此名稱' : '匯入時將重置為預設名稱'}
+                </span>
+              </button>
+            )}
           </div>
 
           {/* Category */}

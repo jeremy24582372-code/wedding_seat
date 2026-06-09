@@ -56,7 +56,13 @@ function SeatSlot({ tableId, seatIndex, guest, locked, onMoveOut, onEdit, onDele
     width:  seatR * 2,
     height: seatR * 2,
     position: 'absolute',
-    transform: CSS.Translate.toString(transform),
+    // When dragging, DON'T move the original seat element.  Keep it in
+    // place as a dim placeholder — only the DragOverlay ghost follows the
+    // cursor.  If we applied the transform, the original seat would land
+    // on top of the target seat and elementsFromPoint would resolve it as
+    // the drop target (source === target → swap is a no-op → guest snaps
+    // back).
+    transform: isDragging ? undefined : CSS.Translate.toString(transform),
     ...(categoryVisual
       ? {
         '--seat-cat-border': categoryVisual.floorBorder,
@@ -184,7 +190,18 @@ function SeatSlot({ tableId, seatIndex, guest, locked, onMoveOut, onEdit, onDele
   );
 }
 
-export default function TableZone({ table, guests, lockedAssignments = {}, onMoveOut, onRename, onRemove, onEdit, onDelete }) {
+export default function TableZone({
+  table,
+  guests,
+  lockedAssignments = {},
+  onMoveOut,
+  onRename,
+  onRemove,
+  onEdit,
+  onDelete,
+  tableLocked = false,
+  tableLockVersion = 0,
+}) {
   const filledCount = table.guestIds.filter(Boolean).length;
   const isFull      = filledCount >= MAX_SEATS;
   const remainingSeats = Math.max(0, MAX_SEATS - filledCount);
@@ -195,6 +212,7 @@ export default function TableZone({ table, guests, lockedAssignments = {}, onMov
   const [labelDraft, setLabelDraft] = useState(table.label);
   const inputRef = useRef(null);
   const [pendingRemove, setPendingRemove] = useState(false);
+  const [pendingRemoveLockVersion, setPendingRemoveLockVersion] = useState(null);
   const removeResetTimer = useRef(null);
 
   useEffect(() => {
@@ -216,20 +234,29 @@ export default function TableZone({ table, guests, lockedAssignments = {}, onMov
   };
 
   const handleRemoveClick = () => {
+    if (tableLocked) return;
+
     if (filledCount === 0) {
       onRemove(table.id);
       return;
     }
 
-    if (!pendingRemove) {
+    const removeConfirmationActive = pendingRemove && pendingRemoveLockVersion === tableLockVersion;
+
+    if (!removeConfirmationActive) {
       setPendingRemove(true);
+      setPendingRemoveLockVersion(tableLockVersion);
       clearTimeout(removeResetTimer.current);
-      removeResetTimer.current = setTimeout(() => setPendingRemove(false), 4000);
+      removeResetTimer.current = setTimeout(() => {
+        setPendingRemove(false);
+        setPendingRemoveLockVersion(null);
+      }, 4000);
       return;
     }
 
     clearTimeout(removeResetTimer.current);
     setPendingRemove(false);
+    setPendingRemoveLockVersion(null);
     onRemove(table.id);
   };
 
@@ -239,6 +266,7 @@ export default function TableZone({ table, guests, lockedAssignments = {}, onMov
   const TABLE_R    = 72;
   const SEAT_ORBIT = 108;
   const SEAT_R     = 26;
+  const removeConfirmationActive = pendingRemove && !tableLocked && pendingRemoveLockVersion === tableLockVersion;
 
   return (
     <article
@@ -246,6 +274,7 @@ export default function TableZone({ table, guests, lockedAssignments = {}, onMov
         'table-zone',
         isFull ? 'table-zone--full table-zone--locked' : '',
         isAlmostFull ? 'table-zone--almost-full' : '',
+        tableLocked ? 'table-zone--table-locked' : '',
       ].filter(Boolean).join(' ')}
       data-full={isFull ? 'true' : 'false'}
       aria-label={`${table.label}，${filledCount}/${MAX_SEATS} 人${isFull ? '，已滿桌' : ''}`}
@@ -337,24 +366,29 @@ export default function TableZone({ table, guests, lockedAssignments = {}, onMov
       {/* ── Controls ── */}
       <footer className="table-zone__footer">
         <button
-          className={`table-zone__remove-btn${pendingRemove ? ' table-zone__remove-btn--confirm' : ''}`}
+          className={`table-zone__remove-btn${removeConfirmationActive ? ' table-zone__remove-btn--confirm' : ''}`}
           onClick={handleRemoveClick}
+          disabled={tableLocked}
           title={
-            filledCount === 0
+            tableLocked
+              ? '桌子已鎖定，請先解鎖再刪除此桌'
+              : filledCount === 0
               ? '刪除此空桌'
-              : pendingRemove
+              : removeConfirmationActive
                 ? `再按一次確認，將 ${filledCount} 位賓客移回未分配`
                 : `此桌有 ${filledCount} 位賓客，需二次確認`
           }
           aria-label={
-            filledCount === 0
+            tableLocked
+              ? `${table.label} 已鎖定，請先解鎖再刪除此桌`
+              : filledCount === 0
               ? `刪除空桌 ${table.label}`
-              : pendingRemove
+              : removeConfirmationActive
                 ? `確認刪除 ${table.label}，釋放 ${filledCount} 位賓客`
                 : `刪除 ${table.label}，此桌有 ${filledCount} 位賓客，需二次確認`
           }
         >
-          {filledCount > 0 && pendingRemove ? `確認釋放 ${filledCount} 位` : '刪除此桌'}
+          {tableLocked ? '桌子已鎖定' : filledCount > 0 && removeConfirmationActive ? `確認釋放 ${filledCount} 位` : '刪除此桌'}
         </button>
         {isFull && <span className="table-zone__full-badge">已滿 · 10 人</span>}
         {isAlmostFull && <span className="table-zone__almost-full-badge">剩 {remainingSeats} 位</span>}

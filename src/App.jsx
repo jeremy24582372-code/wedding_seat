@@ -3,6 +3,7 @@ import {
   DndContext,
   DragOverlay,
   MeasuringStrategy,
+  pointerWithin,
 } from '@dnd-kit/core';
 
 import './App.css';
@@ -13,7 +14,7 @@ import GroupManager from './components/GroupManager';
 import Toolbar from './components/Toolbar';
 import UnassignedPool from './components/UnassignedPool';
 import FloorPlan from './components/FloorPlan';
-import GuestCard from './components/GuestCard';
+import DragGuestToken from './components/DragGuestToken';
 import AddGuestModal from './components/AddGuestModal';
 import AutoSeatRulesModal from './components/AutoSeatRulesModal';
 import ToastContainer from './components/Toast';
@@ -46,11 +47,13 @@ export default function App() {
     applyAutoSeatPlan,
     createGuestGroup,
     updateGuestGroup,
+    addGuestToGroup,
     removeGuestFromGroup,
     removeGuestGroup,
     toggleGuestLock,
     toggleGroupLock,
     updateTablePosition,
+    saveNow,
   } = useSeatingState();
 
   const { fetchGuests, loading: importLoading } = useGoogleSheets();
@@ -100,6 +103,7 @@ export default function App() {
     handleDragStart,
     handleDragEnd,
     handleDragCancel,
+    dragOverlayModifiers,
   } = useGuestDragAndDrop({
     state,
     getGuestById,
@@ -120,6 +124,20 @@ export default function App() {
       toast.success('已成功同步至 Google Sheets');
     }
     return result;
+  };
+
+  // --- Manual Firebase save handler ---
+  const handleManualSave = async () => {
+    if (firebaseStatus === 'unconfigured') {
+      toast.warning('本機模式，無法儲存至 Firebase');
+      return;
+    }
+    try {
+      await saveNow();
+      toast.success('已手動儲存至 Firebase');
+    } catch (err) {
+      toast.error(`手動儲存失敗：${err.message}`);
+    }
   };
 
   // Show loading overlay until Firebase has responded
@@ -175,6 +193,7 @@ export default function App() {
       {/* Main DnD context — manages GUEST drag-and-drop only */}
       <DndContext
         sensors={sensors}
+        collisionDetection={pointerWithin}
         measuring={{
           droppable: {
             strategy: MeasuringStrategy.Always,
@@ -190,6 +209,7 @@ export default function App() {
           onTabChange={setActiveTab}
           firebaseStatus={firebaseStatus}
           lastSaved={state.lastSaved}
+          onManualSave={handleManualSave}
         >
           {activeTab === 'overview' ? (
             <DashboardHome
@@ -222,6 +242,7 @@ export default function App() {
               state={state}
               onCreateGroup={createGuestGroup}
               onUpdateGroup={updateGuestGroup}
+              onAddGuestToGroup={addGuestToGroup}
               onRemoveGuestFromGroup={removeGuestFromGroup}
               onRemoveGuestGroup={removeGuestGroup}
               onToggleGuestLock={toggleGuestLock}
@@ -305,14 +326,17 @@ export default function App() {
         </AppShell>
 
         {/* Drag overlay — the "ghost" card following the cursor */}
-        <DragOverlay dropAnimation={{
-          duration: 180,
-          easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',
-        }}>
+        <DragOverlay
+          adjustScale={false}
+          modifiers={dragOverlayModifiers}
+          dropAnimation={{
+            duration: 180,
+            easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',
+          }}
+        >
           {activeGuest ? (
-            <GuestCard
+            <DragGuestToken
               guest={activeGuest}
-              className="guest-card-drag-overlay"
               locked={Boolean(state.lockedAssignments?.[activeGuest.id])}
             />
           ) : null}

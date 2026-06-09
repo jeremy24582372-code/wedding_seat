@@ -33,6 +33,9 @@
           "partyRole": {
             ".validate": "newData.isString() && (newData.val() === 'primary' || newData.val() === 'companion')"
           },
+          "nameEdited": {
+            ".validate": "newData.isBoolean()"
+          },
           "$other": {
             ".validate": false
           }

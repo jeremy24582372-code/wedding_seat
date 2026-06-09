@@ -207,6 +207,7 @@ export function applyGuestImport(prev, guestList) {
         source: 'import',
         partyId,
         partyRole: PARTY_ROLE_COMPANION,
+        nameEdited: false, // New companions start unlocked
       };
       guests = [...guests, companion];
       keptCompanions.push(companion);
@@ -214,8 +215,11 @@ export function applyGuestImport(prev, guestList) {
     }
 
     keptCompanions.forEach((companion, index) => {
+      // If the user has locked this companion's name (nameEdited === true),
+      // preserve their custom name and only update other fields.
+      const isNameLocked = companion.nameEdited === true;
       patchGuest(companion.id, {
-        name: buildCompanionName(sourceName, index + 1),
+        ...(isNameLocked ? {} : { name: buildCompanionName(sourceName, index + 1) }),
         category,
         diet,
         source: 'import',

@@ -44,6 +44,19 @@ export default function FloorPlan({
   const [renamingTableId, setRenamingTableId] = useState(null);
   const [renameDraft, setRenameDraft]         = useState('');
   const renameInputRef = useRef(null);
+  const [tableLockState, setTableLockState] = useState({ locked: false, version: 0 });
+  const tablesLocked = tableLockState.locked;
+  const tableLockVersion = tableLockState.version;
+
+  const toggleTablesLocked = useCallback(() => {
+    setTableLockState(current => {
+      const locked = !current.locked;
+      return {
+        locked,
+        version: locked ? current.version + 1 : current.version,
+      };
+    });
+  }, []);
 
   // Resolve position: use stored or compute default
   const getPos = useCallback((table, index) => {
@@ -155,12 +168,22 @@ export default function FloorPlan({
             aria-pressed={guidesEnabled}
           >線</button>
         </div>
+        <div className="floor-plan__control-group" aria-label="桌子鎖定">
+          <button
+            className={`floor-plan__ctrl-btn${tablesLocked ? ' floor-plan__ctrl-btn--active' : ''}`}
+            onClick={toggleTablesLocked}
+            title={tablesLocked ? '解鎖桌子位置' : '鎖定桌子位置'}
+            aria-label={tablesLocked ? '解鎖桌子位置' : '鎖定桌子位置'}
+            aria-pressed={tablesLocked}
+          >鎖</button>
+        </div>
         {onAddTable && (
           <button
             className="floor-plan__ctrl-btn floor-plan__ctrl-btn--wide"
             onClick={onAddTable}
-            title="新增桌次"
-            aria-label="新增桌次"
+            disabled={tablesLocked}
+            title={tablesLocked ? '桌子已鎖定，請先解鎖再加桌' : '新增桌次'}
+            aria-label={tablesLocked ? '桌子已鎖定，請先解鎖再加桌' : '新增桌次'}
           >
             加桌
           </button>
@@ -175,12 +198,17 @@ export default function FloorPlan({
         <span className={`floor-plan__mode-chip${guidesEnabled ? ' floor-plan__mode-chip--active' : ''}`}>
           輔助線 {guidesEnabled ? '開' : '關'}
         </span>
+        <span className={`floor-plan__mode-chip${tablesLocked ? ' floor-plan__mode-chip--active' : ''}`}>
+          桌子鎖定 {tablesLocked ? '開' : '關'}
+        </span>
       </div>
 
       {/* ── Legend ───────────────────────────────────── */}
       <div className="floor-plan__legend" aria-label="圖例">
         <span className="floor-plan__legend-tip">空白處拖曳平移 · 滾輪縮放</span>
-        <span className="floor-plan__legend-tip">桌名拖曳移桌 · 多選可一起移動</span>
+        <span className="floor-plan__legend-tip">
+          {tablesLocked ? '桌子已鎖定 · 不能移動或刪桌 · 可安心拖曳賓客' : '桌名拖曳移桌 · 多選可一起移動'}
+        </span>
       </div>
 
       {/* ── Scrollable viewport ───────────────────────── */}
@@ -256,6 +284,7 @@ export default function FloorPlan({
                   'floor-plan__table-wrapper',
                   isDragging ? 'floor-plan__table-wrapper--dragging' : '',
                   isSelected ? 'floor-plan__table-wrapper--selected' : '',
+                  tablesLocked ? 'floor-plan__table-wrapper--locked' : '',
                 ].filter(Boolean).join(' ')}
                 style={{
                   left: pos.x,
@@ -270,15 +299,22 @@ export default function FloorPlan({
                   className="floor-plan__drag-handle"
                   onPointerDown={(e) => {
                     if (e.target.closest('.floor-plan__rename-input, .floor-plan__drag-label')) return;
+                    if (tablesLocked) {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      return;
+                    }
                     handleTableDragStart(e, table.id, index);
                   }}
                   onPointerMove={handleTableDragMove}
                   onPointerUp={handleTableDragEnd}
                   onPointerCancel={handleTableDragEnd}
-                  title="拖曳桌名列移動此桌"
-                  aria-label={`移動 ${table.label}`}
+                  title={tablesLocked ? '桌子位置已鎖定' : '拖曳桌名列移動此桌'}
+                  aria-label={tablesLocked ? `${table.label} 位置已鎖定` : `移動 ${table.label}`}
                 >
-                  <span className="floor-plan__drag-icon" style={{ flexShrink: 0 }}>拖</span>
+                  <span className="floor-plan__drag-icon" style={{ flexShrink: 0 }}>
+                    {tablesLocked ? '鎖' : '拖'}
+                  </span>
                   {renamingTableId === table.id ? (
                     <input
                       ref={renameInputRef}
@@ -318,6 +354,8 @@ export default function FloorPlan({
                   onRemove={onRemove}
                   onEdit={onEdit}
                   onDelete={onDelete}
+                  tableLocked={tablesLocked}
+                  tableLockVersion={tableLockVersion}
                 />
               </div>
             );

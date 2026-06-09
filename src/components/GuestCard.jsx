@@ -27,7 +27,9 @@ export default function GuestCard({ guest, onRemove, onEdit, onDelete, compact =
     : '';
 
   const style = {
-    transform: CSS.Translate.toString(transform),
+    // When dragging, keep the original card in place as a dim placeholder.
+    // Only the DragOverlay ghost follows the cursor.
+    transform: isDragging ? undefined : CSS.Translate.toString(transform),
     '--guest-cat-color': categoryVisual.color,
     '--guest-cat-bg': categoryVisual.background,
   };

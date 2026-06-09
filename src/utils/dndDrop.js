@@ -8,10 +8,19 @@ export function findGuestSeat(tables, guestId) {
 
 export function findSeatDropTarget(elements) {
   for (const element of elements ?? []) {
-    if (typeof element?.getAttribute !== 'function') continue;
+    // Skip elements inside a visibility-hidden subtree (e.g. the hidden
+    // seat-actions panel that overflows into adjacent seats).
+    if (element && typeof element.checkVisibility === 'function') {
+      if (!element.checkVisibility({ checkVisibilityCSS: true })) continue;
+    }
 
-    const tableId = element.getAttribute('data-table-id');
-    const seatIndexValue = element.getAttribute('data-seat-index');
+    const candidate = typeof element?.closest === 'function'
+      ? element.closest('[data-table-id][data-seat-index]')
+      : element;
+    if (typeof candidate?.getAttribute !== 'function') continue;
+
+    const tableId = candidate.getAttribute('data-table-id');
+    const seatIndexValue = candidate.getAttribute('data-seat-index');
     if (!tableId || seatIndexValue === null) continue;
 
     const seatIndex = Number.parseInt(seatIndexValue, 10);
@@ -20,13 +29,18 @@ export function findSeatDropTarget(elements) {
     return {
       tableId,
       seatIndex,
-      isEmpty: element.getAttribute('data-seat-empty') === 'true',
+      isEmpty: candidate.getAttribute('data-seat-empty') === 'true',
     };
   }
   return null;
 }
 
 export function resolveDropTarget({ over, pointer, elementsFromPoint }) {
+  if (pointer && typeof elementsFromPoint === 'function') {
+    const pointerTarget = findSeatDropTarget(elementsFromPoint(pointer.x, pointer.y));
+    if (pointerTarget) return pointerTarget;
+  }
+
   const data = over?.data?.current;
   if (data && Object.hasOwn(data, 'tableId')) {
     const rawSeatIndex = data.seatIndex ?? null;
@@ -38,8 +52,7 @@ export function resolveDropTarget({ over, pointer, elementsFromPoint }) {
     };
   }
 
-  if (!pointer || typeof elementsFromPoint !== 'function') return null;
-  return findSeatDropTarget(elementsFromPoint(pointer.x, pointer.y));
+  return null;
 }
 
 export function moveGuestByDropTarget({

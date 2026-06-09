@@ -5,6 +5,10 @@ import {
   buildWeddingFloorLayoutModel,
   parseWeddingTableNumber,
 } from '../src/utils/weddingFloorPrintLayout.js';
+import {
+  REGULAR_OVERVIEW_ANNOTATION_LIMIT,
+  buildSeatAnnotations,
+} from '../src/utils/weddingFloorSeatAnnotations.js';
 import { escHtml, formatExportDate } from '../src/utils/exportShared.js';
 
 function makeGuest(id, name, category, tableId = null) {
@@ -188,6 +192,145 @@ function checkLegendAndFullIndex() {
   assert.equal(model.regularTablePages[0].tables[0].displayNameplates.length, 0);
 }
 
+function assertPoint(point, label) {
+  assert.equal(typeof point?.x, 'number', `${label} must have numeric x`);
+  assert.equal(typeof point?.y, 'number', `${label} must have numeric y`);
+}
+
+function assertBox(box, label) {
+  assertPoint(box, label);
+  assert.equal(typeof box?.width, 'number', `${label} must have numeric width`);
+  assert.equal(typeof box?.height, 'number', `${label} must have numeric height`);
+  assert.ok(box.width > 0, `${label} width must be positive`);
+  assert.ok(box.height > 0, `${label} height must be positive`);
+}
+
+function assertConnector(connector, label) {
+  assert.equal(typeof connector?.fromX, 'number', `${label} connector must have fromX`);
+  assert.equal(typeof connector?.fromY, 'number', `${label} connector must have fromY`);
+  assert.equal(typeof connector?.toX, 'number', `${label} connector must have toX`);
+  assert.equal(typeof connector?.toY, 'number', `${label} connector must have toY`);
+  assert.ok(Array.isArray(connector.bendPoints), `${label} connector must expose bendPoints`);
+}
+
+function assertPlacement(placement, label) {
+  assertPoint(placement?.seatPoint, `${label} seatPoint`);
+  assertBox(placement?.labelBox, `${label} labelBox`);
+  assertConnector(placement?.connector, label);
+  assert.ok(['left', 'right', 'top', 'bottom', 'corner'].includes(placement.side), `${label} side must be valid`);
+  assert.equal(typeof placement.slotIndex, 'number', `${label} slotIndex must be numeric`);
+}
+
+function allTableLayouts(model) {
+  return [
+    model.mainTable,
+    ...model.regularTablePages.flatMap(page => page.tables),
+  ].filter(Boolean);
+}
+
+function checkSeatAnnotationContract() {
+  const mainGuests = Array.from({ length: 10 }, (_, index) =>
+    makeGuest(`m${index + 1}`, `主桌${index + 1}`, index % 2 === 0 ? '新郎親友' : '新娘親友', 'main')
+  );
+  const overviewGuests = [
+    makeGuest('o1', '總覽上', '共同朋友', 't2'),
+    makeGuest('o2', '總覽左', '同事', 't2'),
+    makeGuest('o3', '總覽下', '其他', 't2'),
+  ];
+  const detailGuests = Array.from({ length: REGULAR_OVERVIEW_ANNOTATION_LIMIT + 1 }, (_, index) =>
+    makeGuest(`d${index + 1}`, `詳圖${index + 1}`, '新郎親友', 't3')
+  );
+  const state = {
+    guests: [...mainGuests, ...overviewGuests, ...detailGuests],
+    tables: [
+      makeTable('main', '主桌', mainGuests.map(guest => guest.id)),
+      makeTable('t2', '2桌', ['o1', 'o2', null, null, null, 'o3']),
+      makeTable('t3', '3桌', detailGuests.map(guest => guest.id)),
+    ],
+    unassignedGuestIds: [],
+    partyRows: [],
+  };
+
+  const model = buildWeddingFloorLayoutModel(state);
+  const annotationGuestIds = new Set();
+
+  allTableLayouts(model).forEach(table => {
+    const occupiedSeats = table.seats.filter(seat => seat.guest);
+    const occupiedSeatIndexes = new Set(occupiedSeats.map(seat => seat.seatIndex));
+    const annotationSeatIndexes = new Set(table.annotationRecords.map(annotation => annotation.seatIndex));
+
+    assert.equal(
+      table.annotationRecords.length,
+      occupiedSeats.length,
+      `${table.label} annotation count must equal occupied seat count`
+    );
+    assert.deepEqual(annotationSeatIndexes, occupiedSeatIndexes, `${table.label} must not annotate empty seats`);
+
+    table.annotationRecords.forEach(annotation => {
+      assert.ok(annotation.guestId, `${table.label} annotation must have guestId`);
+      assert.ok(annotation.guestName, `${table.label} annotation must have guestName`);
+      assert.equal(typeof annotation.seatIndex, 'number', `${table.label} annotation must have seatIndex`);
+      assert.ok(
+        annotation.overviewPlacement || annotation.detailPlacement,
+        `${table.label} annotation must have overview or detail placement`
+      );
+      if (annotation.overviewPlacement) {
+        assertPlacement(annotation.overviewPlacement, `${table.label}/${annotation.guestName} overview`);
+      }
+      if (annotation.detailPlacement) {
+        assertPlacement(annotation.detailPlacement, `${table.label}/${annotation.guestName} detail`);
+      }
+      annotationGuestIds.add(annotation.guestId);
+    });
+  });
+
+  const validOccupiedGuestIds = new Set(
+    allTableLayouts(model)
+      .flatMap(table => table.seats)
+      .filter(seat => seat.guest)
+      .map(seat => seat.guest.id)
+  );
+  assert.deepEqual(annotationGuestIds, validOccupiedGuestIds, 'PDF-wide annotation guest IDs must match occupied guests');
+
+  const mainSides = new Set(model.mainTable.annotationRecords.map(annotation => annotation.overviewPlacement.side));
+  assert.ok(mainSides.has('top'), 'Main table annotations must support top slots');
+  assert.ok(mainSides.has('left'), 'Main table annotations must support left slots');
+  assert.ok(mainSides.has('right'), 'Main table annotations must support right slots');
+  assert.ok(mainSides.has('bottom'), 'Main table annotations must support bottom slots');
+
+  const overviewTable = model.regularTablePages[0].tables.find(table => table.id === 't2');
+  assert.equal(overviewTable.needsDetailPage, false, 'A safe 3-guest regular table can stay annotated on overview');
+  assert.equal(overviewTable.annotationRecords.length, REGULAR_OVERVIEW_ANNOTATION_LIMIT);
+  assert.ok(
+    overviewTable.annotationRecords.every(annotation => annotation.overviewPlacement && !annotation.detailPlacement),
+    'Overview-annotated regular table must give every occupied guest an overview placement'
+  );
+  assert.equal(
+    overviewTable.annotationRecords.find(annotation => annotation.guestId === 'o3').seatIndex,
+    5,
+    'Annotation seatIndex must follow table.guestIds position instead of compacting by guest order'
+  );
+
+  const detailTable = model.regularTablePages[0].tables.find(table => table.id === 't3');
+  assert.equal(detailTable.needsDetailPage, true, 'Regular table above overview capacity must enter detail pages');
+  assert.equal(typeof detailTable.detailPageNumber, 'number', 'Detail table must have detailPageNumber');
+  assert.ok(
+    detailTable.annotationRecords.every(annotation => !annotation.overviewPlacement && annotation.detailPlacement),
+    'Overview-summary regular table must move all annotations to detail placement'
+  );
+  assert.ok(model.detailTables.some(table => table.id === 't3'), 'Detail table must be listed in model.detailTables');
+  assert.ok(model.detailPages.some(page => page.tables.some(table => table.id === 't3')), 'Detail page must contain table');
+  assert.ok(model.pages.some(page => page.kind === 'detail'), 'Layout pages must include detail page metadata');
+  assert.equal(model.needsDetailPage, true, 'Top-level detail flag must be true when any table needs details');
+
+  const directHelperResult = buildSeatAnnotations(detailTable, { tableKind: 'regular' });
+  assert.equal(directHelperResult.needsDetailPage, true, 'Standalone helper must detect detail fallback');
+  assert.ok(
+    directHelperResult.annotationRecords.every(annotation => annotation.detailPlacement),
+    'Standalone helper must still produce deterministic detail placements'
+  );
+}
+
 checkLocalDateFormatting();
 checkHtmlEscapeContract();
 checkMainTablePriority();
@@ -195,5 +338,6 @@ checkNaturalSorting();
 checkPagination();
 checkGuestAccountingAndWarnings();
 checkLegendAndFullIndex();
+checkSeatAnnotationContract();
 
 console.log('Wedding floor PDF layout model checks passed');

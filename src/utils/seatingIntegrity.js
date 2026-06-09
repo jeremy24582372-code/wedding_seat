@@ -67,6 +67,7 @@ function normalizeGuestRecords(guests) {
         diet: guest?.diet ?? guest?.note ?? '',
         partyId: guest?.partyId ?? null,
         partyRole: normalizePartyRole(guest?.partyRole),
+        nameEdited: guest?.nameEdited === true, // Preserve user-locked companion names; fallback false for old data
       };
     })
     .filter(guest => guest && guest.name);

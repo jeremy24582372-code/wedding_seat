@@ -7,6 +7,7 @@ export default function GroupManager({
   state,
   onCreateGroup,
   onUpdateGroup,
+  onAddGuestToGroup,
   onRemoveGuestFromGroup,
   onRemoveGuestGroup,
   onToggleGuestLock,
@@ -163,10 +164,12 @@ export default function GroupManager({
             <GroupCard
               key={group.id}
               group={group}
+              allGuests={state.guests}
               guestById={guestById}
               tableById={tableById}
               lockedAssignments={state.lockedAssignments ?? {}}
               onUpdateGroup={onUpdateGroup}
+              onAddMember={onAddGuestToGroup}
               onRemoveGuest={onRemoveGuestFromGroup}
               onRemoveGroup={onRemoveGuestGroup}
               onToggleGroupLock={onToggleGroupLock}

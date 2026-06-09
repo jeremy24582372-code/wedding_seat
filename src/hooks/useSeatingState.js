@@ -9,6 +9,7 @@ import {
   normalizeSeatingRules,
 } from '../utils/autoSeatPlanner.js';
 import {
+  appendGuestToGroup,
   normalizeGuestGroups,
   normalizeGroupPreference,
   normalizeLockedAssignmentsForGuests,
@@ -27,7 +28,7 @@ import { buildInitialState, computeGuestMove, validateTableCapacity } from '../u
  * Firebase is the single source of truth — all mutations auto-save with debounce.
  */
 export function useSeatingState() {
-  const { state, stateRef, setState, fbReady } = usePersistedSeatingStore();
+  const { state, stateRef, setState, fbReady, saveNow } = usePersistedSeatingStore();
 
   // ─── Guest operations ───────────────────────────────────────────────────────
 
@@ -95,6 +96,8 @@ export function useSeatingState() {
       const nextName = patch.name?.trim() ?? current.name;
       const nextCategory = patch.category !== undefined ? normalizeCategory(patch.category) : current.category;
       const nextDiet = patch.diet?.trim() ?? current.diet;
+      // Preserve nameEdited flag if explicitly provided in patch; otherwise keep existing value
+      const nextNameEdited = patch.nameEdited !== undefined ? Boolean(patch.nameEdited) : (current.nameEdited ?? false);
 
       return {
         ...prev,
@@ -105,6 +108,7 @@ export function useSeatingState() {
               name: nextName,
               category: nextCategory,
               diet: nextDiet,
+              nameEdited: nextNameEdited,
             }
             : g
         ),
@@ -121,6 +125,7 @@ export function useSeatingState() {
       };
     });
   }, [setState]);
+
 
   const moveGuest = useCallback((guestId, targetTableId, seatIndex = null) => {
     const { nextState, result } = computeGuestMove(
@@ -332,6 +337,33 @@ export function useSeatingState() {
     });
   }, [setState]);
 
+  const addGuestToGroup = useCallback((groupId, guestId) => {
+    setState(prev => {
+      const idToAdd = String(guestId ?? '').trim();
+      const validGuestIds = prev.guests.map(guest => guest.id);
+      const targetGroup = (prev.guestGroups ?? []).find(group => group.id === groupId);
+      if (!idToAdd || !validGuestIds.includes(idToAdd) || !targetGroup) return prev;
+      if ((targetGroup.guestIds ?? []).includes(idToAdd)) return prev;
+
+      const lockedAssignments = targetGroup.locked
+        ? { ...(prev.lockedAssignments ?? {}), [idToAdd]: true }
+        : (prev.lockedAssignments ?? {});
+
+      return {
+        ...prev,
+        lockedAssignments,
+        guestGroups: appendGuestToGroup(
+          prev.guestGroups,
+          groupId,
+          idToAdd,
+          validGuestIds,
+          lockedAssignments
+        ),
+        lastSaved: new Date().toISOString(),
+      };
+    });
+  }, [setState]);
+
   const removeGuestFromGroup = useCallback((groupId, guestId) => {
     setState(prev => ({
       ...prev,
@@ -443,11 +475,13 @@ export function useSeatingState() {
     applyAutoSeatPlan,
     createGuestGroup,
     updateGuestGroup,
+    addGuestToGroup,
     removeGuestFromGroup,
     removeGuestGroup,
     toggleGuestLock,
     toggleGroupLock,
     updateTablePosition,
     resetAll,
+    saveNow,
   };
 }

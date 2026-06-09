@@ -4,6 +4,7 @@ import {
   moveGuestByDropTarget,
   resolveDropTarget,
 } from '../src/utils/dndDrop.js';
+import { centerOverlayTransform } from '../src/utils/dndOverlay.js';
 
 function createOver(data) {
   return { data: { current: data } };
@@ -13,6 +14,18 @@ function createSeatElement(attrs) {
   return {
     getAttribute(name) {
       return Object.hasOwn(attrs, name) ? attrs[name] : null;
+    },
+  };
+}
+
+function createSeatChildElement(attrs) {
+  const parent = createSeatElement(attrs);
+  return {
+    getAttribute() {
+      return null;
+    },
+    closest(selector) {
+      return selector === '[data-table-id][data-seat-index]' ? parent : null;
     },
   };
 }
@@ -93,11 +106,44 @@ const pointerFallbackTarget = resolveDropTarget({
 });
 assert.deepEqual(pointerFallbackTarget, { tableId: 't3', seatIndex: 4, isEmpty: true });
 
+const pointerWinsOverStaleDndTarget = resolveDropTarget({
+  over: createOver({ tableId: 'wrong-table', seatIndex: 8, isEmpty: true }),
+  pointer: { x: 64, y: 92 },
+  elementsFromPoint: () => [
+    createSeatElement({
+      'data-table-id': 't3',
+      'data-seat-index': '5',
+      'data-seat-empty': 'true',
+    }),
+  ],
+});
+assert.deepEqual(pointerWinsOverStaleDndTarget, { tableId: 't3', seatIndex: 5, isEmpty: true });
+
+const nestedSeatTarget = resolveDropTarget({
+  pointer: { x: 70, y: 96 },
+  elementsFromPoint: () => [
+    createSeatChildElement({
+      'data-table-id': 't4',
+      'data-seat-index': '2',
+      'data-seat-empty': 'false',
+    }),
+  ],
+});
+assert.deepEqual(nestedSeatTarget, { tableId: 't4', seatIndex: 2, isEmpty: false });
+
 const rejectedMove = captureMove({
   target: { tableId: 't1', seatIndex: 9, isEmpty: true },
   tables: [{ id: 't1', guestIds: [...emptySeats] }],
   moveResult: { success: false, reason: '1桌 已滿 (10 人)' },
 });
 assert.deepEqual(rejectedMove.toastMessages, ['1桌 已滿 (10 人)']);
+
+const centeredOverlay = centerOverlayTransform({
+  transform: { x: 12, y: 8, scaleX: 1, scaleY: 1 },
+  activeNodeRect: { left: 100, top: 200 },
+  overlayNodeRect: { width: 52, height: 52 },
+  activationCoordinates: { x: 130, y: 218 },
+});
+assert.deepEqual(centeredOverlay, { x: 16, y: 0, scaleX: 1, scaleY: 1 });
 
 console.log('Phase 5 DnD refactor smoke passed');

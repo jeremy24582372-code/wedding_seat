@@ -1,14 +1,17 @@
 import { useMemo, useState } from 'react';
 import { getCategoryVisual } from '../utils/constants';
 import { GROUP_PREFERENCES, getGroupPreferenceLabel } from '../utils/guestGroups';
+import GroupMemberPicker from './GroupMemberPicker';
 import LockBadge from './LockBadge';
 
 export default function GroupCard({
   group,
+  allGuests,
   guestById,
   tableById,
   lockedAssignments,
   onUpdateGroup,
+  onAddMember,
   onRemoveGuest,
   onRemoveGroup,
   onToggleGroupLock,
@@ -126,6 +129,13 @@ export default function GroupCard({
           );
         })}
       </div>
+
+      <GroupMemberPicker
+        allGuests={allGuests}
+        currentGuestIds={group.guestIds}
+        tableById={tableById}
+        onAddMember={guestId => onAddMember(group.id, guestId)}
+      />
 
       <label className="group-card__notes">
         <span>備註</span>

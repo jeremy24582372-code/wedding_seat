@@ -9,6 +9,14 @@ import {
   formatExportDate,
   isGuestLockedForExport,
 } from './exportShared.js';
+import {
+  DETAIL_TABLES_PER_PAGE,
+  REGULAR_OVERVIEW_ANNOTATION_LIMIT,
+  buildSeatAnnotations,
+  getDetailTableGroupBox,
+  getMainTableOverviewGroupBox,
+  getRegularTableOverviewGroupBox,
+} from './weddingFloorSeatAnnotations.js';
 
 export const FIRST_PAGE_REGULAR_TABLE_CAPACITY = 19;
 export const CONTINUATION_PAGE_TABLE_CAPACITY = 20;
@@ -120,7 +128,9 @@ function buildTableLayout({
     const guestId = rawGuestIds[index] ?? null;
     if (!guestId) {
       return {
+        seatIndex: index,
         seatNumber: index + 1,
+        guestId: null,
         guest: null,
         isEmpty: true,
       };
@@ -136,7 +146,9 @@ function buildTableLayout({
         guestId,
       });
       return {
+        seatIndex: index,
         seatNumber: index + 1,
+        guestId: null,
         guest: null,
         missingGuestId: guestId,
         isEmpty: true,
@@ -156,7 +168,9 @@ function buildTableLayout({
     assignedGuestIds.add(guestId);
 
     return {
+      seatIndex: index,
       seatNumber: index + 1,
+      guestId,
       guest: buildGuestLayoutSummary(state, guest, index + 1),
       isEmpty: false,
     };
@@ -209,6 +223,175 @@ function paginateRegularTables(regularTables) {
   }
 
   return pages;
+}
+
+function tableNeedsRegularDetailPage(table) {
+  return (
+    table.occupancy > REGULAR_OVERVIEW_ANNOTATION_LIMIT ||
+    table.guests.some(guest => String(guest.name ?? '').trim().length > 8) ||
+    table.overflowGuestIds.length > 0
+  );
+}
+
+function buildDetailAssignments(regularTablePages, startPageNumber) {
+  const detailCandidates = regularTablePages
+    .flatMap(page => page.tables)
+    .filter(tableNeedsRegularDetailPage);
+  const assignments = new Map();
+  const detailPages = [];
+
+  for (let offset = 0; offset < detailCandidates.length; offset += DETAIL_TABLES_PER_PAGE) {
+    const pageNumber = startPageNumber + detailPages.length;
+    const tableIds = detailCandidates
+      .slice(offset, offset + DETAIL_TABLES_PER_PAGE)
+      .map((table, indexWithinPage) => {
+        assignments.set(table.id, {
+          pageNumber,
+          indexWithinPage,
+          groupBox: getDetailTableGroupBox(indexWithinPage),
+        });
+        return table.id;
+      });
+
+    detailPages.push({
+      pageNumber,
+      kind: 'detail',
+      capacity: DETAIL_TABLES_PER_PAGE,
+      tableIds,
+      tables: [],
+      tableInstances: [],
+    });
+  }
+
+  return { assignments, detailPages };
+}
+
+function annotateMainTable(mainTable) {
+  if (!mainTable) return null;
+
+  const annotationLayout = buildSeatAnnotations(mainTable, {
+    tableKind: 'main',
+    overviewPageNumber: 1,
+    overviewGroupBox: getMainTableOverviewGroupBox(),
+  });
+
+  return {
+    ...mainTable,
+    ...annotationLayout,
+  };
+}
+
+function annotateRegularTablePages(regularTablePages, detailAssignments) {
+  return regularTablePages.map(page => {
+    const tables = page.tables.map((table, indexWithinPage) => {
+      const detailAssignment = detailAssignments.get(table.id);
+      const annotationLayout = buildSeatAnnotations(table, {
+        tableKind: 'regular',
+        overviewPageNumber: page.pageNumber,
+        overviewGroupBox: getRegularTableOverviewGroupBox(indexWithinPage, page.kind),
+        forceDetail: Boolean(detailAssignment),
+        detailPageNumber: detailAssignment?.pageNumber,
+        detailGroupBox: detailAssignment?.groupBox,
+      });
+
+      return {
+        ...table,
+        ...annotationLayout,
+      };
+    });
+
+    return {
+      ...page,
+      tables,
+      overviewTables: tables.filter(table => !table.needsDetailPage),
+      detailTables: tables.filter(table => table.needsDetailPage),
+      needsDetailPage: tables.some(table => table.needsDetailPage),
+    };
+  });
+}
+
+function hydrateDetailPages(detailPages, annotatedRegularTablePages) {
+  const tableById = new Map(
+    annotatedRegularTablePages
+      .flatMap(page => page.tables)
+      .map(table => [table.id, table])
+  );
+
+  return detailPages.map(page => {
+    const tables = page.tableIds
+      .map(tableId => tableById.get(tableId))
+      .filter(Boolean);
+
+    return {
+      ...page,
+      tables,
+      tableInstances: tables
+        .map(table => table.detailTableInstance)
+        .filter(Boolean),
+      needsDetailPage: tables.length > 0,
+    };
+  });
+}
+
+function buildOverviewProtectedRegions(pageKind) {
+  const regions = [
+    { id: 'content-safe-area', x: 0, y: 0, width: 184, height: 281, kind: 'safe-area' },
+    { id: 'floral-top-left', x: 0, y: 0, width: 44, height: 38, kind: 'floral' },
+    { id: 'floral-top-right', x: 144, y: 0, width: 40, height: 34, kind: 'floral' },
+    { id: 'floral-bottom-left', x: 0, y: 235, width: 48, height: 46, kind: 'floral' },
+    { id: 'floral-bottom-right', x: 135, y: 232, width: 49, height: 49, kind: 'floral' },
+  ];
+
+  if (pageKind === 'first') {
+    regions.push(
+      { id: 'header', x: 0, y: 0, width: 184, height: 44, kind: 'header' },
+      { id: 'stage-ribbon', x: 48, y: 49, width: 88, height: 10, kind: 'stage' },
+      { id: 'main-table-band', x: 27, y: 62, width: 130, height: 50, kind: 'main-table' },
+      { id: 'legend', x: 22, y: 256, width: 140, height: 17, kind: 'legend' },
+      { id: 'warning-strip', x: 0, y: 277, width: 184, height: 6, kind: 'warning' }
+    );
+  } else {
+    regions.push(
+      { id: 'compact-header', x: 0, y: 0, width: 184, height: 18, kind: 'header' },
+      { id: 'continuation-label', x: 0, y: 21, width: 184, height: 7, kind: 'page-label' }
+    );
+  }
+
+  return regions;
+}
+
+function buildDetailProtectedRegions() {
+  return [
+    { id: 'content-safe-area', x: 0, y: 0, width: 184, height: 273, kind: 'safe-area' },
+    { id: 'detail-header', x: 0, y: 0, width: 184, height: 20, kind: 'header' },
+    { id: 'detail-footer', x: 0, y: 272, width: 184, height: 8, kind: 'page-footer' },
+  ];
+}
+
+function buildLayoutPages(mainTable, regularTablePages, detailPages) {
+  const overviewPages = regularTablePages.map(page => ({
+    pageNumber: page.pageNumber,
+    kind: 'overview',
+    chartKind: page.kind,
+    protectedRegions: buildOverviewProtectedRegions(page.kind),
+    tableInstances: [
+      ...(page.kind === 'first' && mainTable?.overviewTableInstance
+        ? [mainTable.overviewTableInstance]
+        : []),
+      ...page.tables
+        .map(table => table.overviewTableInstance)
+        .filter(Boolean),
+    ],
+  }));
+
+  const pages = detailPages.map(page => ({
+    pageNumber: page.pageNumber,
+    kind: 'detail',
+    protectedRegions: buildDetailProtectedRegions(),
+    tableInstances: page.tableInstances,
+  }));
+
+  return [...overviewPages, ...pages];
 }
 
 function buildLegendItems(guests) {
@@ -341,9 +524,23 @@ export function buildWeddingFloorLayoutModel(state, options = {}) {
 
   const unassignedGuests = buildUnassignedGuests(state, guests, guestById, assignedGuestIds, warnings);
   const regularTablePages = paginateRegularTables(regularTables);
+  const { assignments: detailAssignments, detailPages: rawDetailPages } = buildDetailAssignments(
+    regularTablePages,
+    regularTablePages.length + 1
+  );
+  const annotatedMainTable = annotateMainTable(mainTable);
+  const annotatedRegularTablePages = annotateRegularTablePages(regularTablePages, detailAssignments);
+  const detailPages = hydrateDetailPages(rawDetailPages, annotatedRegularTablePages);
+  const annotatedRegularTables = annotatedRegularTablePages.flatMap(page => page.tables);
+  const overviewTables = [
+    ...(annotatedMainTable ? [annotatedMainTable] : []),
+    ...annotatedRegularTablePages.flatMap(page => page.overviewTables),
+  ];
+  const detailTables = annotatedRegularTablePages.flatMap(page => page.detailTables);
+  const pages = buildLayoutPages(annotatedMainTable, annotatedRegularTablePages, detailPages);
   const legendItems = buildLegendItems(guests);
-  const fullGuestIndex = buildFullGuestIndex(mainTable, regularTables, unassignedGuests);
-  const chartPageCount = regularTablePages.length;
+  const fullGuestIndex = buildFullGuestIndex(annotatedMainTable, annotatedRegularTables, unassignedGuests);
+  const chartPageCount = annotatedRegularTablePages.length + detailPages.length;
   const requiresFullGuestIndex = fullGuestIndex.some(section => section.guests.length > 0);
 
   return {
@@ -356,10 +553,15 @@ export function buildWeddingFloorLayoutModel(state, options = {}) {
       unassignedGuestCount: unassignedGuests.length,
       chartPageCount,
       pageCount: chartPageCount + (requiresFullGuestIndex ? 1 : 0),
-      regularTableCount: regularTables.length,
+      regularTableCount: annotatedRegularTables.length,
     },
-    mainTable,
-    regularTablePages,
+    mainTable: annotatedMainTable,
+    regularTablePages: annotatedRegularTablePages,
+    overviewTables,
+    detailTables,
+    detailPages,
+    needsDetailPage: detailTables.length > 0,
+    pages,
     legendItems,
     categoryVisuals: buildCategoryVisuals(legendItems),
     fullGuestIndex,

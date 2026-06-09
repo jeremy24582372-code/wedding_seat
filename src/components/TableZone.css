@@ -54,6 +54,10 @@
     var(--shadow-card);
 }
 
+.table-zone--table-locked {
+  border-color: color-mix(in oklch, var(--color-accent), white 56%);
+}
+
 .table-zone--locked::after {
   content: '滿桌，只能交換座位';
   position: absolute;
@@ -183,6 +187,20 @@
   background: var(--color-accent-dim);
 }
 
+/* The original seat stays in place as a placeholder while the DragOverlay
+   ghost follows the cursor. pointer-events: none prevents it from
+   appearing in elementsFromPoint and from triggering :hover (which would
+   show the seat-actions panel). */
+.table-zone__seat--dragging {
+  opacity: 0.25;
+  border-style: dashed !important;
+  box-shadow: none !important;
+  cursor: default;
+  pointer-events: none;
+  z-index: 0 !important;
+  transition: none;
+}
+
 .table-zone__seat--swap-target {
   border-color: var(--color-warning);
   background: color-mix(in oklch, var(--color-warning), white 84%);
@@ -255,6 +273,11 @@
 }
 
 /* ── Seat action overlay (edit + delete) ── */
+/* NOTE: visibility: hidden is critical — even at opacity: 0 this panel
+   extends ~50 px past the seat's right edge. Without visibility: hidden,
+   document.elementsFromPoint() picks up the invisible overlay, .closest()
+   traces it back to the filled seat, and the drop system misidentifies an
+   adjacent empty seat as occupied. */
 .table-zone__seat-actions {
   position: absolute;
   top: 50%;
@@ -276,10 +299,12 @@
     0 16px 34px oklch(32% 0.035 58 / 0.2),
     0 0 0 1px oklch(100% 0 0 / 0.62);
   pointer-events: none;
+  visibility: hidden;
   z-index: 80;
   opacity: 0;
   transition:
     opacity var(--transition-fast),
+    visibility var(--transition-fast),
     transform var(--transition-fast),
     border-color var(--transition-fast),
     box-shadow var(--transition-fast);
@@ -302,6 +327,7 @@
 .table-zone__seat:hover .table-zone__seat-actions,
 .table-zone__seat:focus-within .table-zone__seat-actions {
   opacity: 1;
+  visibility: visible;
   transform: translate(0, -50%) scale(1);
   pointer-events: auto;
   border-color: color-mix(in oklch, var(--color-gold), white 35%);
@@ -464,6 +490,15 @@
   color: var(--color-danger);
   border-color: var(--color-danger);
   background: color-mix(in oklch, var(--color-danger), white 90%);
+}
+
+.table-zone__remove-btn:disabled,
+.table-zone__remove-btn:disabled:hover {
+  color: var(--color-text-muted);
+  border-color: var(--color-border);
+  background: color-mix(in oklch, var(--color-bg-surface), white 4%);
+  cursor: not-allowed;
+  opacity: 0.68;
 }
 
 .table-zone__remove-btn--confirm {

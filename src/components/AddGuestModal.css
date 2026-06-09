@@ -143,3 +143,53 @@
   min-width: 80px;
   justify-content: center;
 }
+
+/* Name lock toggle (companion edit mode only) */
+.modal__name-lock-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  transition:
+    border-color var(--transition-fast),
+    background var(--transition-fast),
+    color var(--transition-fast);
+  width: 100%;
+  text-align: left;
+}
+
+.modal__name-lock-btn:hover {
+  border-color: var(--color-text-secondary);
+  color: var(--color-text-secondary);
+  background: var(--color-bg-card-hover);
+}
+
+.modal__name-lock-btn--locked {
+  border-style: solid;
+  border-color: var(--color-accent);
+  background: var(--color-accent-dim);
+  color: var(--color-accent-light);
+}
+
+.modal__name-lock-btn--locked:hover {
+  border-color: var(--color-accent-light);
+  background: var(--color-accent-dim);
+  color: var(--color-accent-light);
+}
+
+.modal__name-lock-icon {
+  font-size: var(--text-base);
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.modal__name-lock-text {
+  font-weight: 500;
+}

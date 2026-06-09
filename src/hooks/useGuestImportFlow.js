@@ -101,7 +101,7 @@ export function useGuestImportFlow({ fetchGuests, importGuests, toast }) {
 
       if (headcountIssues.diagnostics.length > 0) {
         const issueSummary = formatHeadcountIssueCounts(headcountIssues.counts);
-        toast.warn(`匯入人數需確認：${issueSummary}；已用安全值處理，請到「賓客」資料品質查看。`);
+        toast.warn(`匯入人數需確認：${issueSummary}；已用安全值處理，請檢查來源資料的人數欄位。`);
       }
     } catch (err) {
       toast.error(`匯入失敗：${err?.message ?? '未知錯誤'}`);

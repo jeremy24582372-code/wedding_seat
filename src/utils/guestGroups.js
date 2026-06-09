@@ -66,6 +66,26 @@ export function syncGuestGroupLocks(groups, lockedAssignments = {}) {
   }));
 }
 
+export function appendGuestToGroup(groups, groupId, guestId, validGuestIds = null, lockedAssignments = {}) {
+  const idToAdd = String(guestId ?? '').trim();
+  const valid = validGuestIds ? new Set(validGuestIds) : null;
+  if (!idToAdd || (valid && !valid.has(idToAdd))) {
+    return normalizeGuestGroups(groups, validGuestIds, lockedAssignments);
+  }
+
+  return normalizeGuestGroups(
+    (groups ?? []).map(group => {
+      if (String(group?.id ?? '').trim() !== groupId) return group;
+      return {
+        ...group,
+        guestIds: [...(group.guestIds ?? []), idToAdd],
+      };
+    }),
+    validGuestIds,
+    lockedAssignments
+  );
+}
+
 export function normalizeGuestGroups(value = [], validGuestIds = null, lockedAssignments = {}) {
   if (!Array.isArray(value)) return [];
 
@@ -128,10 +148,16 @@ export function ensurePartyGuestGroups(existingGroups, partyRows, validGuestIds,
       if (guestIds.length <= 1) return null;
 
       const existing = existingByPartyId.get(row.id);
+      const existingGuestIds = uniqueValidGuestIds(existing?.guestIds, valid);
+      const mergedGuestIds = [
+        ...guestIds,
+        ...existingGuestIds.filter(id => !guestIds.includes(id)),
+      ];
+
       return {
         id: existing?.id ?? uuidv4(),
         name: existing?.name ?? `${row.sourceName} 同行`,
-        guestIds,
+        guestIds: mergedGuestIds,
         sourcePartyId: row.id,
         preference: existing?.preference ?? DEFAULT_GROUP_PREFERENCE,
         locked: existing?.locked === true,
