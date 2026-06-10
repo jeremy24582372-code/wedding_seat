@@ -1,7 +1,7 @@
 # 婚禮桌次圖匯出最佳解計畫書
 
-日期：2026-06-09  
-狀態：最佳解計畫書，整合兩份既有計畫與使用者最新 4 點要求  
+日期：2026-06-09
+狀態：最佳解計畫書，整合兩份既有計畫與使用者最新 4 點要求
 比較來源：
 
 - `Plan/wedding-floor-pdf-reference-match-correction-plan-20260609.md`
@@ -853,3 +853,141 @@ AI prompt 必須包含：
 - 列出需回交項目；若沒有，寫「無需回交」。
 ```
 
+## 8. 執行狀態更新
+
+日期：2026-06-10
+執行角色：`@engineer` / `@designer`
+
+### Phase 1
+
+狀態：完成
+
+完成紀錄：
+
+- `Plan/wedding-floor-pdf-best-solution-phase1-layout-model-20260610.md`
+
+已驗證：
+
+- `node scripts/check-floor-design-layout.mjs`
+- `npm run check:phase4-export-contract`
+
+### Phase 2
+
+狀態：完成
+
+完成紀錄：
+
+- `Plan/wedding-floor-pdf-best-solution-phase2-seat-local-label-solver-20260610.md`
+
+已驗證：
+
+- `npm run lint`
+- `node scripts/check-floor-design-layout.mjs`
+- `npm run check:floor-pdf-layout`
+- `npm run check:floor-pdf-renderer`
+- `npm run check:phase4-export-contract`
+- `git diff --check`
+- `npm run build`
+
+備註：
+
+- sandbox 內 `npm run build` 因 Vite/Rolldown `spawn EPERM` 失敗；非 sandbox 重跑已通過。
+- `git diff --check` 無 whitespace error，僅有 Git 的 LF/CRLF 提醒。
+
+### Phase 3
+
+狀態：完成
+
+完成紀錄：
+
+- `Plan/wedding-floor-pdf-best-solution-phase3-reference-visual-renderer-20260610.md`
+
+已驗證：
+
+- `npm run check:floor-pdf-renderer`
+- `node scripts/check-floor-design-layout.mjs`
+- `npm run check:phase4-export-contract`
+- `npm run check:floor-pdf-layout`
+- `npm run lint`
+- `git diff --check`
+- `npm run build`
+
+備註：
+
+- 正式 PDF 首頁已改用 source-position SVG renderer，不再以 `regularTablePages` 固定 grid 繪製桌次圖。
+- sandbox 內 `npm run build` 因 Vite/Rolldown `spawn EPERM` 失敗；非 sandbox 重跑已通過。
+- `git diff --check` 無 whitespace error，僅有 Git 的 LF/CRLF 提醒。
+
+### Phase 4
+
+狀態：完成
+
+完成紀錄：
+
+- `Plan/wedding-floor-pdf-best-solution-phase4-image-prompt-export-20260610.md`
+
+已驗證：
+
+- `npm run check:floor-design-export`
+- `npm run lint`
+
+備註：
+
+- 匯出選單新增 `座位圖設計圖 PNG`、`座位圖設計圖 SVG`、`AI 生圖提示詞`。
+- 總覽頁同步新增設計圖與 prompt 入口。
+- PNG/SVG 與正式 PDF 共用 `buildFloorDesignLayoutModel()` 與 `buildWeddingFloorDesignSvg()`，不新增 `html2canvas` / `jspdf`。
+
+### Phase 5
+
+狀態：完成
+
+完成紀錄：
+
+- `Plan/wedding-floor-pdf-best-solution-phase5-export-contract-self-check-20260610.md`
+
+已驗證：
+
+- `npm run check:floor-design-layout`
+- `npm run check:floor-design-export`
+- `npm run check:phase4-export-contract`
+- `npm run check:floor-pdf-renderer`
+- `npm run check:floor-pdf-layout`
+- `npm run lint`
+- `git diff --check`
+- `npm run build`
+- Browser desktop smoke
+
+備註：
+
+- 新增 `check:floor-design-layout` 與 `check:floor-design-export` npm scripts。
+- `scripts/check-phase4-export-contract.mjs` 已涵蓋設計圖 SVG 與 AI prompt layout signature。
+- sandbox 內 `npm run build` 因 Vite/Rolldown `spawn EPERM` 失敗；非 sandbox 重跑已通過。
+- Browser smoke 使用隔離 Vite config，頁面確認為 `本機模式`；匯出選單新增項目可見且 console 無相關錯誤。
+- Browser screenshot API timeout，僅列為工具限制；DOM/console/HTTP/互動證據通過。
+
+### Phase 6
+
+狀態：完成
+
+完成紀錄：
+
+- `Plan/wedding-floor-pdf-best-solution-phase6-design-summary-20260609.md`
+
+已驗證：
+
+- `npm run check:floor-design-layout`
+- `npm run check:floor-design-export`
+- `npm run check:phase4-export-contract`
+- `npm run check:floor-pdf-renderer`
+- `npm run check:floor-pdf-layout`
+- `npm run lint`
+- `git diff --check`
+- `npm run build`
+
+備註：
+
+- 本 Phase 使用 `@designer` 整理最終設計完成紀錄，不新增 QA gate，不修改產品程式碼。
+- 設計結論：桌位保留原設計、姓名靠近座位、無「詳見第 N 頁」降級、PDF/PNG/SVG/AI prompt 入口完成。
+- 仍不同但合理保留：不使用範例圖當背景、不強迫固定 4x5、不讓 AI prompt 取代正式 state-driven 匯出。
+- 需回交項目：無需回交。
+- sandbox 內 `npm run build` 因 Vite/Rolldown `spawn EPERM` 失敗；同一命令升權重跑已通過。

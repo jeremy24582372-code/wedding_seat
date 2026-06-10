@@ -9,7 +9,7 @@ import {
   normalizeSeatingRules,
 } from '../utils/autoSeatPlanner.js';
 import {
-  appendGuestToGroup,
+  appendGuestsToGroup,
   normalizeGuestGroups,
   normalizeGroupPreference,
   normalizeLockedAssignmentsForGuests,
@@ -337,25 +337,37 @@ export function useSeatingState() {
     });
   }, [setState]);
 
-  const addGuestToGroup = useCallback((groupId, guestId) => {
+  const addGuestToGroup = useCallback((groupId, guestIds) => {
     setState(prev => {
-      const idToAdd = String(guestId ?? '').trim();
+      const requestedGuestIds = (Array.isArray(guestIds) ? guestIds : [guestIds])
+        .map(guestId => String(guestId ?? '').trim())
+        .filter(Boolean);
+      const uniqueRequestedGuestIds = Array.from(new Set(requestedGuestIds));
       const validGuestIds = prev.guests.map(guest => guest.id);
+      const validGuestIdSet = new Set(validGuestIds);
       const targetGroup = (prev.guestGroups ?? []).find(group => group.id === groupId);
-      if (!idToAdd || !validGuestIds.includes(idToAdd) || !targetGroup) return prev;
-      if ((targetGroup.guestIds ?? []).includes(idToAdd)) return prev;
+      if (uniqueRequestedGuestIds.length === 0 || !targetGroup) return prev;
+
+      const existingGuestIds = new Set(targetGroup.guestIds ?? []);
+      const guestIdsToAdd = uniqueRequestedGuestIds.filter(guestId =>
+        validGuestIdSet.has(guestId) && !existingGuestIds.has(guestId)
+      );
+      if (guestIdsToAdd.length === 0) return prev;
 
       const lockedAssignments = targetGroup.locked
-        ? { ...(prev.lockedAssignments ?? {}), [idToAdd]: true }
+        ? guestIdsToAdd.reduce(
+          (acc, guestId) => ({ ...acc, [guestId]: true }),
+          { ...(prev.lockedAssignments ?? {}) }
+        )
         : (prev.lockedAssignments ?? {});
 
       return {
         ...prev,
         lockedAssignments,
-        guestGroups: appendGuestToGroup(
+        guestGroups: appendGuestsToGroup(
           prev.guestGroups,
           groupId,
-          idToAdd,
+          guestIdsToAdd,
           validGuestIds,
           lockedAssignments
         ),

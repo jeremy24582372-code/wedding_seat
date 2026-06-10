@@ -3,6 +3,7 @@ import { createAutoSeatPreview } from '../src/utils/autoSeatPlanner.js';
 import { buildGuestDashboardModel } from '../src/utils/guestDashboard.js';
 import {
   appendGuestToGroup,
+  appendGuestsToGroup,
   ensurePartyGuestGroups,
   findGuestGroupConflicts,
 } from '../src/utils/guestGroups.js';
@@ -145,6 +146,14 @@ function makeState(patch = {}) {
 
   const duplicate = appendGuestToGroup(appended, 'manual', 'b', ['a', 'b', 'c'], { a: true, b: true });
   assert.deepEqual(duplicate[0].guestIds, ['a', 'b'], 'adding an existing member should not duplicate guestIds');
+
+  const bulkAppended = appendGuestsToGroup(groups, 'manual', ['b', 'c', 'b', 'missing'], ['a', 'b', 'c'], {
+    a: true,
+    b: true,
+    c: true,
+  });
+  assert.deepEqual(bulkAppended[0].guestIds, ['a', 'b', 'c'], 'multi-select add should append unique valid guests');
+  assert.equal(bulkAppended[0].locked, true, 'locked group should stay locked after bulk adding locked guests');
 }
 
 {

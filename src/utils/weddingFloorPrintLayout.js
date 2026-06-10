@@ -10,10 +10,7 @@ import {
   isGuestLockedForExport,
 } from './exportShared.js';
 import {
-  DETAIL_TABLES_PER_PAGE,
-  REGULAR_OVERVIEW_ANNOTATION_LIMIT,
   buildSeatAnnotations,
-  getDetailTableGroupBox,
   getMainTableOverviewGroupBox,
   getRegularTableOverviewGroupBox,
 } from './weddingFloorSeatAnnotations.js';
@@ -225,47 +222,6 @@ function paginateRegularTables(regularTables) {
   return pages;
 }
 
-function tableNeedsRegularDetailPage(table) {
-  return (
-    table.occupancy > REGULAR_OVERVIEW_ANNOTATION_LIMIT ||
-    table.guests.some(guest => String(guest.name ?? '').trim().length > 8) ||
-    table.overflowGuestIds.length > 0
-  );
-}
-
-function buildDetailAssignments(regularTablePages, startPageNumber) {
-  const detailCandidates = regularTablePages
-    .flatMap(page => page.tables)
-    .filter(tableNeedsRegularDetailPage);
-  const assignments = new Map();
-  const detailPages = [];
-
-  for (let offset = 0; offset < detailCandidates.length; offset += DETAIL_TABLES_PER_PAGE) {
-    const pageNumber = startPageNumber + detailPages.length;
-    const tableIds = detailCandidates
-      .slice(offset, offset + DETAIL_TABLES_PER_PAGE)
-      .map((table, indexWithinPage) => {
-        assignments.set(table.id, {
-          pageNumber,
-          indexWithinPage,
-          groupBox: getDetailTableGroupBox(indexWithinPage),
-        });
-        return table.id;
-      });
-
-    detailPages.push({
-      pageNumber,
-      kind: 'detail',
-      capacity: DETAIL_TABLES_PER_PAGE,
-      tableIds,
-      tables: [],
-      tableInstances: [],
-    });
-  }
-
-  return { assignments, detailPages };
-}
-
 function annotateMainTable(mainTable) {
   if (!mainTable) return null;
 
@@ -281,17 +237,13 @@ function annotateMainTable(mainTable) {
   };
 }
 
-function annotateRegularTablePages(regularTablePages, detailAssignments) {
+function annotateRegularTablePages(regularTablePages) {
   return regularTablePages.map(page => {
     const tables = page.tables.map((table, indexWithinPage) => {
-      const detailAssignment = detailAssignments.get(table.id);
       const annotationLayout = buildSeatAnnotations(table, {
         tableKind: 'regular',
         overviewPageNumber: page.pageNumber,
         overviewGroupBox: getRegularTableOverviewGroupBox(indexWithinPage, page.kind),
-        forceDetail: Boolean(detailAssignment),
-        detailPageNumber: detailAssignment?.pageNumber,
-        detailGroupBox: detailAssignment?.groupBox,
       });
 
       return {
@@ -306,29 +258,6 @@ function annotateRegularTablePages(regularTablePages, detailAssignments) {
       overviewTables: tables.filter(table => !table.needsDetailPage),
       detailTables: tables.filter(table => table.needsDetailPage),
       needsDetailPage: tables.some(table => table.needsDetailPage),
-    };
-  });
-}
-
-function hydrateDetailPages(detailPages, annotatedRegularTablePages) {
-  const tableById = new Map(
-    annotatedRegularTablePages
-      .flatMap(page => page.tables)
-      .map(table => [table.id, table])
-  );
-
-  return detailPages.map(page => {
-    const tables = page.tableIds
-      .map(tableId => tableById.get(tableId))
-      .filter(Boolean);
-
-    return {
-      ...page,
-      tables,
-      tableInstances: tables
-        .map(table => table.detailTableInstance)
-        .filter(Boolean),
-      needsDetailPage: tables.length > 0,
     };
   });
 }
@@ -360,15 +289,7 @@ function buildOverviewProtectedRegions(pageKind) {
   return regions;
 }
 
-function buildDetailProtectedRegions() {
-  return [
-    { id: 'content-safe-area', x: 0, y: 0, width: 184, height: 273, kind: 'safe-area' },
-    { id: 'detail-header', x: 0, y: 0, width: 184, height: 20, kind: 'header' },
-    { id: 'detail-footer', x: 0, y: 272, width: 184, height: 8, kind: 'page-footer' },
-  ];
-}
-
-function buildLayoutPages(mainTable, regularTablePages, detailPages) {
+function buildLayoutPages(mainTable, regularTablePages) {
   const overviewPages = regularTablePages.map(page => ({
     pageNumber: page.pageNumber,
     kind: 'overview',
@@ -384,14 +305,7 @@ function buildLayoutPages(mainTable, regularTablePages, detailPages) {
     ],
   }));
 
-  const pages = detailPages.map(page => ({
-    pageNumber: page.pageNumber,
-    kind: 'detail',
-    protectedRegions: buildDetailProtectedRegions(),
-    tableInstances: page.tableInstances,
-  }));
-
-  return [...overviewPages, ...pages];
+  return overviewPages;
 }
 
 function buildLegendItems(guests) {
@@ -524,23 +438,19 @@ export function buildWeddingFloorLayoutModel(state, options = {}) {
 
   const unassignedGuests = buildUnassignedGuests(state, guests, guestById, assignedGuestIds, warnings);
   const regularTablePages = paginateRegularTables(regularTables);
-  const { assignments: detailAssignments, detailPages: rawDetailPages } = buildDetailAssignments(
-    regularTablePages,
-    regularTablePages.length + 1
-  );
   const annotatedMainTable = annotateMainTable(mainTable);
-  const annotatedRegularTablePages = annotateRegularTablePages(regularTablePages, detailAssignments);
-  const detailPages = hydrateDetailPages(rawDetailPages, annotatedRegularTablePages);
+  const annotatedRegularTablePages = annotateRegularTablePages(regularTablePages);
+  const detailPages = [];
   const annotatedRegularTables = annotatedRegularTablePages.flatMap(page => page.tables);
   const overviewTables = [
     ...(annotatedMainTable ? [annotatedMainTable] : []),
     ...annotatedRegularTablePages.flatMap(page => page.overviewTables),
   ];
-  const detailTables = annotatedRegularTablePages.flatMap(page => page.detailTables);
-  const pages = buildLayoutPages(annotatedMainTable, annotatedRegularTablePages, detailPages);
+  const detailTables = [];
+  const pages = buildLayoutPages(annotatedMainTable, annotatedRegularTablePages);
   const legendItems = buildLegendItems(guests);
   const fullGuestIndex = buildFullGuestIndex(annotatedMainTable, annotatedRegularTables, unassignedGuests);
-  const chartPageCount = annotatedRegularTablePages.length + detailPages.length;
+  const chartPageCount = annotatedRegularTablePages.length;
   const requiresFullGuestIndex = fullGuestIndex.some(section => section.guests.length > 0);
 
   return {
@@ -560,7 +470,7 @@ export function buildWeddingFloorLayoutModel(state, options = {}) {
     overviewTables,
     detailTables,
     detailPages,
-    needsDetailPage: detailTables.length > 0,
+    needsDetailPage: false,
     pages,
     legendItems,
     categoryVisuals: buildCategoryVisuals(legendItems),

@@ -1,19 +1,32 @@
 import { MAX_SEATS } from './constants.js';
 
-export const REGULAR_OVERVIEW_ANNOTATION_LIMIT = 3;
-export const DETAIL_TABLES_PER_PAGE = 4;
+export const REGULAR_OVERVIEW_ANNOTATION_LIMIT = MAX_SEATS;
+export const DETAIL_TABLES_PER_PAGE = 0;
 
-const SIDE_SLOT_ORDER = {
-  0: ['top', 'corner', 'right', 'left', 'bottom'],
-  1: ['left', 'corner', 'top', 'bottom', 'right'],
-  2: ['left', 'corner', 'top', 'bottom', 'right'],
-  3: ['left', 'corner', 'bottom', 'top', 'right'],
-  4: ['left', 'corner', 'bottom', 'top', 'right'],
-  5: ['bottom', 'corner', 'right', 'left', 'top'],
-  6: ['right', 'corner', 'bottom', 'top', 'left'],
-  7: ['right', 'corner', 'bottom', 'top', 'left'],
-  8: ['right', 'corner', 'top', 'bottom', 'left'],
-  9: ['right', 'corner', 'top', 'bottom', 'left'],
+export const SEAT_LOCAL_SECTORS = {
+  0: 'top',
+  1: 'top-right',
+  2: 'right',
+  3: 'right',
+  4: 'bottom-right',
+  5: 'bottom',
+  6: 'bottom-left',
+  7: 'left',
+  8: 'left',
+  9: 'top-left',
+};
+
+export const LABEL_DISTANCE_LIMITS = {
+  main: {
+    edgeMax: 4,
+    centerMax: 14,
+    connectorMax: 8,
+  },
+  regular: {
+    edgeMax: 3,
+    centerMax: 11,
+    connectorMax: 8,
+  },
 };
 
 const MAIN_OVERVIEW_GEOMETRY = {
@@ -23,13 +36,17 @@ const MAIN_OVERVIEW_GEOMETRY = {
   seatOrbitRadius: 20,
   dotDiameter: 6.2,
   labelGap: 1.2,
-  sideSlotCounts: { left: 4, right: 4, top: 1, bottom: 1, corner: 4 },
-  labelBoxes: {
-    side: { width: 28, height: 7 },
-    horizontal: { width: 24, height: 7 },
+  label: {
+    minWidth: 11,
+    maxWidth: 23,
+    minHeight: 5.8,
+    maxHeight: 8,
+    minFontPt: 6.2,
+    maxFontPt: 8,
+    maxCharsPerLine: 6,
+    paddingX: 1.2,
+    paddingY: 0.8,
   },
-  labelLane: 'inside',
-  inset: 6,
 };
 
 const REGULAR_OVERVIEW_GEOMETRY = {
@@ -38,28 +55,17 @@ const REGULAR_OVERVIEW_GEOMETRY = {
   seatOrbitRadius: 10.5,
   dotDiameter: 4.8,
   labelGap: 0.8,
-  sideSlotCounts: { left: 3, right: 3, top: 1, bottom: 1, corner: 4 },
-  labelBoxes: {
-    side: { width: 16, height: 4.8 },
-    horizontal: { width: 18, height: 4.8 },
+  label: {
+    minWidth: 8,
+    maxWidth: 17,
+    minHeight: 4.2,
+    maxHeight: 6.6,
+    minFontPt: 5.5,
+    maxFontPt: 7,
+    maxCharsPerLine: 5,
+    paddingX: 0.8,
+    paddingY: 0.45,
   },
-  labelLane: 'outside',
-  laneGap: 2.2,
-};
-
-const DETAIL_GEOMETRY = {
-  mode: 'detail',
-  tableCenter: { diameter: 26 },
-  seatOrbitRadius: 25,
-  dotDiameter: 6,
-  labelGap: 1.2,
-  sideSlotCounts: { left: 4, right: 4, top: 1, bottom: 1, corner: 4 },
-  labelBoxes: {
-    side: { width: 28, height: 7 },
-    horizontal: { width: 24, height: 7 },
-  },
-  labelLane: 'inside',
-  inset: 4,
 };
 
 function roundMm(value) {
@@ -86,153 +92,207 @@ function seatPointForIndex(geometry, seatIndex) {
   };
 }
 
-function slotY(geometry, slotCount, labelHeight, slotIndex) {
-  const gap = geometry.labelGap;
-  const totalHeight = slotCount * labelHeight + Math.max(0, slotCount - 1) * gap;
-  return roundMm(geometry.center.y - totalHeight / 2 + slotIndex * (labelHeight + gap));
+function splitNameLines(name, maxCharsPerLine) {
+  const chars = Array.from(String(name ?? '').trim());
+  if (chars.length === 0) return [''];
+  if (chars.length <= maxCharsPerLine) return [chars.join('')];
+
+  const splitAt = Math.ceil(chars.length / 2);
+  return [
+    chars.slice(0, splitAt).join(''),
+    chars.slice(splitAt).join(''),
+  ].filter(Boolean);
 }
 
-function slotX(geometry, slotCount, labelWidth, slotIndex) {
-  const gap = geometry.labelGap;
-  const totalWidth = slotCount * labelWidth + Math.max(0, slotCount - 1) * gap;
-  return roundMm(geometry.center.x - totalWidth / 2 + slotIndex * (labelWidth + gap));
+function fitLabelText(name, geometry, compact = false) {
+  const config = geometry.label;
+  const maxCharsPerLine = compact
+    ? Math.max(3, config.maxCharsPerLine - 1)
+    : config.maxCharsPerLine;
+  const lines = splitNameLines(name, maxCharsPerLine);
+  const longestLineLength = Math.max(...lines.map(line => Array.from(line).length), 1);
+  const horizontalPadding = compact ? config.paddingX * 0.72 : config.paddingX;
+  const verticalPadding = compact ? config.paddingY * 0.72 : config.paddingY;
+  const maxWidth = compact ? config.maxWidth * 0.88 : config.maxWidth;
+  const maxHeight = compact ? config.maxHeight * 0.92 : config.maxHeight;
+  const estimatedFont = (maxWidth - horizontalPadding * 2) / (longestLineLength * 0.36);
+  const fontSizePt = Math.max(
+    config.minFontPt,
+    Math.min(config.maxFontPt, estimatedFont)
+  );
+  const width = Math.min(
+    maxWidth,
+    Math.max(config.minWidth, longestLineLength * fontSizePt * 0.36 + horizontalPadding * 2)
+  );
+  const height = Math.min(
+    maxHeight,
+    Math.max(config.minHeight, lines.length * fontSizePt * 0.36 * 1.08 + verticalPadding * 2)
+  );
+
+  return {
+    lines,
+    fontSizePt: roundMm(fontSizePt),
+    width: roundMm(width),
+    height: roundMm(height),
+    compact,
+  };
 }
 
-function sideLabelSize(geometry, side) {
-  if (side === 'left' || side === 'right') return geometry.labelBoxes.side;
-  return geometry.labelBoxes.horizontal;
-}
+function labelBoxForSector(seatPoint, textFit, sector, gap) {
+  const { width, height } = textFit;
+  const horizontalCenter = seatPoint.x - width / 2;
+  const verticalCenter = seatPoint.y - height / 2;
 
-function labelBoxForSide(geometry, side, slotIndex) {
-  const groupBox = geometry.groupBox;
-  const slotCount = geometry.sideSlotCounts[side] ?? 0;
-  const size = sideLabelSize(geometry, side);
-  const inset = geometry.inset ?? 0;
-  const laneGap = geometry.laneGap ?? 0;
-
-  if (side === 'left') {
-    return {
-      x: roundMm(geometry.labelLane === 'outside'
-        ? groupBox.x - laneGap - size.width
-        : groupBox.x + inset),
-      y: slotY(geometry, slotCount, size.height, slotIndex),
-      width: size.width,
-      height: size.height,
-    };
-  }
-
-  if (side === 'right') {
-    return {
-      x: roundMm(geometry.labelLane === 'outside'
-        ? groupBox.x + groupBox.width + laneGap
-        : groupBox.x + groupBox.width - inset - size.width),
-      y: slotY(geometry, slotCount, size.height, slotIndex),
-      width: size.width,
-      height: size.height,
-    };
-  }
-
-  if (side === 'top') {
-    return {
-      x: slotX(geometry, slotCount, size.width, slotIndex),
-      y: roundMm(geometry.labelLane === 'outside'
-        ? groupBox.y - laneGap - size.height
-        : groupBox.y + inset),
-      width: size.width,
-      height: size.height,
-    };
-  }
-
-  if (side === 'bottom') {
-    return {
-      x: slotX(geometry, slotCount, size.width, slotIndex),
-      y: roundMm(geometry.labelLane === 'outside'
-        ? groupBox.y + groupBox.height + laneGap
-        : groupBox.y + groupBox.height - inset - size.height),
-      width: size.width,
-      height: size.height,
-    };
-  }
-
-  const cornerPositions = [
-    { x: groupBox.x + inset, y: groupBox.y + inset, name: 'top-left' },
-    { x: groupBox.x + groupBox.width - inset - size.width, y: groupBox.y + inset, name: 'top-right' },
-    { x: groupBox.x + inset, y: groupBox.y + groupBox.height - inset - size.height, name: 'bottom-left' },
-    { x: groupBox.x + groupBox.width - inset - size.width, y: groupBox.y + groupBox.height - inset - size.height, name: 'bottom-right' },
-  ];
-  const position = cornerPositions[slotIndex % cornerPositions.length];
+  const positions = {
+    top: {
+      x: horizontalCenter,
+      y: seatPoint.y - gap - height,
+    },
+    'top-right': {
+      x: seatPoint.x + gap,
+      y: seatPoint.y - gap - height,
+    },
+    right: {
+      x: seatPoint.x + gap,
+      y: verticalCenter,
+    },
+    'bottom-right': {
+      x: seatPoint.x + gap,
+      y: seatPoint.y + gap,
+    },
+    bottom: {
+      x: horizontalCenter,
+      y: seatPoint.y + gap,
+    },
+    'bottom-left': {
+      x: seatPoint.x - gap - width,
+      y: seatPoint.y + gap,
+    },
+    left: {
+      x: seatPoint.x - gap - width,
+      y: verticalCenter,
+    },
+    'top-left': {
+      x: seatPoint.x - gap - width,
+      y: seatPoint.y - gap - height,
+    },
+  };
+  const position = positions[sector] ?? positions.right;
 
   return {
     x: roundMm(position.x),
     y: roundMm(position.y),
-    width: size.width,
-    height: size.height,
-    slotName: position.name,
+    width: roundMm(width),
+    height: roundMm(height),
   };
 }
 
-function connectorForPlacement(seatPoint, labelBox, side) {
-  const labelCenterY = labelBox.y + labelBox.height / 2;
-  const labelCenterX = labelBox.x + labelBox.width / 2;
-  let toX = labelCenterX;
-  let toY = labelCenterY;
+function clamp(value, min, max) {
+  return Math.min(Math.max(value, min), max);
+}
 
-  if (side === 'left') toX = labelBox.x + labelBox.width;
-  if (side === 'right') toX = labelBox.x;
-  if (side === 'top') toY = labelBox.y + labelBox.height;
-  if (side === 'bottom') toY = labelBox.y;
+function nearestPointOnBox(point, box) {
+  return {
+    x: clamp(point.x, box.x, box.x + box.width),
+    y: clamp(point.y, box.y, box.y + box.height),
+  };
+}
+
+function labelCenter(labelBox) {
+  return {
+    x: labelBox.x + labelBox.width / 2,
+    y: labelBox.y + labelBox.height / 2,
+  };
+}
+
+function placementDistance(seatPoint, labelBox) {
+  const nearest = nearestPointOnBox(seatPoint, labelBox);
+  const center = labelCenter(labelBox);
+
+  return {
+    edgeDistance: roundMm(Math.hypot(nearest.x - seatPoint.x, nearest.y - seatPoint.y)),
+    centerDistance: roundMm(Math.hypot(center.x - seatPoint.x, center.y - seatPoint.y)),
+  };
+}
+
+function connectorForPlacement(seatPoint, labelBox) {
+  const nearest = nearestPointOnBox(seatPoint, labelBox);
 
   return {
     fromX: seatPoint.x,
     fromY: seatPoint.y,
-    toX: roundMm(toX),
-    toY: roundMm(toY),
+    toX: roundMm(nearest.x),
+    toY: roundMm(nearest.y),
     bendPoints: [],
+    length: roundMm(Math.hypot(nearest.x - seatPoint.x, nearest.y - seatPoint.y)),
   };
 }
 
-function allocatePlacement({ seatIndex, pageNumber, geometry, usedSlots }) {
-  const seatPoint = seatPointForIndex(geometry, seatIndex);
-  const preferredSides = SIDE_SLOT_ORDER[seatIndex] ?? ['right', 'left', 'top', 'bottom', 'corner'];
-
-  for (const side of preferredSides) {
-    const slotCount = geometry.sideSlotCounts[side] ?? 0;
-    const used = usedSlots[side] ?? 0;
-    if (used >= slotCount) continue;
-
-    usedSlots[side] = used + 1;
-    const labelBox = labelBoxForSide(geometry, side, used);
-    return {
-      pageNumber,
-      seatPoint,
-      labelBox,
-      connector: connectorForPlacement(seatPoint, labelBox, side),
-      side,
-      slotIndex: used,
-      slotName: labelBox.slotName ?? `${side}-${used + 1}`,
-    };
-  }
-
-  return null;
+function boxesOverlap(a, b, padding = 0.35) {
+  return !(
+    a.x + a.width + padding <= b.x ||
+    b.x + b.width + padding <= a.x ||
+    a.y + a.height + padding <= b.y ||
+    b.y + b.height + padding <= a.y
+  );
 }
 
-function buildPlacements(occupiedSeats, pageNumber, geometry) {
-  const usedSlots = {};
-  const placements = new Map();
+function buildPlacement({ seat, pageNumber, geometry, tableKind, compact }) {
+  const sector = SEAT_LOCAL_SECTORS[seat.seatIndex] ?? 'right';
+  const seatPoint = seatPointForIndex(geometry, seat.seatIndex);
+  const textFit = fitLabelText(seat.guest.name, geometry, compact);
+  const labelBox = labelBoxForSector(seatPoint, textFit, sector, geometry.labelGap);
+  const distance = placementDistance(seatPoint, labelBox);
+  const limits = LABEL_DISTANCE_LIMITS[tableKind] ?? LABEL_DISTANCE_LIMITS.regular;
+  const connector = connectorForPlacement(seatPoint, labelBox);
 
-  for (const seat of occupiedSeats) {
-    const placement = allocatePlacement({
-      seatIndex: seat.seatIndex,
-      pageNumber,
-      geometry,
-      usedSlots,
-    });
+  return {
+    pageNumber,
+    seatPoint,
+    labelBox,
+    connector,
+    side: sector,
+    localSector: sector,
+    slotIndex: seat.seatIndex,
+    slotName: `${sector}-${seat.seatIndex + 1}`,
+    textFit,
+    compactMode: compact,
+    distance: {
+      ...distance,
+      connectorLength: connector.length,
+      edgeMax: limits.edgeMax,
+      centerMax: limits.centerMax,
+      connectorMax: limits.connectorMax,
+      withinLimit:
+        distance.edgeDistance <= limits.edgeMax &&
+        distance.centerDistance <= limits.centerMax &&
+        connector.length <= limits.connectorMax,
+    },
+  };
+}
 
-    if (!placement) return null;
-    placements.set(seat.guest.id, placement);
+function buildLocalPlacements(occupiedSeats, pageNumber, geometry, tableKind) {
+  let compact = false;
+  let placements = occupiedSeats.map(seat =>
+    buildPlacement({ seat, pageNumber, geometry, tableKind, compact })
+  );
+  const hasCollision = placements.some((placement, index) =>
+    placements.some((other, otherIndex) =>
+      otherIndex > index && boxesOverlap(placement.labelBox, other.labelBox)
+    )
+  );
+
+  if (hasCollision) {
+    compact = true;
+    placements = occupiedSeats.map(seat =>
+      buildPlacement({ seat, pageNumber, geometry, tableKind, compact })
+    );
   }
 
-  return placements;
+  return new Map(placements.map((placement, index) => [
+    occupiedSeats[index].guest.id,
+    placement,
+  ]));
 }
 
 function createTableInstance({ tableLayout, pageNumber, mode, groupBox, geometry, placements }) {
@@ -268,20 +328,7 @@ function getOccupiedSeats(tableLayout) {
     .filter(seat => seat.guest?.id);
 }
 
-function isNameTooLongForOverview(name) {
-  return String(name ?? '').trim().length > 8;
-}
-
-function shouldRegularTableUseDetail(tableLayout, overviewAnnotationLimit) {
-  const occupiedSeats = getOccupiedSeats(tableLayout);
-  return (
-    occupiedSeats.length > overviewAnnotationLimit ||
-    occupiedSeats.some(seat => isNameTooLongForOverview(seat.guest.name)) ||
-    (tableLayout?.overflowGuestIds?.length ?? 0) > 0
-  );
-}
-
-function buildAnnotationRecords({ tableLayout, occupiedSeats, overviewPlacements, detailPlacements }) {
+function buildAnnotationRecords({ tableLayout, occupiedSeats, overviewPlacements }) {
   return occupiedSeats.map(seat => ({
     guestId: seat.guest.id,
     guestName: seat.guest.name,
@@ -291,7 +338,7 @@ function buildAnnotationRecords({ tableLayout, occupiedSeats, overviewPlacements
     seatIndex: seat.seatIndex,
     seatNumber: seat.seatNumber,
     overviewPlacement: overviewPlacements?.get(seat.guest.id) ?? null,
-    detailPlacement: detailPlacements?.get(seat.guest.id) ?? null,
+    detailPlacement: null,
   }));
 }
 
@@ -326,7 +373,6 @@ export function getMainTableOverviewGroupBox() {
 
 export function buildSeatAnnotations(tableLayout, options = {}) {
   const tableKind = options.tableKind ?? 'regular';
-  const overviewAnnotationLimit = options.overviewAnnotationLimit ?? REGULAR_OVERVIEW_ANNOTATION_LIMIT;
   const occupiedSeats = getOccupiedSeats(tableLayout);
   const overviewGroupBox = options.overviewGroupBox ?? (
     tableKind === 'main'
@@ -337,63 +383,31 @@ export function buildSeatAnnotations(tableLayout, options = {}) {
     tableKind === 'main' ? MAIN_OVERVIEW_GEOMETRY : REGULAR_OVERVIEW_GEOMETRY,
     overviewGroupBox
   );
-  const initialNeedsDetailPage = tableKind === 'regular'
-    ? shouldRegularTableUseDetail(tableLayout, overviewAnnotationLimit) || options.forceDetail === true
-    : options.forceDetail === true;
-
-  let overviewPlacements = null;
-  if (!initialNeedsDetailPage || tableKind === 'main') {
-    overviewPlacements = buildPlacements(
-      occupiedSeats,
-      options.overviewPageNumber ?? 1,
-      overviewGeometry
-    );
-  }
-
-  const overviewFailed = occupiedSeats.length > 0 && !overviewPlacements && tableKind === 'regular';
-  const needsDetailPage = initialNeedsDetailPage || overviewFailed;
-  const resolvedDetailPageNumber = needsDetailPage
-    ? options.detailPageNumber ?? options.overviewPageNumber ?? 1
-    : null;
-  const detailGroupBox = needsDetailPage
-    ? options.detailGroupBox ?? getDetailTableGroupBox(0)
-    : null;
-  const detailGeometry = detailGroupBox ? withCenter(DETAIL_GEOMETRY, detailGroupBox) : null;
-  const detailPlacements = detailGeometry
-    ? buildPlacements(occupiedSeats, resolvedDetailPageNumber, detailGeometry)
-    : null;
+  const overviewPlacements = buildLocalPlacements(
+    occupiedSeats,
+    options.overviewPageNumber ?? 1,
+    overviewGeometry,
+    tableKind
+  );
   const annotationRecords = buildAnnotationRecords({
     tableLayout,
     occupiedSeats,
-    overviewPlacements: needsDetailPage && tableKind === 'regular' ? null : overviewPlacements,
-    detailPlacements,
+    overviewPlacements,
   });
-  const overviewMode = needsDetailPage && tableKind === 'regular'
-    ? 'overview-summary'
-    : 'overview-annotated';
 
   return {
     annotationRecords,
-    needsDetailPage,
-    detailPageNumber: resolvedDetailPageNumber,
-    overviewMode,
+    needsDetailPage: false,
+    detailPageNumber: null,
+    overviewMode: 'overview-annotated',
     overviewTableInstance: createTableInstance({
       tableLayout,
       pageNumber: options.overviewPageNumber ?? 1,
-      mode: overviewMode,
+      mode: 'overview-annotated',
       groupBox: overviewGroupBox,
       geometry: overviewGeometry,
-      placements: needsDetailPage && tableKind === 'regular' ? null : overviewPlacements,
+      placements: overviewPlacements,
     }),
-    detailTableInstance: detailGeometry
-      ? createTableInstance({
-        tableLayout,
-        pageNumber: options.detailPageNumber,
-        mode: 'detail',
-        groupBox: detailGroupBox,
-        geometry: detailGeometry,
-        placements: detailPlacements,
-      })
-      : null,
+    detailTableInstance: null,
   };
 }

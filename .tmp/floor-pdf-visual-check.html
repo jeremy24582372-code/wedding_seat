@@ -1,0 +1,3921 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>婚禮桌次位置圖 - 2026-06-10</title>
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Imperial+Script&family=Noto+Sans+TC:wght@400;500;600;700&family=Noto+Serif+TC:wght@500;700&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      background: oklch(94% 0.02 78);
+      color: var(--wfp-brown-ink);
+      font-family: 'Noto Sans TC', 'Microsoft JhengHei', 'PingFang TC', system-ui, sans-serif;
+      text-rendering: geometricPrecision;
+      print-color-adjust: exact;
+      -webkit-print-color-adjust: exact;
+    }
+    .wfp-page {
+      --wfp-paper: oklch(98.4% 0.014 82);
+      --wfp-paper-warm: oklch(96.8% 0.022 78);
+      --wfp-gold-line: oklch(68% 0.086 78);
+      --wfp-gold-hairline: oklch(74% 0.07 78 / 0.72);
+      --wfp-gold-soft: oklch(89% 0.052 78 / 0.46);
+      --wfp-gold-ink: oklch(47% 0.095 74);
+      --wfp-ribbon-fill: oklch(96.6% 0.032 78 / 0.9);
+      --wfp-brown-ink: oklch(30% 0.045 58);
+      --wfp-muted-ink: oklch(52% 0.035 58);
+      --wfp-rose-petal: oklch(83% 0.075 20);
+      --wfp-rose-soft: oklch(94% 0.035 18);
+      --wfp-leaf: oklch(58% 0.064 145);
+      --wfp-leaf-soft: oklch(82% 0.042 145);
+      --wfp-empty-seat-fill: oklch(98% 0.01 78 / 0.72);
+      --wfp-full-table-fill: oklch(94% 0.038 78);
+      --wfp-warning: oklch(55% 0.13 35);
+      width: 210mm;
+      min-height: 297mm;
+      position: relative;
+      overflow: hidden;
+      padding: 8mm 13mm;
+      background:
+        radial-gradient(circle at 18% 20%, oklch(99% 0.012 38 / 0.78), transparent 38mm),
+        radial-gradient(circle at 78% 84%, oklch(97% 0.02 98 / 0.72), transparent 42mm),
+        var(--wfp-paper);
+      break-after: page;
+      page-break-after: always;
+    }
+    .wfp-page:last-child { break-after: auto; page-break-after: auto; }
+    .wfp-content { position: relative; z-index: 1; min-height: 281mm; }
+    .wfp-page--design {
+      padding: 0;
+      background: var(--wfp-paper);
+    }
+    .wfp-design-chart,
+    .wfp-design-svg {
+      display: block;
+      width: 210mm;
+      height: 297mm;
+    }
+    .wfp-floral { position: absolute; z-index: 0; overflow: visible; pointer-events: none; }
+    .wfp-floral-stem {
+      stroke: var(--wfp-leaf);
+      stroke-width: 3.3;
+      stroke-linecap: round;
+      opacity: 0.38;
+    }
+    .wfp-floral-stem--fine {
+      stroke-width: 2.2;
+      opacity: 0.28;
+    }
+    .wfp-floral-bloom--primary { opacity: 0.9; }
+    .wfp-floral-bloom--secondary { opacity: 0.76; }
+    .wfp-floral--top-left { width: 50mm; height: 46mm; left: -5mm; top: -3mm; opacity: 0.82; }
+    .wfp-floral--top-right { width: 43mm; height: 40mm; right: -4mm; top: -2mm; transform: scaleX(-1) rotate(3deg); opacity: 0.68; }
+    .wfp-floral--bottom-left { width: 61mm; height: 56mm; left: -7mm; bottom: -7mm; transform: scaleY(-1) rotate(7deg); opacity: 0.7; }
+    .wfp-floral--bottom-right { width: 64mm; height: 58mm; right: -7mm; bottom: -7mm; transform: rotate(180deg); opacity: 0.84; }
+
+    .wfp-header {
+      height: 44mm;
+      display: grid;
+      align-content: start;
+      justify-items: center;
+      padding-top: 0.5mm;
+      text-align: center;
+    }
+    .wfp-couple {
+      margin: 0;
+      color: var(--wfp-gold-ink);
+      font-family: 'Imperial Script', 'Segoe Script', 'Times New Roman', cursive;
+      font-size: 33pt;
+      line-height: 0.92;
+      letter-spacing: 0;
+    }
+    .wfp-header-ornament {
+      display: grid;
+      grid-template-columns: 31mm auto 31mm;
+      align-items: center;
+      gap: 2.6mm;
+      width: 76mm;
+      margin-top: 1.4mm;
+      color: var(--wfp-gold-ink);
+    }
+    .wfp-header-ornament span {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--wfp-gold-hairline), transparent);
+    }
+    .wfp-header-ornament i {
+      display: block;
+      font-family: 'Noto Serif TC', 'Times New Roman', serif;
+      font-size: 7.2pt;
+      font-style: normal;
+      line-height: 1;
+      transform: translateY(-0.1mm);
+    }
+    .wfp-header h1 {
+      margin: 2.7mm 0 0;
+      color: var(--wfp-brown-ink);
+      font-family: 'Noto Serif TC', 'Noto Sans TC', 'Microsoft JhengHei', serif;
+      font-size: 14.6pt;
+      font-weight: 500;
+      line-height: 1;
+      letter-spacing: 0.42em;
+      text-indent: 0.42em;
+    }
+    .wfp-subtitle {
+      margin: 1.8mm 0 0;
+      color: var(--wfp-gold-ink);
+      font-size: 8.5pt;
+      font-weight: 500;
+      letter-spacing: 0.36em;
+      text-indent: 0.36em;
+    }
+    .wfp-meta {
+      margin: 3mm 0 0;
+      color: var(--wfp-muted-ink);
+      font-size: 8pt;
+      line-height: 1.25;
+    }
+
+    .wfp-stage-ribbon {
+      position: absolute;
+      left: 50mm;
+      top: 49mm;
+      width: 84mm;
+      height: 9.4mm;
+      display: grid;
+      place-items: center;
+      color: var(--wfp-brown-ink);
+      font-family: 'Noto Serif TC', 'Microsoft JhengHei', serif;
+      font-size: 12pt;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-indent: 0.18em;
+      isolation: isolate;
+      background:
+        linear-gradient(180deg, oklch(99% 0.012 82 / 0.86), transparent 48%),
+        linear-gradient(90deg, var(--wfp-gold-soft), var(--wfp-ribbon-fill) 21%, oklch(98% 0.022 78 / 0.96) 50%, var(--wfp-ribbon-fill) 79%, var(--wfp-gold-soft));
+      border: 1px solid var(--wfp-gold-line);
+      border-radius: 1.1mm;
+      box-shadow: 0 0.8mm 2mm oklch(45% 0.03 60 / 0.06);
+    }
+    .wfp-stage-ribbon::before,
+    .wfp-stage-ribbon::after {
+      content: '';
+      position: absolute;
+      left: 5mm;
+      right: 5mm;
+      height: 1px;
+      background: var(--wfp-gold-hairline);
+      opacity: 0.7;
+      z-index: 1;
+    }
+    .wfp-stage-ribbon::before { top: 1.5mm; }
+    .wfp-stage-ribbon::after { bottom: 1.5mm; }
+    .wfp-stage-ribbon > span:not(.wfp-stage-ribbon__tail) {
+      position: relative;
+      z-index: 2;
+    }
+    .wfp-stage-ribbon__tail {
+      position: absolute;
+      top: 1.1mm;
+      width: 12.5mm;
+      height: 7.2mm;
+      background: linear-gradient(90deg, oklch(91% 0.044 78 / 0.72), var(--wfp-gold-soft));
+      border: 1px solid var(--wfp-gold-line);
+      z-index: 0;
+    }
+    .wfp-stage-ribbon__tail--left {
+      left: -9.4mm;
+      clip-path: polygon(0 0, 100% 0, 78% 50%, 100% 100%, 0 100%, 22% 50%);
+    }
+    .wfp-stage-ribbon__tail--right {
+      right: -9.4mm;
+      clip-path: polygon(0 0, 100% 0, 78% 50%, 100% 100%, 0 100%, 22% 50%);
+      transform: scaleX(-1);
+    }
+
+    .wfp-main-section {
+      position: absolute;
+      left: 27mm;
+      top: 62mm;
+      width: 130mm;
+      height: 50mm;
+    }
+    .wfp-main-table {
+      position: relative;
+      width: 130mm;
+      height: 50mm;
+    }
+    .wfp-annotation-table {
+      position: absolute;
+      isolation: isolate;
+    }
+    .wfp-annotation-table--main {
+      z-index: 3;
+    }
+    .wfp-annotation-table--regular {
+      z-index: 2;
+    }
+    .wfp-annotation-table--detail {
+      z-index: 2;
+    }
+    .wfp-annotation-table--warning {
+      outline: 0.8px dotted var(--wfp-warning);
+      outline-offset: 1.2mm;
+      border-radius: 2mm;
+    }
+    .wfp-annotation-connectors {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      overflow: visible;
+      pointer-events: none;
+    }
+    .wfp-seat-connector {
+      fill: none;
+      stroke: var(--wfp-gold-line);
+      stroke-width: 0.28mm;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      opacity: 0.64;
+      vector-effect: non-scaling-stroke;
+    }
+    .wfp-seat-connector--main {
+      stroke-width: 0.35mm;
+      opacity: 0.62;
+    }
+    .wfp-seat-connector--detail {
+      stroke-width: 0.32mm;
+      opacity: 0.72;
+    }
+    .wfp-seat-anchor {
+      position: absolute;
+      z-index: 2;
+      transform: translate(-50%, -50%);
+    }
+    .wfp-seat-dot {
+      width: 100%;
+      height: 100%;
+      display: block;
+      border-radius: 999px;
+      background: var(--wfp-seat-fill);
+      border: 1.2px solid var(--wfp-seat-stroke);
+      box-shadow: 0 0 0 0.45mm oklch(99% 0.008 82 / 0.82);
+    }
+    .wfp-seat-dot--empty {
+      background: var(--wfp-empty-seat-fill);
+      border-color: var(--wfp-gold-line);
+      opacity: 0.64;
+    }
+    .wfp-seat-label {
+      position: absolute;
+      z-index: 4;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 1.1mm;
+      border: 0.85px solid var(--wfp-seat-stroke);
+      border-radius: 1.6mm;
+      background: oklch(99% 0.008 82 / 0.96);
+      color: var(--wfp-brown-ink);
+      font-size: var(--wfp-label-font-size);
+      font-weight: 600;
+      line-height: 1.06;
+      text-align: center;
+      overflow: hidden;
+      overflow-wrap: anywhere;
+      word-break: break-all;
+      white-space: normal;
+      box-shadow: 0 0.25mm 1.1mm oklch(45% 0.025 62 / 0.07);
+    }
+    .wfp-seat-label--main,
+    .wfp-seat-label--detail {
+      border-radius: 2.4mm;
+      padding: 0 1.35mm;
+    }
+    .wfp-seat-label--regular {
+      padding: 0 0.7mm;
+      background: oklch(99% 0.006 82 / 0.94);
+      box-shadow: 0 0 0 0.35mm oklch(99% 0.01 82 / 0.5);
+    }
+    .wfp-seat-label--long {
+      line-height: 1;
+    }
+    .wfp-table-core {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      display: grid;
+      place-items: center;
+      align-content: center;
+      gap: 0.8mm;
+      border-radius: 999px;
+      border: 1px solid var(--wfp-gold-line);
+      background: oklch(99% 0.01 82 / 0.94);
+      color: var(--wfp-brown-ink);
+      text-align: center;
+      z-index: 3;
+      box-shadow:
+        0 0 0 1mm oklch(99% 0.01 82 / 0.56),
+        0 0.7mm 2.2mm oklch(44% 0.035 58 / 0.06);
+    }
+    .wfp-table-core--regular {
+      gap: 0.3mm;
+      border-width: 0.8px;
+      background: oklch(99% 0.008 82 / 0.84);
+      box-shadow: 0 0 0 0.55mm oklch(99% 0.01 82 / 0.5);
+    }
+    .wfp-table-core--full {
+      background: var(--wfp-full-table-fill);
+      border-color: var(--wfp-gold-line);
+    }
+    .wfp-table-core span {
+      max-width: 80%;
+      font-family: 'Noto Serif TC', 'Microsoft JhengHei', serif;
+      font-size: 9pt;
+      font-weight: 700;
+      line-height: 1.1;
+      overflow-wrap: anywhere;
+    }
+    .wfp-table-core small {
+      color: var(--wfp-gold-ink);
+      font-size: 6.6pt;
+      font-weight: 600;
+    }
+    .wfp-table-core--regular span {
+      font-size: 6.2pt;
+      max-width: 10mm;
+    }
+    .wfp-table-core--regular small {
+      font-size: 5.3pt;
+    }
+    .wfp-table-core--detail span {
+      font-size: 9pt;
+    }
+
+    .wfp-regular-grid {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 184mm;
+      height: 249mm;
+    }
+    .wfp-detail-header {
+      height: 21mm;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: end;
+      gap: 5mm;
+      border-bottom: 1px solid var(--wfp-gold-line);
+      padding-bottom: 4mm;
+    }
+    .wfp-detail-header p {
+      margin: 0;
+      color: var(--wfp-gold-ink);
+      font-family: 'Imperial Script', 'Segoe Script', cursive;
+      font-size: 22pt;
+      line-height: 0.9;
+    }
+    .wfp-detail-header h2 {
+      margin: 0;
+      color: var(--wfp-brown-ink);
+      font-family: 'Noto Serif TC', 'Microsoft JhengHei', serif;
+      font-size: 14pt;
+      font-weight: 700;
+      letter-spacing: 0.26em;
+      text-indent: 0.26em;
+      text-align: center;
+    }
+    .wfp-detail-header span {
+      justify-self: end;
+      color: var(--wfp-muted-ink);
+      font-size: 7.5pt;
+    }
+    .wfp-detail-subtitle {
+      margin: 3mm 0 0;
+      color: var(--wfp-muted-ink);
+      font-size: 7pt;
+      text-align: center;
+      letter-spacing: 0.12em;
+    }
+    .wfp-detail-grid {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 184mm;
+      height: 257mm;
+    }
+
+    .wfp-legend {
+      position: absolute;
+      left: 14mm;
+      top: 255.5mm;
+      width: 156mm;
+      text-align: center;
+    }
+    .wfp-legend-title {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 3.2mm;
+      color: var(--wfp-gold-ink);
+      font-size: 8.2pt;
+      font-weight: 600;
+      letter-spacing: 0.13em;
+      text-indent: 0.13em;
+    }
+    .wfp-legend-title span {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--wfp-gold-hairline), transparent);
+    }
+    .wfp-legend-title b {
+      font-family: 'Noto Serif TC', 'Microsoft JhengHei', serif;
+      font-weight: 600;
+    }
+    .wfp-legend-list {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 2.1mm 6mm;
+      margin-top: 2.7mm;
+    }
+    .wfp-legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 1.35mm;
+      color: var(--wfp-brown-ink);
+      font-size: 7.2pt;
+      line-height: 1;
+    }
+    .wfp-legend-item--unused { opacity: 0.48; }
+    .wfp-legend-dot {
+      width: 3.7mm;
+      height: 3.7mm;
+      border-radius: 999px;
+      background: var(--wfp-seat-print);
+      border: 1px solid var(--wfp-seat-stroke);
+      flex: 0 0 auto;
+    }
+    .wfp-warning-strip {
+      position: absolute;
+      left: 0;
+      top: 277mm;
+      width: 184mm;
+      min-height: 6mm;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 2mm;
+      color: var(--wfp-warning);
+      font-size: 6.8pt;
+      line-height: 1.25;
+      text-align: center;
+    }
+    .wfp-warning-strip strong {
+      font-size: 7pt;
+      letter-spacing: 0.1em;
+      text-indent: 0.1em;
+    }
+    .wfp-warning-strip--empty { visibility: hidden; }
+
+    .wfp-compact-header {
+      height: 18mm;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--wfp-gold-line);
+      color: var(--wfp-muted-ink);
+      font-size: 8pt;
+      letter-spacing: 0.12em;
+    }
+    .wfp-compact-mark {
+      color: var(--wfp-gold-ink);
+      font-family: 'Imperial Script', 'Segoe Script', cursive;
+      font-size: 19pt;
+      letter-spacing: 0;
+    }
+    .wfp-continuation-label {
+      margin: 3mm 0 0;
+      color: var(--wfp-gold-ink);
+      font-size: 8pt;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-align: center;
+    }
+
+    .wfp-index-header {
+      height: 21mm;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: end;
+      gap: 5mm;
+      border-bottom: 1px solid var(--wfp-gold-line);
+      padding-bottom: 4mm;
+    }
+    .wfp-index-header p {
+      margin: 0;
+      color: var(--wfp-gold-ink);
+      font-family: 'Imperial Script', 'Segoe Script', cursive;
+      font-size: 22pt;
+      line-height: 0.9;
+    }
+    .wfp-index-header h2 {
+      margin: 0;
+      color: var(--wfp-brown-ink);
+      font-family: 'Noto Serif TC', 'Microsoft JhengHei', serif;
+      font-size: 14pt;
+      font-weight: 700;
+      letter-spacing: 0.26em;
+      text-indent: 0.26em;
+      text-align: center;
+    }
+    .wfp-index-header span {
+      justify-self: end;
+      color: var(--wfp-muted-ink);
+      font-size: 7.5pt;
+    }
+    .wfp-index-grid {
+      margin-top: 6mm;
+      column-count: 4;
+      column-gap: 6mm;
+    }
+    .wfp-index-section {
+      break-inside: avoid;
+      display: inline-block;
+      width: 100%;
+      margin: 0 0 4mm;
+      padding: 2mm;
+      border: 1px solid oklch(84% 0.042 76 / 0.72);
+      border-radius: 2mm;
+      background: oklch(99% 0.008 82 / 0.66);
+    }
+    .wfp-index-section h3 {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 2mm;
+      margin: 0 0 1.5mm;
+      color: var(--wfp-brown-ink);
+      font-size: 7.6pt;
+      line-height: 1.25;
+    }
+    .wfp-index-section h3 span {
+      color: var(--wfp-gold-ink);
+      font-size: 6.5pt;
+      white-space: nowrap;
+    }
+    .wfp-index-section ol {
+      display: grid;
+      gap: 1mm;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .wfp-index-section li {
+      display: grid;
+      grid-template-columns: 2.3mm 1fr;
+      align-items: baseline;
+      gap: 1mm;
+      color: var(--wfp-brown-ink);
+      font-size: 7pt;
+      line-height: 1.25;
+      overflow-wrap: anywhere;
+    }
+    .wfp-index-section li small {
+      grid-column: 2;
+      color: var(--wfp-muted-ink);
+      font-size: 5.8pt;
+      line-height: 1.2;
+    }
+    .wfp-index-dot {
+      width: 2.2mm;
+      height: 2.2mm;
+      border-radius: 999px;
+      background: var(--wfp-seat-print);
+      transform: translateY(0.6mm);
+    }
+
+    @page { size: A4 portrait; margin: 0; }
+    @media print {
+      body { background: var(--wfp-paper); }
+      .wfp-page { box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+  
+    <section class="wfp-page wfp-page--chart wfp-page--design">
+      <div class="wfp-design-chart">
+        <svg class="wfp-design-svg"
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 210 297"
+    width="210mm"
+    height="297mm"
+    role="img"
+    aria-label="Jeremy and Yuri 婚禮桌次位置圖"
+    data-layout-signature="floor-design-layout-v1::canvas:1850x2400::frame:14,62,182,188::scale:0.109639::breathing:1::main@default@210,210@30.446,95.151|t2@default@550,210@67.723,95.151|t3@default@890,210@105,95.151|t4@default@1230,210@142.278,95.151|t5@default@1570,210@179.555,95.151|t6@default@210,580@30.446,135.717|t7@default@550,580@67.723,135.717|t8@default@890,580@105,135.717|t9@default@1230,580@142.278,135.717|t10@default@1570,580@179.555,135.717|t11@default@210,950@30.446,176.284|t12@default@550,950@67.723,176.284|t13@default@890,950@105,176.284|t14@default@1230,950@142.278,176.284|t15@default@1570,950@179.555,176.284|t16@default@210,1320@30.446,216.85|t17@default@550,1320@67.723,216.85|t18@default@890,1320@105,216.85|t19@default@1230,1320@142.278,216.85|t20@default@1570,1320@179.555,216.85">
+    <defs>
+      <radialGradient id="wfp-design-paper-wash" cx="24%" cy="24%" r="72%">
+        <stop offset="0%" stop-color="oklch(99% 0.012 38 / 0.8)"/>
+        <stop offset="58%" stop-color="oklch(98.4% 0.014 82 / 0.82)"/>
+        <stop offset="100%" stop-color="oklch(96.8% 0.02 96 / 0.72)"/>
+      </radialGradient>
+      <filter id="wfp-design-soft-shadow" x="-30%" y="-30%" width="160%" height="160%">
+        <feDropShadow dx="0" dy="0.55" stdDeviation="0.55" flood-color="oklch(44% 0.035 58 / 0.12)"/>
+      </filter>
+      <filter id="wfp-design-label-shadow" x="-20%" y="-30%" width="140%" height="160%">
+        <feDropShadow dx="0" dy="0.22" stdDeviation="0.32" flood-color="oklch(45% 0.025 62 / 0.12)"/>
+      </filter>
+      <filter id="wfp-design-dot-paper" x="-40%" y="-40%" width="180%" height="180%">
+        <feDropShadow dx="0" dy="0" stdDeviation="0.2" flood-color="oklch(99% 0.008 82 / 0.82)"/>
+      </filter>
+    </defs>
+    
+    <style>
+      .wfp-design-svg {
+        --wfp-paper: oklch(98.4% 0.014 82);
+        --wfp-paper-warm: oklch(96.8% 0.022 78);
+        --wfp-gold-line: oklch(68% 0.086 78);
+        --wfp-gold-hairline: oklch(74% 0.07 78 / 0.72);
+        --wfp-gold-soft: oklch(89% 0.052 78 / 0.46);
+        --wfp-gold-ink: oklch(47% 0.095 74);
+        --wfp-ribbon-fill: oklch(96.6% 0.032 78 / 0.94);
+        --wfp-brown-ink: oklch(30% 0.045 58);
+        --wfp-muted-ink: oklch(52% 0.035 58);
+        --wfp-rose-petal: oklch(83% 0.075 20);
+        --wfp-rose-soft: oklch(94% 0.035 18);
+        --wfp-leaf: oklch(58% 0.064 145);
+        --wfp-leaf-soft: oklch(82% 0.042 145);
+        --wfp-empty-seat-fill: oklch(98% 0.01 78 / 0.72);
+        color: var(--wfp-brown-ink);
+        background: var(--wfp-paper);
+        font-family: 'Noto Sans TC', 'Microsoft JhengHei', 'PingFang TC', system-ui, sans-serif;
+        text-rendering: geometricPrecision;
+      }
+      .wfp-design-paper { fill: var(--wfp-paper); }
+      .wfp-design-paper-wash { fill: url(#wfp-design-paper-wash); opacity: 0.84; }
+      .wfp-design-floral-stem {
+        fill: none;
+        stroke: var(--wfp-leaf);
+        stroke-width: 3.3;
+        stroke-linecap: round;
+        opacity: 0.38;
+      }
+      .wfp-design-floral-stem--fine { stroke-width: 2.2; opacity: 0.28; }
+      .wfp-design-couple {
+        fill: var(--wfp-gold-ink);
+        font-family: 'Imperial Script', 'Segoe Script', 'Times New Roman', cursive;
+        font-size: 11.642mm;
+        text-anchor: middle;
+      }
+      .wfp-design-title {
+        fill: var(--wfp-brown-ink);
+        font-family: 'Noto Serif TC', 'Noto Sans TC', 'Microsoft JhengHei', serif;
+        font-size: 5.151mm;
+        font-weight: 500;
+        letter-spacing: 2.163mm;
+        text-anchor: middle;
+      }
+      .wfp-design-subtitle {
+        fill: var(--wfp-gold-ink);
+        font-size: 2.999mm;
+        font-weight: 500;
+        letter-spacing: 1.08mm;
+        text-anchor: middle;
+      }
+      .wfp-design-meta {
+        fill: var(--wfp-muted-ink);
+        font-size: 2.469mm;
+        text-anchor: middle;
+      }
+      .wfp-design-gold-rule,
+      .wfp-design-legend-rule {
+        stroke: var(--wfp-gold-hairline);
+        stroke-width: 0.35;
+      }
+      .wfp-design-heart {
+        fill: var(--wfp-gold-ink);
+        font-family: 'Noto Serif TC', 'Times New Roman', serif;
+        font-size: 2.54mm;
+        text-anchor: middle;
+      }
+      .wfp-design-stage-tail,
+      .wfp-design-stage-ribbon {
+        fill: var(--wfp-ribbon-fill);
+        stroke: var(--wfp-gold-line);
+        stroke-width: 0.5;
+      }
+      .wfp-design-stage-line {
+        stroke: var(--wfp-gold-hairline);
+        stroke-width: 0.28;
+      }
+      .wfp-design-stage-text {
+        fill: var(--wfp-brown-ink);
+        font-family: 'Noto Serif TC', 'Microsoft JhengHei', serif;
+        font-size: 3.881mm;
+        font-weight: 600;
+        letter-spacing: 0.699mm;
+        text-anchor: middle;
+        dominant-baseline: central;
+      }
+      .wfp-design-content-frame {
+        fill: none;
+        stroke: var(--wfp-gold-hairline);
+        stroke-width: 0.25;
+        stroke-dasharray: 1.2 2.4;
+        opacity: 0.34;
+      }
+      .wfp-design-table-orbit {
+        fill: none;
+        stroke: var(--wfp-gold-hairline);
+        stroke-width: 0.32;
+        stroke-dasharray: 1.2 1.8;
+        opacity: 0.48;
+      }
+      .wfp-design-table-center {
+        fill: oklch(99% 0.01 82 / 0.94);
+        stroke: var(--wfp-gold-line);
+        stroke-width: 0.45;
+        filter: url(#wfp-design-soft-shadow);
+      }
+      .wfp-design-table--regular .wfp-design-table-center {
+        fill: oklch(99% 0.008 82 / 0.86);
+        stroke-width: 0.36;
+      }
+      .wfp-design-table-label {
+        fill: var(--wfp-brown-ink);
+        font-family: 'Noto Serif TC', 'Microsoft JhengHei', serif;
+        font-size: 1.623mm;
+        font-weight: 700;
+        text-anchor: middle;
+        dominant-baseline: central;
+      }
+      .wfp-design-table--main .wfp-design-table-label { font-size: 2.117mm; }
+      .wfp-design-table-count {
+        fill: var(--wfp-gold-ink);
+        font-size: 1.27mm;
+        font-weight: 600;
+        text-anchor: middle;
+        dominant-baseline: central;
+      }
+      .wfp-main-medallion-halo {
+        fill: var(--wfp-paper-warm);
+        stroke: var(--wfp-gold-hairline);
+        stroke-width: 0.35;
+        opacity: 0.72;
+      }
+      .wfp-main-medallion-leaf {
+        fill: none;
+        stroke: var(--wfp-leaf);
+        stroke-width: 0.45;
+        opacity: 0.5;
+      }
+      .wfp-main-medallion-bloom {
+        fill: var(--wfp-rose-petal);
+        opacity: 0.55;
+      }
+      .wfp-main-medallion-bloom--soft {
+        fill: var(--wfp-rose-soft);
+        opacity: 0.72;
+      }
+      .wfp-seat-dot {
+        fill: var(--wfp-seat-fill);
+        stroke: var(--wfp-seat-stroke);
+        stroke-width: 0.45;
+        filter: url(#wfp-design-dot-paper);
+      }
+      .wfp-seat-dot--empty {
+        --wfp-seat-fill: var(--wfp-empty-seat-fill);
+        --wfp-seat-stroke: var(--wfp-gold-line);
+        opacity: 0.68;
+      }
+      .wfp-seat-connector {
+        fill: none;
+        stroke: var(--wfp-seat-stroke);
+        stroke-width: 0.28;
+        stroke-linecap: round;
+        opacity: 0.62;
+      }
+      .wfp-design-label-box {
+        fill: oklch(99% 0.008 82 / 0.96);
+        stroke: var(--wfp-seat-stroke);
+        stroke-width: 0.35;
+        filter: url(#wfp-design-label-shadow);
+      }
+      .wfp-seat-label--regular .wfp-design-label-box {
+        fill: oklch(99% 0.006 82 / 0.94);
+        stroke-width: 0.3;
+      }
+      .wfp-design-label-text {
+        fill: var(--wfp-brown-ink);
+        font-size: var(--wfp-label-font-size);
+        font-weight: 600;
+        line-height: 1;
+        text-anchor: middle;
+        dominant-baseline: central;
+      }
+      .wfp-design-legend-title {
+        fill: var(--wfp-gold-ink);
+        font-family: 'Noto Serif TC', 'Microsoft JhengHei', serif;
+        font-size: 2.893mm;
+        font-weight: 600;
+        letter-spacing: 0.376mm;
+        text-anchor: middle;
+      }
+      .wfp-design-legend-dot {
+        fill: var(--wfp-seat-fill);
+        stroke: var(--wfp-seat-stroke);
+        stroke-width: 0.45;
+      }
+      .wfp-design-legend-text {
+        fill: var(--wfp-brown-ink);
+        font-size: 2.399mm;
+      }
+      .wfp-design-legend-item--unused { opacity: 0.46; }
+    </style>
+    <rect class="wfp-design-paper" width="210" height="297"/>
+    <rect class="wfp-design-paper-wash" width="210" height="297"/>
+    
+    <g class="wfp-design-floral wfp-design-floral--top-left" transform="translate(-4 -3) scale(0.45)" aria-hidden="true">
+      <path class="wfp-design-floral-stem" d="M12 100 C32 72 49 58 73 50 C92 44 105 30 118 12"/>
+      <path class="wfp-design-floral-stem wfp-design-floral-stem--fine" d="M20 108 C29 88 41 76 57 68 C70 61 77 49 82 34"/>
+      <g opacity="0.9">
+        <ellipse cx="35" cy="36" rx="19" ry="10" transform="rotate(-28 35 36)" fill="var(--wfp-rose-soft)"/>
+        <ellipse cx="49" cy="27" rx="20" ry="10" transform="rotate(22 49 27)" fill="var(--wfp-rose-petal)"/>
+        <ellipse cx="55" cy="45" rx="17" ry="9" transform="rotate(47 55 45)" fill="var(--wfp-rose-soft)"/>
+        <ellipse cx="36" cy="51" rx="15" ry="8" transform="rotate(-58 36 51)" fill="var(--wfp-rose-petal)" opacity="0.78"/>
+        <circle cx="45" cy="38" r="10" fill="var(--wfp-paper-warm)"/>
+        <circle cx="45" cy="38" r="4" fill="var(--wfp-gold-line)" opacity="0.58"/>
+      </g>
+      <g opacity="0.75">
+        <ellipse cx="80" cy="66" rx="10" ry="6" transform="rotate(24 80 66)" fill="var(--wfp-rose-soft)"/>
+        <ellipse cx="88" cy="60" rx="9" ry="5" transform="rotate(-28 88 60)" fill="var(--wfp-rose-petal)"/>
+        <circle cx="84" cy="63" r="3.4" fill="var(--wfp-gold-line)" opacity="0.42"/>
+      </g>
+      <ellipse cx="82" cy="34" rx="13" ry="5" transform="rotate(-34 82 34)" fill="var(--wfp-leaf-soft)"/>
+      <ellipse cx="101" cy="23" rx="13" ry="5" transform="rotate(-24 101 23)" fill="var(--wfp-leaf-soft)"/>
+      <ellipse cx="20" cy="82" rx="11" ry="4.8" transform="rotate(-60 20 82)" fill="var(--wfp-leaf-soft)"/>
+      <ellipse cx="34" cy="75" rx="9" ry="4" transform="rotate(-38 34 75)" fill="var(--wfp-leaf-soft)" opacity="0.72"/>
+      <ellipse cx="67" cy="75" rx="8" ry="3.8" transform="rotate(28 67 75)" fill="var(--wfp-leaf-soft)" opacity="0.7"/>
+      <circle cx="27" cy="58" r="3.2" fill="var(--wfp-rose-petal)" opacity="0.48"/>
+      <circle cx="106" cy="41" r="2.8" fill="var(--wfp-rose-soft)" opacity="0.72"/>
+      <circle cx="86" cy="73" r="1.8" fill="var(--wfp-gold-line)" opacity="0.45"/>
+      <circle cx="98" cy="64" r="1.2" fill="var(--wfp-gold-line)" opacity="0.5"/>
+      <circle cx="78" cy="85" r="1.3" fill="var(--wfp-gold-line)" opacity="0.38"/>
+    </g>
+    
+    <g class="wfp-design-floral wfp-design-floral--top-right" transform="translate(214 -3) scale(-1 1) scale(0.45)" aria-hidden="true">
+      <path class="wfp-design-floral-stem" d="M12 100 C32 72 49 58 73 50 C92 44 105 30 118 12"/>
+      <path class="wfp-design-floral-stem wfp-design-floral-stem--fine" d="M20 108 C29 88 41 76 57 68 C70 61 77 49 82 34"/>
+      <g opacity="0.9">
+        <ellipse cx="35" cy="36" rx="19" ry="10" transform="rotate(-28 35 36)" fill="var(--wfp-rose-soft)"/>
+        <ellipse cx="49" cy="27" rx="20" ry="10" transform="rotate(22 49 27)" fill="var(--wfp-rose-petal)"/>
+        <ellipse cx="55" cy="45" rx="17" ry="9" transform="rotate(47 55 45)" fill="var(--wfp-rose-soft)"/>
+        <ellipse cx="36" cy="51" rx="15" ry="8" transform="rotate(-58 36 51)" fill="var(--wfp-rose-petal)" opacity="0.78"/>
+        <circle cx="45" cy="38" r="10" fill="var(--wfp-paper-warm)"/>
+        <circle cx="45" cy="38" r="4" fill="var(--wfp-gold-line)" opacity="0.58"/>
+      </g>
+      <g opacity="0.75">
+        <ellipse cx="80" cy="66" rx="10" ry="6" transform="rotate(24 80 66)" fill="var(--wfp-rose-soft)"/>
+        <ellipse cx="88" cy="60" rx="9" ry="5" transform="rotate(-28 88 60)" fill="var(--wfp-rose-petal)"/>
+        <circle cx="84" cy="63" r="3.4" fill="var(--wfp-gold-line)" opacity="0.42"/>
+      </g>
+      <ellipse cx="82" cy="34" rx="13" ry="5" transform="rotate(-34 82 34)" fill="var(--wfp-leaf-soft)"/>
+      <ellipse cx="101" cy="23" rx="13" ry="5" transform="rotate(-24 101 23)" fill="var(--wfp-leaf-soft)"/>
+      <ellipse cx="20" cy="82" rx="11" ry="4.8" transform="rotate(-60 20 82)" fill="var(--wfp-leaf-soft)"/>
+      <ellipse cx="34" cy="75" rx="9" ry="4" transform="rotate(-38 34 75)" fill="var(--wfp-leaf-soft)" opacity="0.72"/>
+      <ellipse cx="67" cy="75" rx="8" ry="3.8" transform="rotate(28 67 75)" fill="var(--wfp-leaf-soft)" opacity="0.7"/>
+      <circle cx="27" cy="58" r="3.2" fill="var(--wfp-rose-petal)" opacity="0.48"/>
+      <circle cx="106" cy="41" r="2.8" fill="var(--wfp-rose-soft)" opacity="0.72"/>
+      <circle cx="86" cy="73" r="1.8" fill="var(--wfp-gold-line)" opacity="0.45"/>
+      <circle cx="98" cy="64" r="1.2" fill="var(--wfp-gold-line)" opacity="0.5"/>
+      <circle cx="78" cy="85" r="1.3" fill="var(--wfp-gold-line)" opacity="0.38"/>
+    </g>
+    
+    <g class="wfp-design-floral wfp-design-floral--bottom-left" transform="translate(-5 303) scale(1 -1) rotate(5) scale(0.56)" aria-hidden="true">
+      <path class="wfp-design-floral-stem" d="M12 100 C32 72 49 58 73 50 C92 44 105 30 118 12"/>
+      <path class="wfp-design-floral-stem wfp-design-floral-stem--fine" d="M20 108 C29 88 41 76 57 68 C70 61 77 49 82 34"/>
+      <g opacity="0.9">
+        <ellipse cx="35" cy="36" rx="19" ry="10" transform="rotate(-28 35 36)" fill="var(--wfp-rose-soft)"/>
+        <ellipse cx="49" cy="27" rx="20" ry="10" transform="rotate(22 49 27)" fill="var(--wfp-rose-petal)"/>
+        <ellipse cx="55" cy="45" rx="17" ry="9" transform="rotate(47 55 45)" fill="var(--wfp-rose-soft)"/>
+        <ellipse cx="36" cy="51" rx="15" ry="8" transform="rotate(-58 36 51)" fill="var(--wfp-rose-petal)" opacity="0.78"/>
+        <circle cx="45" cy="38" r="10" fill="var(--wfp-paper-warm)"/>
+        <circle cx="45" cy="38" r="4" fill="var(--wfp-gold-line)" opacity="0.58"/>
+      </g>
+      <g opacity="0.75">
+        <ellipse cx="80" cy="66" rx="10" ry="6" transform="rotate(24 80 66)" fill="var(--wfp-rose-soft)"/>
+        <ellipse cx="88" cy="60" rx="9" ry="5" transform="rotate(-28 88 60)" fill="var(--wfp-rose-petal)"/>
+        <circle cx="84" cy="63" r="3.4" fill="var(--wfp-gold-line)" opacity="0.42"/>
+      </g>
+      <ellipse cx="82" cy="34" rx="13" ry="5" transform="rotate(-34 82 34)" fill="var(--wfp-leaf-soft)"/>
+      <ellipse cx="101" cy="23" rx="13" ry="5" transform="rotate(-24 101 23)" fill="var(--wfp-leaf-soft)"/>
+      <ellipse cx="20" cy="82" rx="11" ry="4.8" transform="rotate(-60 20 82)" fill="var(--wfp-leaf-soft)"/>
+      <ellipse cx="34" cy="75" rx="9" ry="4" transform="rotate(-38 34 75)" fill="var(--wfp-leaf-soft)" opacity="0.72"/>
+      <ellipse cx="67" cy="75" rx="8" ry="3.8" transform="rotate(28 67 75)" fill="var(--wfp-leaf-soft)" opacity="0.7"/>
+      <circle cx="27" cy="58" r="3.2" fill="var(--wfp-rose-petal)" opacity="0.48"/>
+      <circle cx="106" cy="41" r="2.8" fill="var(--wfp-rose-soft)" opacity="0.72"/>
+      <circle cx="86" cy="73" r="1.8" fill="var(--wfp-gold-line)" opacity="0.45"/>
+      <circle cx="98" cy="64" r="1.2" fill="var(--wfp-gold-line)" opacity="0.5"/>
+      <circle cx="78" cy="85" r="1.3" fill="var(--wfp-gold-line)" opacity="0.38"/>
+    </g>
+    
+    <g class="wfp-design-floral wfp-design-floral--bottom-right" transform="translate(216 303) rotate(180) scale(0.56)" aria-hidden="true">
+      <path class="wfp-design-floral-stem" d="M12 100 C32 72 49 58 73 50 C92 44 105 30 118 12"/>
+      <path class="wfp-design-floral-stem wfp-design-floral-stem--fine" d="M20 108 C29 88 41 76 57 68 C70 61 77 49 82 34"/>
+      <g opacity="0.9">
+        <ellipse cx="35" cy="36" rx="19" ry="10" transform="rotate(-28 35 36)" fill="var(--wfp-rose-soft)"/>
+        <ellipse cx="49" cy="27" rx="20" ry="10" transform="rotate(22 49 27)" fill="var(--wfp-rose-petal)"/>
+        <ellipse cx="55" cy="45" rx="17" ry="9" transform="rotate(47 55 45)" fill="var(--wfp-rose-soft)"/>
+        <ellipse cx="36" cy="51" rx="15" ry="8" transform="rotate(-58 36 51)" fill="var(--wfp-rose-petal)" opacity="0.78"/>
+        <circle cx="45" cy="38" r="10" fill="var(--wfp-paper-warm)"/>
+        <circle cx="45" cy="38" r="4" fill="var(--wfp-gold-line)" opacity="0.58"/>
+      </g>
+      <g opacity="0.75">
+        <ellipse cx="80" cy="66" rx="10" ry="6" transform="rotate(24 80 66)" fill="var(--wfp-rose-soft)"/>
+        <ellipse cx="88" cy="60" rx="9" ry="5" transform="rotate(-28 88 60)" fill="var(--wfp-rose-petal)"/>
+        <circle cx="84" cy="63" r="3.4" fill="var(--wfp-gold-line)" opacity="0.42"/>
+      </g>
+      <ellipse cx="82" cy="34" rx="13" ry="5" transform="rotate(-34 82 34)" fill="var(--wfp-leaf-soft)"/>
+      <ellipse cx="101" cy="23" rx="13" ry="5" transform="rotate(-24 101 23)" fill="var(--wfp-leaf-soft)"/>
+      <ellipse cx="20" cy="82" rx="11" ry="4.8" transform="rotate(-60 20 82)" fill="var(--wfp-leaf-soft)"/>
+      <ellipse cx="34" cy="75" rx="9" ry="4" transform="rotate(-38 34 75)" fill="var(--wfp-leaf-soft)" opacity="0.72"/>
+      <ellipse cx="67" cy="75" rx="8" ry="3.8" transform="rotate(28 67 75)" fill="var(--wfp-leaf-soft)" opacity="0.7"/>
+      <circle cx="27" cy="58" r="3.2" fill="var(--wfp-rose-petal)" opacity="0.48"/>
+      <circle cx="106" cy="41" r="2.8" fill="var(--wfp-rose-soft)" opacity="0.72"/>
+      <circle cx="86" cy="73" r="1.8" fill="var(--wfp-gold-line)" opacity="0.45"/>
+      <circle cx="98" cy="64" r="1.2" fill="var(--wfp-gold-line)" opacity="0.5"/>
+      <circle cx="78" cy="85" r="1.3" fill="var(--wfp-gold-line)" opacity="0.38"/>
+    </g>
+    
+    <g class="wfp-design-header">
+      <text class="wfp-design-couple" x="105" y="24">Jeremy &amp; Yuri</text>
+      <line class="wfp-design-gold-rule" x1="62" y1="31" x2="96" y2="31"/>
+      <text class="wfp-design-heart" x="105" y="33">&#9829;</text>
+      <line class="wfp-design-gold-rule" x1="114" y1="31" x2="148" y2="31"/>
+      <text class="wfp-design-title" x="105" y="43">婚 禮 桌 次 位 置 圖</text>
+      <text class="wfp-design-subtitle" x="105" y="51">WEDDING SEATING CHART</text>
+      <text class="wfp-design-meta" x="105" y="58">列印日期：2026-06-10 ｜ 共 20 桌 ｜ 來源筆數：35 筆 ｜ 實際人數：47 位</text>
+    </g>
+    
+    <g class="wfp-design-stage" aria-label="主桌 / 舞台">
+      <path class="wfp-design-stage-tail" d="M49 64 H62 V74 H49 L54 69 Z"/>
+      <path class="wfp-design-stage-tail" d="M161 64 H148 V74 H161 L156 69 Z"/>
+      <rect class="wfp-design-stage-ribbon" x="58" y="62" width="94" height="14" rx="1.6"/>
+      <line class="wfp-design-stage-line" x1="64" y1="65" x2="146" y2="65"/>
+      <line class="wfp-design-stage-line" x1="64" y1="73" x2="146" y2="73"/>
+      <text class="wfp-design-stage-text" x="105" y="70.5">主桌 / 舞台</text>
+    </g>
+    <rect class="wfp-design-content-frame"
+      x="14"
+      y="62"
+      width="182"
+      height="188"/>
+    <g class="wfp-design-floor" data-layout-signature="floor-design-layout-v1::canvas:1850x2400::frame:14,62,182,188::scale:0.109639::breathing:1::main@default@210,210@30.446,95.151|t2@default@550,210@67.723,95.151|t3@default@890,210@105,95.151|t4@default@1230,210@142.278,95.151|t5@default@1570,210@179.555,95.151|t6@default@210,580@30.446,135.717|t7@default@550,580@67.723,135.717|t8@default@890,580@105,135.717|t9@default@1230,580@142.278,135.717|t10@default@1570,580@179.555,135.717|t11@default@210,950@30.446,176.284|t12@default@550,950@67.723,176.284|t13@default@890,950@105,176.284|t14@default@1230,950@142.278,176.284|t15@default@1570,950@179.555,176.284|t16@default@210,1320@30.446,216.85|t17@default@550,1320@67.723,216.85|t18@default@890,1320@105,216.85|t19@default@1230,1320@142.278,216.85|t20@default@1570,1320@179.555,216.85">
+      
+    <g class="wfp-design-table wfp-design-table--main"
+      data-table-id="main"
+      data-table-label="主桌"
+      data-position-source="default">
+      
+    <g class="wfp-design-main-medallion" aria-hidden="true">
+      <circle class="wfp-main-medallion-halo" cx="30.446" cy="95.151" r="9.907"/>
+      <path class="wfp-main-medallion-leaf" d="M 26.647 94.151
+        C 28.028 92.043
+          31.137 92.043
+          32.656 93.151"/>
+      <circle class="wfp-main-medallion-bloom" cx="28.719" cy="94.322" r="2"/>
+      <circle class="wfp-main-medallion-bloom wfp-main-medallion-bloom--soft" cx="31.689" cy="94.875" r="1.8"/>
+    </g>
+      
+    <path class="wfp-seat-connector wfp-seat-connector--main"
+      data-guest-id="g1"
+      d="M 30.446 83.31 L 30.446 82.11"
+      style="--wfp-seat-stroke:#6b5ce7"/>
+    <path class="wfp-seat-connector wfp-seat-connector--main"
+      data-guest-id="g2"
+      d="M 37.406 85.571 L 38.606 84.371"
+      style="--wfp-seat-stroke:#c2255c"/>
+    <path class="wfp-seat-connector wfp-seat-connector--main"
+      data-guest-id="g3"
+      d="M 41.707 91.492 L 42.907 91.492"
+      style="--wfp-seat-stroke:#2f9e44"/>
+    <path class="wfp-seat-connector wfp-seat-connector--main"
+      data-guest-id="g4"
+      d="M 41.707 98.81 L 42.907 98.81"
+      style="--wfp-seat-stroke:#c49a2a"/>
+    <path class="wfp-seat-connector wfp-seat-connector--main"
+      data-guest-id="g5"
+      d="M 37.406 104.731 L 38.606 105.931"
+      style="--wfp-seat-stroke:#777777"/>
+    <path class="wfp-seat-connector wfp-seat-connector--main"
+      data-guest-id="g6"
+      d="M 30.446 106.992 L 30.446 108.192"
+      style="--wfp-seat-stroke:#6b5ce7"/>
+    <path class="wfp-seat-connector wfp-seat-connector--main"
+      data-guest-id="g7"
+      d="M 23.486 104.731 L 22.286 105.931"
+      style="--wfp-seat-stroke:#c2255c"/>
+    <path class="wfp-seat-connector wfp-seat-connector--main"
+      data-guest-id="g8"
+      d="M 19.185 98.81 L 17.985 98.81"
+      style="--wfp-seat-stroke:#2f9e44"/>
+      
+    <circle class="wfp-seat-dot wfp-seat-dot--occupied"
+      cx="30.446"
+      cy="83.31"
+      r="2.851"
+      style="--wfp-seat-fill:rgba(107,92,231,0.18);--wfp-seat-stroke:#6b5ce7"
+      data-seat-index="0"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--occupied"
+      cx="37.406"
+      cy="85.571"
+      r="2.851"
+      style="--wfp-seat-fill:rgba(194,37,92,0.18);--wfp-seat-stroke:#c2255c"
+      data-seat-index="1"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--occupied"
+      cx="41.707"
+      cy="91.492"
+      r="2.851"
+      style="--wfp-seat-fill:rgba(47,158,68,0.18);--wfp-seat-stroke:#2f9e44"
+      data-seat-index="2"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--occupied"
+      cx="41.707"
+      cy="98.81"
+      r="2.851"
+      style="--wfp-seat-fill:rgba(196,154,42,0.18);--wfp-seat-stroke:#c49a2a"
+      data-seat-index="3"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--occupied"
+      cx="37.406"
+      cy="104.731"
+      r="2.851"
+      style="--wfp-seat-fill:rgba(100,100,100,0.10);--wfp-seat-stroke:#777777"
+      data-seat-index="4"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--occupied"
+      cx="30.446"
+      cy="106.992"
+      r="2.851"
+      style="--wfp-seat-fill:rgba(107,92,231,0.18);--wfp-seat-stroke:#6b5ce7"
+      data-seat-index="5"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--occupied"
+      cx="23.486"
+      cy="104.731"
+      r="2.851"
+      style="--wfp-seat-fill:rgba(194,37,92,0.18);--wfp-seat-stroke:#c2255c"
+      data-seat-index="6"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--occupied"
+      cx="19.185"
+      cy="98.81"
+      r="2.851"
+      style="--wfp-seat-fill:rgba(47,158,68,0.18);--wfp-seat-stroke:#2f9e44"
+      data-seat-index="7"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="19.185"
+      cy="91.492"
+      r="2.851"
+      
+      data-seat-index="8"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="23.486"
+      cy="85.571"
+      r="2.851"
+      
+      data-seat-index="9"/>
+      
+    <g class="wfp-design-table-core wfp-design-table-core--main">
+      <circle class="wfp-design-table-orbit" cx="30.446" cy="95.151" r="11.841"/>
+      <circle class="wfp-design-table-center" cx="30.446" cy="95.151" r="7.894"/>
+      <text class="wfp-design-table-label" x="30.446" y="93.967">主桌</text>
+      <text class="wfp-design-table-count" x="30.446" y="97.756">8 / 10</text>
+    </g>
+      
+    <g class="wfp-seat-label wfp-seat-label--main wfp-seat-label--top"
+      data-guest-id="g1"
+      data-seat-index="0"
+      style="--wfp-seat-stroke:#6b5ce7;--wfp-label-font-size:2.187mm">
+      <rect class="wfp-design-label-box"
+        x="24.946"
+        y="77.31"
+        width="11"
+        height="4.8"
+        rx="2.2"/>
+      <text class="wfp-design-label-text"
+        x="30.446"
+        y="79.71"
+        font-size="2.187mm"
+        style="font-size:2.187mm">
+    <tspan x="30.446" y="79.71">謝啟生</tspan></text>
+    </g>
+    <g class="wfp-seat-label wfp-seat-label--main wfp-seat-label--top-right"
+      data-guest-id="g2"
+      data-seat-index="1"
+      style="--wfp-seat-stroke:#c2255c;--wfp-label-font-size:2.187mm">
+      <rect class="wfp-design-label-box"
+        x="38.606"
+        y="79.571"
+        width="11"
+        height="4.8"
+        rx="2.2"/>
+      <text class="wfp-design-label-text"
+        x="44.106"
+        y="81.971"
+        font-size="2.187mm"
+        style="font-size:2.187mm">
+    <tspan x="44.106" y="81.971">謝嘉宇</tspan></text>
+    </g>
+    <g class="wfp-seat-label wfp-seat-label--main wfp-seat-label--right"
+      data-guest-id="g3"
+      data-seat-index="2"
+      style="--wfp-seat-stroke:#2f9e44;--wfp-label-font-size:2.187mm">
+      <rect class="wfp-design-label-box"
+        x="42.907"
+        y="89.092"
+        width="11"
+        height="4.8"
+        rx="2.2"/>
+      <text class="wfp-design-label-text"
+        x="48.407"
+        y="91.492"
+        font-size="2.187mm"
+        style="font-size:2.187mm">
+    <tspan x="48.407" y="91.492">侯名家</tspan></text>
+    </g>
+    <g class="wfp-seat-label wfp-seat-label--main wfp-seat-label--right"
+      data-guest-id="g4"
+      data-seat-index="3"
+      style="--wfp-seat-stroke:#c49a2a;--wfp-label-font-size:2.187mm">
+      <rect class="wfp-design-label-box"
+        x="42.907"
+        y="96.41"
+        width="11"
+        height="4.8"
+        rx="2.2"/>
+      <text class="wfp-design-label-text"
+        x="48.407"
+        y="98.81"
+        font-size="2.187mm"
+        style="font-size:2.187mm">
+    <tspan x="48.407" y="98.81">佐藤道明</tspan></text>
+    </g>
+    <g class="wfp-seat-label wfp-seat-label--main wfp-seat-label--bottom-right"
+      data-guest-id="g5"
+      data-seat-index="4"
+      style="--wfp-seat-stroke:#777777;--wfp-label-font-size:2.187mm">
+      <rect class="wfp-design-label-box"
+        x="38.606"
+        y="105.931"
+        width="11"
+        height="4.8"
+        rx="2.2"/>
+      <text class="wfp-design-label-text"
+        x="44.106"
+        y="108.331"
+        font-size="2.187mm"
+        style="font-size:2.187mm">
+    <tspan x="44.106" y="108.331">佐藤節子</tspan></text>
+    </g>
+    <g class="wfp-seat-label wfp-seat-label--main wfp-seat-label--bottom"
+      data-guest-id="g6"
+      data-seat-index="5"
+      style="--wfp-seat-stroke:#6b5ce7;--wfp-label-font-size:2.187mm">
+      <rect class="wfp-design-label-box"
+        x="24.946"
+        y="108.192"
+        width="11"
+        height="4.8"
+        rx="2.2"/>
+      <text class="wfp-design-label-text"
+        x="30.446"
+        y="110.592"
+        font-size="2.187mm"
+        style="font-size:2.187mm">
+    <tspan x="30.446" y="110.592">何淑育</tspan></text>
+    </g>
+    <g class="wfp-seat-label wfp-seat-label--main wfp-seat-label--bottom-left"
+      data-guest-id="g7"
+      data-seat-index="6"
+      style="--wfp-seat-stroke:#c2255c;--wfp-label-font-size:2.187mm">
+      <rect class="wfp-design-label-box"
+        x="11.286"
+        y="105.931"
+        width="11"
+        height="4.8"
+        rx="2.2"/>
+      <text class="wfp-design-label-text"
+        x="16.786"
+        y="108.331"
+        font-size="2.187mm"
+        style="font-size:2.187mm">
+    <tspan x="16.786" y="108.331">何淑芳</tspan></text>
+    </g>
+    <g class="wfp-seat-label wfp-seat-label--main wfp-seat-label--left"
+      data-guest-id="g8"
+      data-seat-index="7"
+      style="--wfp-seat-stroke:#2f9e44;--wfp-label-font-size:2.187mm">
+      <rect class="wfp-design-label-box"
+        x="6.985"
+        y="96.41"
+        width="11"
+        height="4.8"
+        rx="2.2"/>
+      <text class="wfp-design-label-text"
+        x="12.485"
+        y="98.81"
+        font-size="2.187mm"
+        style="font-size:2.187mm">
+    <tspan x="12.485" y="98.81">何美黛</tspan></text>
+    </g>
+    </g>
+    <g class="wfp-design-table wfp-design-table--regular"
+      data-table-id="t2"
+      data-table-label="2桌"
+      data-position-source="default">
+      
+      
+    <path class="wfp-seat-connector wfp-seat-connector--regular"
+      data-guest-id="g9"
+      d="M 67.723 83.31 L 67.723 82.51"
+      style="--wfp-seat-stroke:#c49a2a"/>
+    <path class="wfp-seat-connector wfp-seat-connector--regular"
+      data-guest-id="g10"
+      d="M 74.683 85.571 L 75.483 84.771"
+      style="--wfp-seat-stroke:#777777"/>
+    <path class="wfp-seat-connector wfp-seat-connector--regular"
+      data-guest-id="g11"
+      d="M 78.984 91.492 L 79.784 91.492"
+      style="--wfp-seat-stroke:#6b5ce7"/>
+      
+    <circle class="wfp-seat-dot wfp-seat-dot--occupied"
+      cx="67.723"
+      cy="83.31"
+      r="2.851"
+      style="--wfp-seat-fill:rgba(196,154,42,0.18);--wfp-seat-stroke:#c49a2a"
+      data-seat-index="0"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--occupied"
+      cx="74.683"
+      cy="85.571"
+      r="2.851"
+      style="--wfp-seat-fill:rgba(100,100,100,0.10);--wfp-seat-stroke:#777777"
+      data-seat-index="1"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--occupied"
+      cx="78.984"
+      cy="91.492"
+      r="2.851"
+      style="--wfp-seat-fill:rgba(107,92,231,0.18);--wfp-seat-stroke:#6b5ce7"
+      data-seat-index="2"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="78.984"
+      cy="98.81"
+      r="2.851"
+      
+      data-seat-index="3"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="74.683"
+      cy="104.731"
+      r="2.851"
+      
+      data-seat-index="4"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="67.723"
+      cy="106.992"
+      r="2.851"
+      
+      data-seat-index="5"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="60.763"
+      cy="104.731"
+      r="2.851"
+      
+      data-seat-index="6"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="56.462"
+      cy="98.81"
+      r="2.851"
+      
+      data-seat-index="7"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="56.462"
+      cy="91.492"
+      r="2.851"
+      
+      data-seat-index="8"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="60.763"
+      cy="85.571"
+      r="2.851"
+      
+      data-seat-index="9"/>
+      
+    <g class="wfp-design-table-core wfp-design-table-core--regular">
+      <circle class="wfp-design-table-orbit" cx="67.723" cy="95.151" r="11.841"/>
+      <circle class="wfp-design-table-center" cx="67.723" cy="95.151" r="7.894"/>
+      <text class="wfp-design-table-label" x="67.723" y="93.967">2桌</text>
+      <text class="wfp-design-table-count" x="67.723" y="97.756">3 / 10</text>
+    </g>
+      
+    <g class="wfp-seat-label wfp-seat-label--regular wfp-seat-label--top"
+      data-guest-id="g9"
+      data-seat-index="0"
+      style="--wfp-seat-stroke:#c49a2a;--wfp-label-font-size:2.469mm">
+      <rect class="wfp-design-label-box"
+        x="63.143"
+        y="78.31"
+        width="9.16"
+        height="4.2"
+        rx="1.4"/>
+      <text class="wfp-design-label-text"
+        x="67.723"
+        y="80.41"
+        font-size="2.469mm"
+        style="font-size:2.469mm">
+    <tspan x="67.723" y="80.41">何美惠</tspan></text>
+    </g>
+    <g class="wfp-seat-label wfp-seat-label--regular wfp-seat-label--top-right"
+      data-guest-id="g10"
+      data-seat-index="1"
+      style="--wfp-seat-stroke:#777777;--wfp-label-font-size:2.469mm">
+      <rect class="wfp-design-label-box"
+        x="75.483"
+        y="80.571"
+        width="11.68"
+        height="4.2"
+        rx="1.4"/>
+      <text class="wfp-design-label-text"
+        x="81.323"
+        y="82.671"
+        font-size="2.469mm"
+        style="font-size:2.469mm">
+    <tspan x="81.323" y="82.671">伊藤友則</tspan></text>
+    </g>
+    <g class="wfp-seat-label wfp-seat-label--regular wfp-seat-label--right"
+      data-guest-id="g11"
+      data-seat-index="2"
+      style="--wfp-seat-stroke:#6b5ce7;--wfp-label-font-size:2.469mm">
+      <rect class="wfp-design-label-box"
+        x="79.784"
+        y="89.392"
+        width="9.16"
+        height="4.2"
+        rx="1.4"/>
+      <text class="wfp-design-label-text"
+        x="84.364"
+        y="91.492"
+        font-size="2.469mm"
+        style="font-size:2.469mm">
+    <tspan x="84.364" y="91.492">洪瑞珠</tspan></text>
+    </g>
+    </g>
+    <g class="wfp-design-table wfp-design-table--regular"
+      data-table-id="t3"
+      data-table-label="3桌"
+      data-position-source="default">
+      
+      
+      
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="105"
+      cy="83.31"
+      r="2.851"
+      
+      data-seat-index="0"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="111.96"
+      cy="85.571"
+      r="2.851"
+      
+      data-seat-index="1"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="116.261"
+      cy="91.492"
+      r="2.851"
+      
+      data-seat-index="2"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="116.261"
+      cy="98.81"
+      r="2.851"
+      
+      data-seat-index="3"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="111.96"
+      cy="104.731"
+      r="2.851"
+      
+      data-seat-index="4"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="105"
+      cy="106.992"
+      r="2.851"
+      
+      data-seat-index="5"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="98.04"
+      cy="104.731"
+      r="2.851"
+      
+      data-seat-index="6"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="93.739"
+      cy="98.81"
+      r="2.851"
+      
+      data-seat-index="7"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="93.739"
+      cy="91.492"
+      r="2.851"
+      
+      data-seat-index="8"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="98.04"
+      cy="85.571"
+      r="2.851"
+      
+      data-seat-index="9"/>
+      
+    <g class="wfp-design-table-core wfp-design-table-core--regular">
+      <circle class="wfp-design-table-orbit" cx="105" cy="95.151" r="11.841"/>
+      <circle class="wfp-design-table-center" cx="105" cy="95.151" r="7.894"/>
+      <text class="wfp-design-table-label" x="105" y="93.967">3桌</text>
+      <text class="wfp-design-table-count" x="105" y="97.756">0 / 10</text>
+    </g>
+      
+    </g>
+    <g class="wfp-design-table wfp-design-table--regular"
+      data-table-id="t4"
+      data-table-label="4桌"
+      data-position-source="default">
+      
+      
+      
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="142.278"
+      cy="83.31"
+      r="2.851"
+      
+      data-seat-index="0"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="149.238"
+      cy="85.571"
+      r="2.851"
+      
+      data-seat-index="1"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="153.539"
+      cy="91.492"
+      r="2.851"
+      
+      data-seat-index="2"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="153.539"
+      cy="98.81"
+      r="2.851"
+      
+      data-seat-index="3"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="149.238"
+      cy="104.731"
+      r="2.851"
+      
+      data-seat-index="4"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="142.278"
+      cy="106.992"
+      r="2.851"
+      
+      data-seat-index="5"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="135.318"
+      cy="104.731"
+      r="2.851"
+      
+      data-seat-index="6"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="131.017"
+      cy="98.81"
+      r="2.851"
+      
+      data-seat-index="7"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="131.017"
+      cy="91.492"
+      r="2.851"
+      
+      data-seat-index="8"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="135.318"
+      cy="85.571"
+      r="2.851"
+      
+      data-seat-index="9"/>
+      
+    <g class="wfp-design-table-core wfp-design-table-core--regular">
+      <circle class="wfp-design-table-orbit" cx="142.278" cy="95.151" r="11.841"/>
+      <circle class="wfp-design-table-center" cx="142.278" cy="95.151" r="7.894"/>
+      <text class="wfp-design-table-label" x="142.278" y="93.967">4桌</text>
+      <text class="wfp-design-table-count" x="142.278" y="97.756">0 / 10</text>
+    </g>
+      
+    </g>
+    <g class="wfp-design-table wfp-design-table--regular"
+      data-table-id="t5"
+      data-table-label="5桌"
+      data-position-source="default">
+      
+      
+    <path class="wfp-seat-connector wfp-seat-connector--regular"
+      data-guest-id="g12"
+      d="M 179.555 83.31 L 179.555 82.51"
+      style="--wfp-seat-stroke:#c2255c"/>
+    <path class="wfp-seat-connector wfp-seat-connector--regular"
+      data-guest-id="g13"
+      d="M 186.515 85.571 L 187.315 84.771"
+      style="--wfp-seat-stroke:#2f9e44"/>
+    <path class="wfp-seat-connector wfp-seat-connector--regular"
+      data-guest-id="g14"
+      d="M 190.816 91.492 L 191.616 91.492"
+      style="--wfp-seat-stroke:#c49a2a"/>
+    <path class="wfp-seat-connector wfp-seat-connector--regular"
+      data-guest-id="g15"
+      d="M 190.816 98.81 L 191.616 98.81"
+      style="--wfp-seat-stroke:#777777"/>
+    <path class="wfp-seat-connector wfp-seat-connector--regular"
+      data-guest-id="g16"
+      d="M 186.515 104.731 L 187.315 105.531"
+      style="--wfp-seat-stroke:#6b5ce7"/>
+    <path class="wfp-seat-connector wfp-seat-connector--regular"
+      data-guest-id="g17"
+      d="M 179.555 106.992 L 179.555 107.792"
+      style="--wfp-seat-stroke:#c2255c"/>
+    <path class="wfp-seat-connector wfp-seat-connector--regular"
+      data-guest-id="g18"
+      d="M 172.595 104.731 L 171.795 105.531"
+      style="--wfp-seat-stroke:#2f9e44"/>
+    <path class="wfp-seat-connector wfp-seat-connector--regular"
+      data-guest-id="g19"
+      d="M 168.294 98.81 L 167.494 98.81"
+      style="--wfp-seat-stroke:#c49a2a"/>
+    <path class="wfp-seat-connector wfp-seat-connector--regular"
+      data-guest-id="g20"
+      d="M 168.294 91.492 L 167.494 91.492"
+      style="--wfp-seat-stroke:#777777"/>
+    <path class="wfp-seat-connector wfp-seat-connector--regular"
+      data-guest-id="g21"
+      d="M 172.595 85.571 L 171.795 84.771"
+      style="--wfp-seat-stroke:#6b5ce7"/>
+      
+    <circle class="wfp-seat-dot wfp-seat-dot--occupied"
+      cx="179.555"
+      cy="83.31"
+      r="2.851"
+      style="--wfp-seat-fill:rgba(194,37,92,0.18);--wfp-seat-stroke:#c2255c"
+      data-seat-index="0"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--occupied"
+      cx="186.515"
+      cy="85.571"
+      r="2.851"
+      style="--wfp-seat-fill:rgba(47,158,68,0.18);--wfp-seat-stroke:#2f9e44"
+      data-seat-index="1"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--occupied"
+      cx="190.816"
+      cy="91.492"
+      r="2.851"
+      style="--wfp-seat-fill:rgba(196,154,42,0.18);--wfp-seat-stroke:#c49a2a"
+      data-seat-index="2"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--occupied"
+      cx="190.816"
+      cy="98.81"
+      r="2.851"
+      style="--wfp-seat-fill:rgba(100,100,100,0.10);--wfp-seat-stroke:#777777"
+      data-seat-index="3"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--occupied"
+      cx="186.515"
+      cy="104.731"
+      r="2.851"
+      style="--wfp-seat-fill:rgba(107,92,231,0.18);--wfp-seat-stroke:#6b5ce7"
+      data-seat-index="4"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--occupied"
+      cx="179.555"
+      cy="106.992"
+      r="2.851"
+      style="--wfp-seat-fill:rgba(194,37,92,0.18);--wfp-seat-stroke:#c2255c"
+      data-seat-index="5"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--occupied"
+      cx="172.595"
+      cy="104.731"
+      r="2.851"
+      style="--wfp-seat-fill:rgba(47,158,68,0.18);--wfp-seat-stroke:#2f9e44"
+      data-seat-index="6"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--occupied"
+      cx="168.294"
+      cy="98.81"
+      r="2.851"
+      style="--wfp-seat-fill:rgba(196,154,42,0.18);--wfp-seat-stroke:#c49a2a"
+      data-seat-index="7"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--occupied"
+      cx="168.294"
+      cy="91.492"
+      r="2.851"
+      style="--wfp-seat-fill:rgba(100,100,100,0.10);--wfp-seat-stroke:#777777"
+      data-seat-index="8"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--occupied"
+      cx="172.595"
+      cy="85.571"
+      r="2.851"
+      style="--wfp-seat-fill:rgba(107,92,231,0.18);--wfp-seat-stroke:#6b5ce7"
+      data-seat-index="9"/>
+      
+    <g class="wfp-design-table-core wfp-design-table-core--regular">
+      <circle class="wfp-design-table-orbit" cx="179.555" cy="95.151" r="11.841"/>
+      <circle class="wfp-design-table-center" cx="179.555" cy="95.151" r="7.894"/>
+      <text class="wfp-design-table-label" x="179.555" y="93.967">5桌</text>
+      <text class="wfp-design-table-count" x="179.555" y="97.756">10 / 10</text>
+    </g>
+      
+    <g class="wfp-seat-label wfp-seat-label--regular wfp-seat-label--top"
+      data-guest-id="g12"
+      data-seat-index="0"
+      style="--wfp-seat-stroke:#c2255c;--wfp-label-font-size:1.834mm">
+      <rect class="wfp-design-label-box"
+        x="176.397"
+        y="79.41"
+        width="6.316"
+        height="3.1"
+        rx="1.4"/>
+      <text class="wfp-design-label-text"
+        x="179.555"
+        y="80.96"
+        font-size="1.834mm"
+        style="font-size:1.834mm">
+    <tspan x="179.555" y="80.96">洪瑞綺</tspan></text>
+    </g>
+    <g class="wfp-seat-label wfp-seat-label--regular wfp-seat-label--top-right"
+      data-guest-id="g13"
+      data-seat-index="1"
+      style="--wfp-seat-stroke:#2f9e44;--wfp-label-font-size:1.834mm">
+      <rect class="wfp-design-label-box"
+        x="187.315"
+        y="81.671"
+        width="6.316"
+        height="3.1"
+        rx="1.4"/>
+      <text class="wfp-design-label-text"
+        x="190.473"
+        y="83.221"
+        font-size="1.834mm"
+        style="font-size:1.834mm">
+    <tspan x="190.473" y="83.221">洪瑞婷</tspan></text>
+    </g>
+    <g class="wfp-seat-label wfp-seat-label--regular wfp-seat-label--right"
+      data-guest-id="g14"
+      data-seat-index="2"
+      style="--wfp-seat-stroke:#c49a2a;--wfp-label-font-size:1.834mm">
+      <rect class="wfp-design-label-box"
+        x="191.616"
+        y="89.942"
+        width="6.316"
+        height="3.1"
+        rx="1.4"/>
+      <text class="wfp-design-label-text"
+        x="194.774"
+        y="91.492"
+        font-size="1.834mm"
+        style="font-size:1.834mm">
+    <tspan x="194.774" y="91.492">洪瑞芳</tspan></text>
+    </g>
+    <g class="wfp-seat-label wfp-seat-label--regular wfp-seat-label--right"
+      data-guest-id="g15"
+      data-seat-index="3"
+      style="--wfp-seat-stroke:#777777;--wfp-label-font-size:1.834mm">
+      <rect class="wfp-design-label-box"
+        x="191.616"
+        y="97.26"
+        width="6.316"
+        height="3.1"
+        rx="1.4"/>
+      <text class="wfp-design-label-text"
+        x="194.774"
+        y="98.81"
+        font-size="1.834mm"
+        style="font-size:1.834mm">
+    <tspan x="194.774" y="98.81">洪瑞雯</tspan></text>
+    </g>
+    <g class="wfp-seat-label wfp-seat-label--regular wfp-seat-label--bottom-right"
+      data-guest-id="g16"
+      data-seat-index="4"
+      style="--wfp-seat-stroke:#6b5ce7;--wfp-label-font-size:1.834mm">
+      <rect class="wfp-design-label-box"
+        x="187.315"
+        y="105.531"
+        width="6.316"
+        height="3.1"
+        rx="1.4"/>
+      <text class="wfp-design-label-text"
+        x="190.473"
+        y="107.081"
+        font-size="1.834mm"
+        style="font-size:1.834mm">
+    <tspan x="190.473" y="107.081">謝宜蓁</tspan></text>
+    </g>
+    <g class="wfp-seat-label wfp-seat-label--regular wfp-seat-label--bottom"
+      data-guest-id="g17"
+      data-seat-index="5"
+      style="--wfp-seat-stroke:#c2255c;--wfp-label-font-size:1.834mm">
+      <rect class="wfp-design-label-box"
+        x="176.397"
+        y="107.792"
+        width="6.316"
+        height="3.1"
+        rx="1.4"/>
+      <text class="wfp-design-label-text"
+        x="179.555"
+        y="109.342"
+        font-size="1.834mm"
+        style="font-size:1.834mm">
+    <tspan x="179.555" y="109.342">謝嘉勳</tspan></text>
+    </g>
+    <g class="wfp-seat-label wfp-seat-label--regular wfp-seat-label--bottom-left"
+      data-guest-id="g18"
+      data-seat-index="6"
+      style="--wfp-seat-stroke:#2f9e44;--wfp-label-font-size:1.834mm">
+      <rect class="wfp-design-label-box"
+        x="165.479"
+        y="105.531"
+        width="6.316"
+        height="3.1"
+        rx="1.4"/>
+      <text class="wfp-design-label-text"
+        x="168.637"
+        y="107.081"
+        font-size="1.834mm"
+        style="font-size:1.834mm">
+    <tspan x="168.637" y="107.081">蔡偉超</tspan></text>
+    </g>
+    <g class="wfp-seat-label wfp-seat-label--regular wfp-seat-label--left"
+      data-guest-id="g19"
+      data-seat-index="7"
+      style="--wfp-seat-stroke:#c49a2a;--wfp-label-font-size:1.834mm">
+      <rect class="wfp-design-label-box"
+        x="161.178"
+        y="97.26"
+        width="6.316"
+        height="3.1"
+        rx="1.4"/>
+      <text class="wfp-design-label-text"
+        x="164.336"
+        y="98.81"
+        font-size="1.834mm"
+        style="font-size:1.834mm">
+    <tspan x="164.336" y="98.81">蔡佳蓉</tspan></text>
+    </g>
+    <g class="wfp-seat-label wfp-seat-label--regular wfp-seat-label--left"
+      data-guest-id="g20"
+      data-seat-index="8"
+      style="--wfp-seat-stroke:#777777;--wfp-label-font-size:1.834mm">
+      <rect class="wfp-design-label-box"
+        x="161.178"
+        y="89.942"
+        width="6.316"
+        height="3.1"
+        rx="1.4"/>
+      <text class="wfp-design-label-text"
+        x="164.336"
+        y="91.492"
+        font-size="1.834mm"
+        style="font-size:1.834mm">
+    <tspan x="164.336" y="91.492">黃雅婷</tspan></text>
+    </g>
+    <g class="wfp-seat-label wfp-seat-label--regular wfp-seat-label--top-left"
+      data-guest-id="g21"
+      data-seat-index="9"
+      style="--wfp-seat-stroke:#6b5ce7;--wfp-label-font-size:1.834mm">
+      <rect class="wfp-design-label-box"
+        x="165.479"
+        y="81.671"
+        width="6.316"
+        height="3.1"
+        rx="1.4"/>
+      <text class="wfp-design-label-text"
+        x="168.637"
+        y="83.221"
+        font-size="1.834mm"
+        style="font-size:1.834mm">
+    <tspan x="168.637" y="83.221">陳建宏</tspan></text>
+    </g>
+    </g>
+    <g class="wfp-design-table wfp-design-table--regular"
+      data-table-id="t6"
+      data-table-label="6桌"
+      data-position-source="default">
+      
+      
+    <path class="wfp-seat-connector wfp-seat-connector--regular"
+      data-guest-id="g22"
+      d="M 30.446 123.876 L 30.446 123.076"
+      style="--wfp-seat-stroke:#c2255c"/>
+    <path class="wfp-seat-connector wfp-seat-connector--regular"
+      data-guest-id="g23"
+      d="M 37.406 126.137 L 38.206 125.337"
+      style="--wfp-seat-stroke:#2f9e44"/>
+    <path class="wfp-seat-connector wfp-seat-connector--regular"
+      data-guest-id="g24"
+      d="M 41.707 132.058 L 42.507 132.058"
+      style="--wfp-seat-stroke:#c49a2a"/>
+    <path class="wfp-seat-connector wfp-seat-connector--regular"
+      data-guest-id="g25"
+      d="M 41.707 139.376 L 42.507 139.376"
+      style="--wfp-seat-stroke:#777777"/>
+    <path class="wfp-seat-connector wfp-seat-connector--regular"
+      data-guest-id="g26"
+      d="M 37.406 145.297 L 38.206 146.097"
+      style="--wfp-seat-stroke:#6b5ce7"/>
+    <path class="wfp-seat-connector wfp-seat-connector--regular"
+      data-guest-id="g27"
+      d="M 30.446 147.558 L 30.446 148.358"
+      style="--wfp-seat-stroke:#c2255c"/>
+    <path class="wfp-seat-connector wfp-seat-connector--regular"
+      data-guest-id="g28"
+      d="M 23.486 145.297 L 22.686 146.097"
+      style="--wfp-seat-stroke:#2f9e44"/>
+    <path class="wfp-seat-connector wfp-seat-connector--regular"
+      data-guest-id="g29"
+      d="M 19.185 139.376 L 18.385 139.376"
+      style="--wfp-seat-stroke:#c49a2a"/>
+    <path class="wfp-seat-connector wfp-seat-connector--regular"
+      data-guest-id="g30"
+      d="M 19.185 132.058 L 18.385 132.058"
+      style="--wfp-seat-stroke:#777777"/>
+    <path class="wfp-seat-connector wfp-seat-connector--regular"
+      data-guest-id="g31"
+      d="M 23.486 126.137 L 22.686 125.337"
+      style="--wfp-seat-stroke:#6b5ce7"/>
+      
+    <circle class="wfp-seat-dot wfp-seat-dot--occupied"
+      cx="30.446"
+      cy="123.876"
+      r="2.851"
+      style="--wfp-seat-fill:rgba(194,37,92,0.18);--wfp-seat-stroke:#c2255c"
+      data-seat-index="0"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--occupied"
+      cx="37.406"
+      cy="126.137"
+      r="2.851"
+      style="--wfp-seat-fill:rgba(47,158,68,0.18);--wfp-seat-stroke:#2f9e44"
+      data-seat-index="1"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--occupied"
+      cx="41.707"
+      cy="132.058"
+      r="2.851"
+      style="--wfp-seat-fill:rgba(196,154,42,0.18);--wfp-seat-stroke:#c49a2a"
+      data-seat-index="2"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--occupied"
+      cx="41.707"
+      cy="139.376"
+      r="2.851"
+      style="--wfp-seat-fill:rgba(100,100,100,0.10);--wfp-seat-stroke:#777777"
+      data-seat-index="3"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--occupied"
+      cx="37.406"
+      cy="145.297"
+      r="2.851"
+      style="--wfp-seat-fill:rgba(107,92,231,0.18);--wfp-seat-stroke:#6b5ce7"
+      data-seat-index="4"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--occupied"
+      cx="30.446"
+      cy="147.558"
+      r="2.851"
+      style="--wfp-seat-fill:rgba(194,37,92,0.18);--wfp-seat-stroke:#c2255c"
+      data-seat-index="5"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--occupied"
+      cx="23.486"
+      cy="145.297"
+      r="2.851"
+      style="--wfp-seat-fill:rgba(47,158,68,0.18);--wfp-seat-stroke:#2f9e44"
+      data-seat-index="6"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--occupied"
+      cx="19.185"
+      cy="139.376"
+      r="2.851"
+      style="--wfp-seat-fill:rgba(196,154,42,0.18);--wfp-seat-stroke:#c49a2a"
+      data-seat-index="7"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--occupied"
+      cx="19.185"
+      cy="132.058"
+      r="2.851"
+      style="--wfp-seat-fill:rgba(100,100,100,0.10);--wfp-seat-stroke:#777777"
+      data-seat-index="8"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--occupied"
+      cx="23.486"
+      cy="126.137"
+      r="2.851"
+      style="--wfp-seat-fill:rgba(107,92,231,0.18);--wfp-seat-stroke:#6b5ce7"
+      data-seat-index="9"/>
+      
+    <g class="wfp-design-table-core wfp-design-table-core--regular">
+      <circle class="wfp-design-table-orbit" cx="30.446" cy="135.717" r="11.841"/>
+      <circle class="wfp-design-table-center" cx="30.446" cy="135.717" r="7.894"/>
+      <text class="wfp-design-table-label" x="30.446" y="134.533">6桌</text>
+      <text class="wfp-design-table-count" x="30.446" y="138.322">10 / 10</text>
+    </g>
+      
+    <g class="wfp-seat-label wfp-seat-label--regular wfp-seat-label--top"
+      data-guest-id="g22"
+      data-seat-index="0"
+      style="--wfp-seat-stroke:#c2255c;--wfp-label-font-size:1.834mm">
+      <rect class="wfp-design-label-box"
+        x="27.288"
+        y="119.976"
+        width="6.316"
+        height="3.1"
+        rx="1.4"/>
+      <text class="wfp-design-label-text"
+        x="30.446"
+        y="121.526"
+        font-size="1.834mm"
+        style="font-size:1.834mm">
+    <tspan x="30.446" y="121.526">林美華</tspan></text>
+    </g>
+    <g class="wfp-seat-label wfp-seat-label--regular wfp-seat-label--top-right"
+      data-guest-id="g23"
+      data-seat-index="1"
+      style="--wfp-seat-stroke:#2f9e44;--wfp-label-font-size:1.834mm">
+      <rect class="wfp-design-label-box"
+        x="38.206"
+        y="122.237"
+        width="6.316"
+        height="3.1"
+        rx="1.4"/>
+      <text class="wfp-design-label-text"
+        x="41.364"
+        y="123.787"
+        font-size="1.834mm"
+        style="font-size:1.834mm">
+    <tspan x="41.364" y="123.787">王小明</tspan></text>
+    </g>
+    <g class="wfp-seat-label wfp-seat-label--regular wfp-seat-label--right"
+      data-guest-id="g24"
+      data-seat-index="2"
+      style="--wfp-seat-stroke:#c49a2a;--wfp-label-font-size:1.834mm">
+      <rect class="wfp-design-label-box"
+        x="42.507"
+        y="130.508"
+        width="6.316"
+        height="3.1"
+        rx="1.4"/>
+      <text class="wfp-design-label-text"
+        x="45.665"
+        y="132.058"
+        font-size="1.834mm"
+        style="font-size:1.834mm">
+    <tspan x="45.665" y="132.058">陳美麗</tspan></text>
+    </g>
+    <g class="wfp-seat-label wfp-seat-label--regular wfp-seat-label--right"
+      data-guest-id="g25"
+      data-seat-index="3"
+      style="--wfp-seat-stroke:#777777;--wfp-label-font-size:1.834mm">
+      <rect class="wfp-design-label-box"
+        x="42.507"
+        y="137.154"
+        width="5.8"
+        height="4.444"
+        rx="1.4"/>
+      <text class="wfp-design-label-text"
+        x="45.407"
+        y="139.376"
+        font-size="1.834mm"
+        style="font-size:1.834mm">
+    <tspan x="45.407" y="138.492">鄭工</tspan>
+    <tspan x="45.407" y="140.26">程師</tspan></text>
+    </g>
+    <g class="wfp-seat-label wfp-seat-label--regular wfp-seat-label--bottom-right"
+      data-guest-id="g26"
+      data-seat-index="4"
+      style="--wfp-seat-stroke:#6b5ce7;--wfp-label-font-size:1.834mm">
+      <rect class="wfp-design-label-box"
+        x="38.206"
+        y="146.097"
+        width="6.316"
+        height="3.1"
+        rx="1.4"/>
+      <text class="wfp-design-label-text"
+        x="41.364"
+        y="147.647"
+        font-size="1.834mm"
+        style="font-size:1.834mm">
+    <tspan x="41.364" y="147.647">張雅雯</tspan></text>
+    </g>
+    <g class="wfp-seat-label wfp-seat-label--regular wfp-seat-label--bottom"
+      data-guest-id="g27"
+      data-seat-index="5"
+      style="--wfp-seat-stroke:#c2255c;--wfp-label-font-size:1.834mm">
+      <rect class="wfp-design-label-box"
+        x="27.288"
+        y="148.358"
+        width="6.316"
+        height="3.1"
+        rx="1.4"/>
+      <text class="wfp-design-label-text"
+        x="30.446"
+        y="149.908"
+        font-size="1.834mm"
+        style="font-size:1.834mm">
+    <tspan x="30.446" y="149.908">吳家豪</tspan></text>
+    </g>
+    <g class="wfp-seat-label wfp-seat-label--regular wfp-seat-label--bottom-left"
+      data-guest-id="g28"
+      data-seat-index="6"
+      style="--wfp-seat-stroke:#2f9e44;--wfp-label-font-size:1.834mm">
+      <rect class="wfp-design-label-box"
+        x="16.37"
+        y="146.097"
+        width="6.316"
+        height="3.1"
+        rx="1.4"/>
+      <text class="wfp-design-label-text"
+        x="19.528"
+        y="147.647"
+        font-size="1.834mm"
+        style="font-size:1.834mm">
+    <tspan x="19.528" y="147.647">李怡君</tspan></text>
+    </g>
+    <g class="wfp-seat-label wfp-seat-label--regular wfp-seat-label--left"
+      data-guest-id="g29"
+      data-seat-index="7"
+      style="--wfp-seat-stroke:#c49a2a;--wfp-label-font-size:1.834mm">
+      <rect class="wfp-design-label-box"
+        x="12.069"
+        y="137.826"
+        width="6.316"
+        height="3.1"
+        rx="1.4"/>
+      <text class="wfp-design-label-text"
+        x="15.227"
+        y="139.376"
+        font-size="1.834mm"
+        style="font-size:1.834mm">
+    <tspan x="15.227" y="139.376">周柏翰</tspan></text>
+    </g>
+    <g class="wfp-seat-label wfp-seat-label--regular wfp-seat-label--left"
+      data-guest-id="g30"
+      data-seat-index="8"
+      style="--wfp-seat-stroke:#777777;--wfp-label-font-size:1.834mm">
+      <rect class="wfp-design-label-box"
+        x="12.069"
+        y="130.508"
+        width="6.316"
+        height="3.1"
+        rx="1.4"/>
+      <text class="wfp-design-label-text"
+        x="15.227"
+        y="132.058"
+        font-size="1.834mm"
+        style="font-size:1.834mm">
+    <tspan x="15.227" y="132.058">許芳瑜</tspan></text>
+    </g>
+    <g class="wfp-seat-label wfp-seat-label--regular wfp-seat-label--top-left"
+      data-guest-id="g31"
+      data-seat-index="9"
+      style="--wfp-seat-stroke:#6b5ce7;--wfp-label-font-size:1.834mm">
+      <rect class="wfp-design-label-box"
+        x="16.37"
+        y="122.237"
+        width="6.316"
+        height="3.1"
+        rx="1.4"/>
+      <text class="wfp-design-label-text"
+        x="19.528"
+        y="123.787"
+        font-size="1.834mm"
+        style="font-size:1.834mm">
+    <tspan x="19.528" y="123.787">劉冠廷</tspan></text>
+    </g>
+    </g>
+    <g class="wfp-design-table wfp-design-table--regular"
+      data-table-id="t7"
+      data-table-label="7桌"
+      data-position-source="default">
+      
+      
+    <path class="wfp-seat-connector wfp-seat-connector--regular"
+      data-guest-id="g32"
+      d="M 67.723 123.876 L 67.723 123.076"
+      style="--wfp-seat-stroke:#c2255c"/>
+    <path class="wfp-seat-connector wfp-seat-connector--regular"
+      data-guest-id="g33"
+      d="M 74.683 126.137 L 75.483 125.337"
+      style="--wfp-seat-stroke:#2f9e44"/>
+    <path class="wfp-seat-connector wfp-seat-connector--regular"
+      data-guest-id="g34"
+      d="M 78.984 132.058 L 79.784 132.058"
+      style="--wfp-seat-stroke:#c49a2a"/>
+    <path class="wfp-seat-connector wfp-seat-connector--regular"
+      data-guest-id="g35"
+      d="M 78.984 139.376 L 79.784 139.376"
+      style="--wfp-seat-stroke:#777777"/>
+    <path class="wfp-seat-connector wfp-seat-connector--regular"
+      data-guest-id="g36"
+      d="M 74.683 145.297 L 75.483 146.097"
+      style="--wfp-seat-stroke:#6b5ce7"/>
+    <path class="wfp-seat-connector wfp-seat-connector--regular"
+      data-guest-id="g37"
+      d="M 67.723 147.558 L 67.723 148.358"
+      style="--wfp-seat-stroke:#c2255c"/>
+      
+    <circle class="wfp-seat-dot wfp-seat-dot--occupied"
+      cx="67.723"
+      cy="123.876"
+      r="2.851"
+      style="--wfp-seat-fill:rgba(194,37,92,0.18);--wfp-seat-stroke:#c2255c"
+      data-seat-index="0"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--occupied"
+      cx="74.683"
+      cy="126.137"
+      r="2.851"
+      style="--wfp-seat-fill:rgba(47,158,68,0.18);--wfp-seat-stroke:#2f9e44"
+      data-seat-index="1"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--occupied"
+      cx="78.984"
+      cy="132.058"
+      r="2.851"
+      style="--wfp-seat-fill:rgba(196,154,42,0.18);--wfp-seat-stroke:#c49a2a"
+      data-seat-index="2"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--occupied"
+      cx="78.984"
+      cy="139.376"
+      r="2.851"
+      style="--wfp-seat-fill:rgba(100,100,100,0.10);--wfp-seat-stroke:#777777"
+      data-seat-index="3"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--occupied"
+      cx="74.683"
+      cy="145.297"
+      r="2.851"
+      style="--wfp-seat-fill:rgba(107,92,231,0.18);--wfp-seat-stroke:#6b5ce7"
+      data-seat-index="4"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--occupied"
+      cx="67.723"
+      cy="147.558"
+      r="2.851"
+      style="--wfp-seat-fill:rgba(194,37,92,0.18);--wfp-seat-stroke:#c2255c"
+      data-seat-index="5"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="60.763"
+      cy="145.297"
+      r="2.851"
+      
+      data-seat-index="6"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="56.462"
+      cy="139.376"
+      r="2.851"
+      
+      data-seat-index="7"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="56.462"
+      cy="132.058"
+      r="2.851"
+      
+      data-seat-index="8"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="60.763"
+      cy="126.137"
+      r="2.851"
+      
+      data-seat-index="9"/>
+      
+    <g class="wfp-design-table-core wfp-design-table-core--regular">
+      <circle class="wfp-design-table-orbit" cx="67.723" cy="135.717" r="11.841"/>
+      <circle class="wfp-design-table-center" cx="67.723" cy="135.717" r="7.894"/>
+      <text class="wfp-design-table-label" x="67.723" y="134.533">7桌</text>
+      <text class="wfp-design-table-count" x="67.723" y="138.322">6 / 10</text>
+    </g>
+      
+    <g class="wfp-seat-label wfp-seat-label--regular wfp-seat-label--top"
+      data-guest-id="g32"
+      data-seat-index="0"
+      style="--wfp-seat-stroke:#c2255c;--wfp-label-font-size:1.834mm">
+      <rect class="wfp-design-label-box"
+        x="64.565"
+        y="119.976"
+        width="6.316"
+        height="3.1"
+        rx="1.4"/>
+      <text class="wfp-design-label-text"
+        x="67.723"
+        y="121.526"
+        font-size="1.834mm"
+        style="font-size:1.834mm">
+    <tspan x="67.723" y="121.526">郭佩珊</tspan></text>
+    </g>
+    <g class="wfp-seat-label wfp-seat-label--regular wfp-seat-label--top-right"
+      data-guest-id="g33"
+      data-seat-index="1"
+      style="--wfp-seat-stroke:#2f9e44;--wfp-label-font-size:1.834mm">
+      <rect class="wfp-design-label-box"
+        x="75.483"
+        y="122.237"
+        width="6.316"
+        height="3.1"
+        rx="1.4"/>
+      <text class="wfp-design-label-text"
+        x="78.641"
+        y="123.787"
+        font-size="1.834mm"
+        style="font-size:1.834mm">
+    <tspan x="78.641" y="123.787">楊志明</tspan></text>
+    </g>
+    <g class="wfp-seat-label wfp-seat-label--regular wfp-seat-label--right"
+      data-guest-id="g34"
+      data-seat-index="2"
+      style="--wfp-seat-stroke:#c49a2a;--wfp-label-font-size:1.834mm">
+      <rect class="wfp-design-label-box"
+        x="79.784"
+        y="130.508"
+        width="6.316"
+        height="3.1"
+        rx="1.4"/>
+      <text class="wfp-design-label-text"
+        x="82.942"
+        y="132.058"
+        font-size="1.834mm"
+        style="font-size:1.834mm">
+    <tspan x="82.942" y="132.058">趙欣怡</tspan></text>
+    </g>
+    <g class="wfp-seat-label wfp-seat-label--regular wfp-seat-label--right"
+      data-guest-id="g35"
+      data-seat-index="3"
+      style="--wfp-seat-stroke:#777777;--wfp-label-font-size:1.834mm">
+      <rect class="wfp-design-label-box"
+        x="79.784"
+        y="137.826"
+        width="6.316"
+        height="3.1"
+        rx="1.4"/>
+      <text class="wfp-design-label-text"
+        x="82.942"
+        y="139.376"
+        font-size="1.834mm"
+        style="font-size:1.834mm">
+    <tspan x="82.942" y="139.376">孫嘉玲</tspan></text>
+    </g>
+    <g class="wfp-seat-label wfp-seat-label--regular wfp-seat-label--bottom-right"
+      data-guest-id="g36"
+      data-seat-index="4"
+      style="--wfp-seat-stroke:#6b5ce7;--wfp-label-font-size:1.834mm">
+      <rect class="wfp-design-label-box"
+        x="75.483"
+        y="146.097"
+        width="6.316"
+        height="3.1"
+        rx="1.4"/>
+      <text class="wfp-design-label-text"
+        x="78.641"
+        y="147.647"
+        font-size="1.834mm"
+        style="font-size:1.834mm">
+    <tspan x="78.641" y="147.647">朱庭安</tspan></text>
+    </g>
+    <g class="wfp-seat-label wfp-seat-label--regular wfp-seat-label--bottom"
+      data-guest-id="g37"
+      data-seat-index="5"
+      style="--wfp-seat-stroke:#c2255c;--wfp-label-font-size:1.834mm">
+      <rect class="wfp-design-label-box"
+        x="64.565"
+        y="148.358"
+        width="6.316"
+        height="3.1"
+        rx="1.4"/>
+      <text class="wfp-design-label-text"
+        x="67.723"
+        y="149.908"
+        font-size="1.834mm"
+        style="font-size:1.834mm">
+    <tspan x="67.723" y="149.908">高明倫</tspan></text>
+    </g>
+    </g>
+    <g class="wfp-design-table wfp-design-table--regular"
+      data-table-id="t8"
+      data-table-label="8桌"
+      data-position-source="default">
+      
+      
+      
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="105"
+      cy="123.876"
+      r="2.851"
+      
+      data-seat-index="0"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="111.96"
+      cy="126.137"
+      r="2.851"
+      
+      data-seat-index="1"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="116.261"
+      cy="132.058"
+      r="2.851"
+      
+      data-seat-index="2"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="116.261"
+      cy="139.376"
+      r="2.851"
+      
+      data-seat-index="3"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="111.96"
+      cy="145.297"
+      r="2.851"
+      
+      data-seat-index="4"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="105"
+      cy="147.558"
+      r="2.851"
+      
+      data-seat-index="5"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="98.04"
+      cy="145.297"
+      r="2.851"
+      
+      data-seat-index="6"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="93.739"
+      cy="139.376"
+      r="2.851"
+      
+      data-seat-index="7"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="93.739"
+      cy="132.058"
+      r="2.851"
+      
+      data-seat-index="8"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="98.04"
+      cy="126.137"
+      r="2.851"
+      
+      data-seat-index="9"/>
+      
+    <g class="wfp-design-table-core wfp-design-table-core--regular">
+      <circle class="wfp-design-table-orbit" cx="105" cy="135.717" r="11.841"/>
+      <circle class="wfp-design-table-center" cx="105" cy="135.717" r="7.894"/>
+      <text class="wfp-design-table-label" x="105" y="134.533">8桌</text>
+      <text class="wfp-design-table-count" x="105" y="138.322">0 / 10</text>
+    </g>
+      
+    </g>
+    <g class="wfp-design-table wfp-design-table--regular"
+      data-table-id="t9"
+      data-table-label="9桌"
+      data-position-source="default">
+      
+      
+      
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="142.278"
+      cy="123.876"
+      r="2.851"
+      
+      data-seat-index="0"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="149.238"
+      cy="126.137"
+      r="2.851"
+      
+      data-seat-index="1"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="153.539"
+      cy="132.058"
+      r="2.851"
+      
+      data-seat-index="2"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="153.539"
+      cy="139.376"
+      r="2.851"
+      
+      data-seat-index="3"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="149.238"
+      cy="145.297"
+      r="2.851"
+      
+      data-seat-index="4"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="142.278"
+      cy="147.558"
+      r="2.851"
+      
+      data-seat-index="5"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="135.318"
+      cy="145.297"
+      r="2.851"
+      
+      data-seat-index="6"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="131.017"
+      cy="139.376"
+      r="2.851"
+      
+      data-seat-index="7"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="131.017"
+      cy="132.058"
+      r="2.851"
+      
+      data-seat-index="8"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="135.318"
+      cy="126.137"
+      r="2.851"
+      
+      data-seat-index="9"/>
+      
+    <g class="wfp-design-table-core wfp-design-table-core--regular">
+      <circle class="wfp-design-table-orbit" cx="142.278" cy="135.717" r="11.841"/>
+      <circle class="wfp-design-table-center" cx="142.278" cy="135.717" r="7.894"/>
+      <text class="wfp-design-table-label" x="142.278" y="134.533">9桌</text>
+      <text class="wfp-design-table-count" x="142.278" y="138.322">0 / 10</text>
+    </g>
+      
+    </g>
+    <g class="wfp-design-table wfp-design-table--regular"
+      data-table-id="t10"
+      data-table-label="10桌"
+      data-position-source="default">
+      
+      
+      
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="179.555"
+      cy="123.876"
+      r="2.851"
+      
+      data-seat-index="0"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="186.515"
+      cy="126.137"
+      r="2.851"
+      
+      data-seat-index="1"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="190.816"
+      cy="132.058"
+      r="2.851"
+      
+      data-seat-index="2"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="190.816"
+      cy="139.376"
+      r="2.851"
+      
+      data-seat-index="3"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="186.515"
+      cy="145.297"
+      r="2.851"
+      
+      data-seat-index="4"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="179.555"
+      cy="147.558"
+      r="2.851"
+      
+      data-seat-index="5"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="172.595"
+      cy="145.297"
+      r="2.851"
+      
+      data-seat-index="6"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="168.294"
+      cy="139.376"
+      r="2.851"
+      
+      data-seat-index="7"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="168.294"
+      cy="132.058"
+      r="2.851"
+      
+      data-seat-index="8"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="172.595"
+      cy="126.137"
+      r="2.851"
+      
+      data-seat-index="9"/>
+      
+    <g class="wfp-design-table-core wfp-design-table-core--regular">
+      <circle class="wfp-design-table-orbit" cx="179.555" cy="135.717" r="11.841"/>
+      <circle class="wfp-design-table-center" cx="179.555" cy="135.717" r="7.894"/>
+      <text class="wfp-design-table-label" x="179.555" y="134.533">10桌</text>
+      <text class="wfp-design-table-count" x="179.555" y="138.322">0 / 10</text>
+    </g>
+      
+    </g>
+    <g class="wfp-design-table wfp-design-table--regular"
+      data-table-id="t11"
+      data-table-label="11桌"
+      data-position-source="default">
+      
+      
+      
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="30.446"
+      cy="164.443"
+      r="2.851"
+      
+      data-seat-index="0"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="37.406"
+      cy="166.704"
+      r="2.851"
+      
+      data-seat-index="1"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="41.707"
+      cy="172.625"
+      r="2.851"
+      
+      data-seat-index="2"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="41.707"
+      cy="179.943"
+      r="2.851"
+      
+      data-seat-index="3"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="37.406"
+      cy="185.864"
+      r="2.851"
+      
+      data-seat-index="4"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="30.446"
+      cy="188.125"
+      r="2.851"
+      
+      data-seat-index="5"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="23.486"
+      cy="185.864"
+      r="2.851"
+      
+      data-seat-index="6"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="19.185"
+      cy="179.943"
+      r="2.851"
+      
+      data-seat-index="7"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="19.185"
+      cy="172.625"
+      r="2.851"
+      
+      data-seat-index="8"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="23.486"
+      cy="166.704"
+      r="2.851"
+      
+      data-seat-index="9"/>
+      
+    <g class="wfp-design-table-core wfp-design-table-core--regular">
+      <circle class="wfp-design-table-orbit" cx="30.446" cy="176.284" r="11.841"/>
+      <circle class="wfp-design-table-center" cx="30.446" cy="176.284" r="7.894"/>
+      <text class="wfp-design-table-label" x="30.446" y="175.1">11桌</text>
+      <text class="wfp-design-table-count" x="30.446" y="178.889">0 / 10</text>
+    </g>
+      
+    </g>
+    <g class="wfp-design-table wfp-design-table--regular"
+      data-table-id="t12"
+      data-table-label="12桌"
+      data-position-source="default">
+      
+      
+      
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="67.723"
+      cy="164.443"
+      r="2.851"
+      
+      data-seat-index="0"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="74.683"
+      cy="166.704"
+      r="2.851"
+      
+      data-seat-index="1"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="78.984"
+      cy="172.625"
+      r="2.851"
+      
+      data-seat-index="2"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="78.984"
+      cy="179.943"
+      r="2.851"
+      
+      data-seat-index="3"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="74.683"
+      cy="185.864"
+      r="2.851"
+      
+      data-seat-index="4"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="67.723"
+      cy="188.125"
+      r="2.851"
+      
+      data-seat-index="5"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="60.763"
+      cy="185.864"
+      r="2.851"
+      
+      data-seat-index="6"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="56.462"
+      cy="179.943"
+      r="2.851"
+      
+      data-seat-index="7"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="56.462"
+      cy="172.625"
+      r="2.851"
+      
+      data-seat-index="8"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="60.763"
+      cy="166.704"
+      r="2.851"
+      
+      data-seat-index="9"/>
+      
+    <g class="wfp-design-table-core wfp-design-table-core--regular">
+      <circle class="wfp-design-table-orbit" cx="67.723" cy="176.284" r="11.841"/>
+      <circle class="wfp-design-table-center" cx="67.723" cy="176.284" r="7.894"/>
+      <text class="wfp-design-table-label" x="67.723" y="175.1">12桌</text>
+      <text class="wfp-design-table-count" x="67.723" y="178.889">0 / 10</text>
+    </g>
+      
+    </g>
+    <g class="wfp-design-table wfp-design-table--regular"
+      data-table-id="t13"
+      data-table-label="13桌"
+      data-position-source="default">
+      
+      
+      
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="105"
+      cy="164.443"
+      r="2.851"
+      
+      data-seat-index="0"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="111.96"
+      cy="166.704"
+      r="2.851"
+      
+      data-seat-index="1"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="116.261"
+      cy="172.625"
+      r="2.851"
+      
+      data-seat-index="2"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="116.261"
+      cy="179.943"
+      r="2.851"
+      
+      data-seat-index="3"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="111.96"
+      cy="185.864"
+      r="2.851"
+      
+      data-seat-index="4"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="105"
+      cy="188.125"
+      r="2.851"
+      
+      data-seat-index="5"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="98.04"
+      cy="185.864"
+      r="2.851"
+      
+      data-seat-index="6"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="93.739"
+      cy="179.943"
+      r="2.851"
+      
+      data-seat-index="7"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="93.739"
+      cy="172.625"
+      r="2.851"
+      
+      data-seat-index="8"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="98.04"
+      cy="166.704"
+      r="2.851"
+      
+      data-seat-index="9"/>
+      
+    <g class="wfp-design-table-core wfp-design-table-core--regular">
+      <circle class="wfp-design-table-orbit" cx="105" cy="176.284" r="11.841"/>
+      <circle class="wfp-design-table-center" cx="105" cy="176.284" r="7.894"/>
+      <text class="wfp-design-table-label" x="105" y="175.1">13桌</text>
+      <text class="wfp-design-table-count" x="105" y="178.889">0 / 10</text>
+    </g>
+      
+    </g>
+    <g class="wfp-design-table wfp-design-table--regular"
+      data-table-id="t14"
+      data-table-label="14桌"
+      data-position-source="default">
+      
+      
+      
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="142.278"
+      cy="164.443"
+      r="2.851"
+      
+      data-seat-index="0"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="149.238"
+      cy="166.704"
+      r="2.851"
+      
+      data-seat-index="1"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="153.539"
+      cy="172.625"
+      r="2.851"
+      
+      data-seat-index="2"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="153.539"
+      cy="179.943"
+      r="2.851"
+      
+      data-seat-index="3"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="149.238"
+      cy="185.864"
+      r="2.851"
+      
+      data-seat-index="4"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="142.278"
+      cy="188.125"
+      r="2.851"
+      
+      data-seat-index="5"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="135.318"
+      cy="185.864"
+      r="2.851"
+      
+      data-seat-index="6"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="131.017"
+      cy="179.943"
+      r="2.851"
+      
+      data-seat-index="7"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="131.017"
+      cy="172.625"
+      r="2.851"
+      
+      data-seat-index="8"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="135.318"
+      cy="166.704"
+      r="2.851"
+      
+      data-seat-index="9"/>
+      
+    <g class="wfp-design-table-core wfp-design-table-core--regular">
+      <circle class="wfp-design-table-orbit" cx="142.278" cy="176.284" r="11.841"/>
+      <circle class="wfp-design-table-center" cx="142.278" cy="176.284" r="7.894"/>
+      <text class="wfp-design-table-label" x="142.278" y="175.1">14桌</text>
+      <text class="wfp-design-table-count" x="142.278" y="178.889">0 / 10</text>
+    </g>
+      
+    </g>
+    <g class="wfp-design-table wfp-design-table--regular"
+      data-table-id="t15"
+      data-table-label="15桌"
+      data-position-source="default">
+      
+      
+      
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="179.555"
+      cy="164.443"
+      r="2.851"
+      
+      data-seat-index="0"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="186.515"
+      cy="166.704"
+      r="2.851"
+      
+      data-seat-index="1"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="190.816"
+      cy="172.625"
+      r="2.851"
+      
+      data-seat-index="2"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="190.816"
+      cy="179.943"
+      r="2.851"
+      
+      data-seat-index="3"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="186.515"
+      cy="185.864"
+      r="2.851"
+      
+      data-seat-index="4"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="179.555"
+      cy="188.125"
+      r="2.851"
+      
+      data-seat-index="5"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="172.595"
+      cy="185.864"
+      r="2.851"
+      
+      data-seat-index="6"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="168.294"
+      cy="179.943"
+      r="2.851"
+      
+      data-seat-index="7"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="168.294"
+      cy="172.625"
+      r="2.851"
+      
+      data-seat-index="8"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="172.595"
+      cy="166.704"
+      r="2.851"
+      
+      data-seat-index="9"/>
+      
+    <g class="wfp-design-table-core wfp-design-table-core--regular">
+      <circle class="wfp-design-table-orbit" cx="179.555" cy="176.284" r="11.841"/>
+      <circle class="wfp-design-table-center" cx="179.555" cy="176.284" r="7.894"/>
+      <text class="wfp-design-table-label" x="179.555" y="175.1">15桌</text>
+      <text class="wfp-design-table-count" x="179.555" y="178.889">0 / 10</text>
+    </g>
+      
+    </g>
+    <g class="wfp-design-table wfp-design-table--regular"
+      data-table-id="t16"
+      data-table-label="16桌"
+      data-position-source="default">
+      
+      
+      
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="30.446"
+      cy="205.009"
+      r="2.851"
+      
+      data-seat-index="0"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="37.406"
+      cy="207.27"
+      r="2.851"
+      
+      data-seat-index="1"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="41.707"
+      cy="213.191"
+      r="2.851"
+      
+      data-seat-index="2"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="41.707"
+      cy="220.509"
+      r="2.851"
+      
+      data-seat-index="3"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="37.406"
+      cy="226.43"
+      r="2.851"
+      
+      data-seat-index="4"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="30.446"
+      cy="228.691"
+      r="2.851"
+      
+      data-seat-index="5"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="23.486"
+      cy="226.43"
+      r="2.851"
+      
+      data-seat-index="6"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="19.185"
+      cy="220.509"
+      r="2.851"
+      
+      data-seat-index="7"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="19.185"
+      cy="213.191"
+      r="2.851"
+      
+      data-seat-index="8"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="23.486"
+      cy="207.27"
+      r="2.851"
+      
+      data-seat-index="9"/>
+      
+    <g class="wfp-design-table-core wfp-design-table-core--regular">
+      <circle class="wfp-design-table-orbit" cx="30.446" cy="216.85" r="11.841"/>
+      <circle class="wfp-design-table-center" cx="30.446" cy="216.85" r="7.894"/>
+      <text class="wfp-design-table-label" x="30.446" y="215.666">16桌</text>
+      <text class="wfp-design-table-count" x="30.446" y="219.455">0 / 10</text>
+    </g>
+      
+    </g>
+    <g class="wfp-design-table wfp-design-table--regular"
+      data-table-id="t17"
+      data-table-label="17桌"
+      data-position-source="default">
+      
+      
+      
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="67.723"
+      cy="205.009"
+      r="2.851"
+      
+      data-seat-index="0"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="74.683"
+      cy="207.27"
+      r="2.851"
+      
+      data-seat-index="1"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="78.984"
+      cy="213.191"
+      r="2.851"
+      
+      data-seat-index="2"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="78.984"
+      cy="220.509"
+      r="2.851"
+      
+      data-seat-index="3"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="74.683"
+      cy="226.43"
+      r="2.851"
+      
+      data-seat-index="4"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="67.723"
+      cy="228.691"
+      r="2.851"
+      
+      data-seat-index="5"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="60.763"
+      cy="226.43"
+      r="2.851"
+      
+      data-seat-index="6"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="56.462"
+      cy="220.509"
+      r="2.851"
+      
+      data-seat-index="7"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="56.462"
+      cy="213.191"
+      r="2.851"
+      
+      data-seat-index="8"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="60.763"
+      cy="207.27"
+      r="2.851"
+      
+      data-seat-index="9"/>
+      
+    <g class="wfp-design-table-core wfp-design-table-core--regular">
+      <circle class="wfp-design-table-orbit" cx="67.723" cy="216.85" r="11.841"/>
+      <circle class="wfp-design-table-center" cx="67.723" cy="216.85" r="7.894"/>
+      <text class="wfp-design-table-label" x="67.723" y="215.666">17桌</text>
+      <text class="wfp-design-table-count" x="67.723" y="219.455">0 / 10</text>
+    </g>
+      
+    </g>
+    <g class="wfp-design-table wfp-design-table--regular"
+      data-table-id="t18"
+      data-table-label="18桌"
+      data-position-source="default">
+      
+      
+    <path class="wfp-seat-connector wfp-seat-connector--regular"
+      data-guest-id="g38"
+      d="M 105 205.009 L 105 204.209"
+      style="--wfp-seat-stroke:#2f9e44"/>
+    <path class="wfp-seat-connector wfp-seat-connector--regular"
+      data-guest-id="g39"
+      d="M 111.96 207.27 L 112.76 206.47"
+      style="--wfp-seat-stroke:#c49a2a"/>
+    <path class="wfp-seat-connector wfp-seat-connector--regular"
+      data-guest-id="g40"
+      d="M 116.261 213.191 L 117.061 213.191"
+      style="--wfp-seat-stroke:#777777"/>
+    <path class="wfp-seat-connector wfp-seat-connector--regular"
+      data-guest-id="g41"
+      d="M 116.261 220.509 L 117.061 220.509"
+      style="--wfp-seat-stroke:#6b5ce7"/>
+    <path class="wfp-seat-connector wfp-seat-connector--regular"
+      data-guest-id="g42"
+      d="M 111.96 226.43 L 112.76 227.23"
+      style="--wfp-seat-stroke:#c2255c"/>
+      
+    <circle class="wfp-seat-dot wfp-seat-dot--occupied"
+      cx="105"
+      cy="205.009"
+      r="2.851"
+      style="--wfp-seat-fill:rgba(47,158,68,0.18);--wfp-seat-stroke:#2f9e44"
+      data-seat-index="0"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--occupied"
+      cx="111.96"
+      cy="207.27"
+      r="2.851"
+      style="--wfp-seat-fill:rgba(196,154,42,0.18);--wfp-seat-stroke:#c49a2a"
+      data-seat-index="1"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--occupied"
+      cx="116.261"
+      cy="213.191"
+      r="2.851"
+      style="--wfp-seat-fill:rgba(100,100,100,0.10);--wfp-seat-stroke:#777777"
+      data-seat-index="2"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--occupied"
+      cx="116.261"
+      cy="220.509"
+      r="2.851"
+      style="--wfp-seat-fill:rgba(107,92,231,0.18);--wfp-seat-stroke:#6b5ce7"
+      data-seat-index="3"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--occupied"
+      cx="111.96"
+      cy="226.43"
+      r="2.851"
+      style="--wfp-seat-fill:rgba(194,37,92,0.18);--wfp-seat-stroke:#c2255c"
+      data-seat-index="4"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="105"
+      cy="228.691"
+      r="2.851"
+      
+      data-seat-index="5"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="98.04"
+      cy="226.43"
+      r="2.851"
+      
+      data-seat-index="6"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="93.739"
+      cy="220.509"
+      r="2.851"
+      
+      data-seat-index="7"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="93.739"
+      cy="213.191"
+      r="2.851"
+      
+      data-seat-index="8"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="98.04"
+      cy="207.27"
+      r="2.851"
+      
+      data-seat-index="9"/>
+      
+    <g class="wfp-design-table-core wfp-design-table-core--regular">
+      <circle class="wfp-design-table-orbit" cx="105" cy="216.85" r="11.841"/>
+      <circle class="wfp-design-table-center" cx="105" cy="216.85" r="7.894"/>
+      <text class="wfp-design-table-label" x="105" y="215.666">18桌</text>
+      <text class="wfp-design-table-count" x="105" y="219.455">5 / 10</text>
+    </g>
+      
+    <g class="wfp-seat-label wfp-seat-label--regular wfp-seat-label--top"
+      data-guest-id="g38"
+      data-seat-index="0"
+      style="--wfp-seat-stroke:#2f9e44;--wfp-label-font-size:1.834mm">
+      <rect class="wfp-design-label-box"
+        x="101.842"
+        y="201.109"
+        width="6.316"
+        height="3.1"
+        rx="1.4"/>
+      <text class="wfp-design-label-text"
+        x="105"
+        y="202.659"
+        font-size="1.834mm"
+        style="font-size:1.834mm">
+    <tspan x="105" y="202.659">羅佳琪</tspan></text>
+    </g>
+    <g class="wfp-seat-label wfp-seat-label--regular wfp-seat-label--top-right"
+      data-guest-id="g39"
+      data-seat-index="1"
+      style="--wfp-seat-stroke:#c49a2a;--wfp-label-font-size:1.834mm">
+      <rect class="wfp-design-label-box"
+        x="112.76"
+        y="203.37"
+        width="6.316"
+        height="3.1"
+        rx="1.4"/>
+      <text class="wfp-design-label-text"
+        x="115.918"
+        y="204.92"
+        font-size="1.834mm"
+        style="font-size:1.834mm">
+    <tspan x="115.918" y="204.92">彭俊傑</tspan></text>
+    </g>
+    <g class="wfp-seat-label wfp-seat-label--regular wfp-seat-label--right"
+      data-guest-id="g40"
+      data-seat-index="2"
+      style="--wfp-seat-stroke:#777777;--wfp-label-font-size:1.834mm">
+      <rect class="wfp-design-label-box"
+        x="117.061"
+        y="211.641"
+        width="6.316"
+        height="3.1"
+        rx="1.4"/>
+      <text class="wfp-design-label-text"
+        x="120.219"
+        y="213.191"
+        font-size="1.834mm"
+        style="font-size:1.834mm">
+    <tspan x="120.219" y="213.191">曾婉如</tspan></text>
+    </g>
+    <g class="wfp-seat-label wfp-seat-label--regular wfp-seat-label--right"
+      data-guest-id="g41"
+      data-seat-index="3"
+      style="--wfp-seat-stroke:#6b5ce7;--wfp-label-font-size:1.834mm">
+      <rect class="wfp-design-label-box"
+        x="117.061"
+        y="218.959"
+        width="6.316"
+        height="3.1"
+        rx="1.4"/>
+      <text class="wfp-design-label-text"
+        x="120.219"
+        y="220.509"
+        font-size="1.834mm"
+        style="font-size:1.834mm">
+    <tspan x="120.219" y="220.509">戴品妤</tspan></text>
+    </g>
+    <g class="wfp-seat-label wfp-seat-label--regular wfp-seat-label--bottom-right"
+      data-guest-id="g42"
+      data-seat-index="4"
+      style="--wfp-seat-stroke:#c2255c;--wfp-label-font-size:1.834mm">
+      <rect class="wfp-design-label-box"
+        x="112.76"
+        y="227.23"
+        width="6.316"
+        height="3.1"
+        rx="1.4"/>
+      <text class="wfp-design-label-text"
+        x="115.918"
+        y="228.78"
+        font-size="1.834mm"
+        style="font-size:1.834mm">
+    <tspan x="115.918" y="228.78">方士豪</tspan></text>
+    </g>
+    </g>
+    <g class="wfp-design-table wfp-design-table--regular"
+      data-table-id="t19"
+      data-table-label="19桌"
+      data-position-source="default">
+      
+      
+    <path class="wfp-seat-connector wfp-seat-connector--regular"
+      data-guest-id="g43"
+      d="M 142.278 205.009 L 142.278 204.209"
+      style="--wfp-seat-stroke:#2f9e44"/>
+    <path class="wfp-seat-connector wfp-seat-connector--regular"
+      data-guest-id="g44"
+      d="M 149.238 207.27 L 150.038 206.47"
+      style="--wfp-seat-stroke:#c49a2a"/>
+    <path class="wfp-seat-connector wfp-seat-connector--regular"
+      data-guest-id="g45"
+      d="M 153.539 213.191 L 154.339 213.191"
+      style="--wfp-seat-stroke:#777777"/>
+    <path class="wfp-seat-connector wfp-seat-connector--regular"
+      data-guest-id="g46"
+      d="M 153.539 220.509 L 154.339 220.509"
+      style="--wfp-seat-stroke:#6b5ce7"/>
+    <path class="wfp-seat-connector wfp-seat-connector--regular"
+      data-guest-id="g47"
+      d="M 149.238 226.43 L 150.038 227.23"
+      style="--wfp-seat-stroke:#c2255c"/>
+      
+    <circle class="wfp-seat-dot wfp-seat-dot--occupied"
+      cx="142.278"
+      cy="205.009"
+      r="2.851"
+      style="--wfp-seat-fill:rgba(47,158,68,0.18);--wfp-seat-stroke:#2f9e44"
+      data-seat-index="0"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--occupied"
+      cx="149.238"
+      cy="207.27"
+      r="2.851"
+      style="--wfp-seat-fill:rgba(196,154,42,0.18);--wfp-seat-stroke:#c49a2a"
+      data-seat-index="1"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--occupied"
+      cx="153.539"
+      cy="213.191"
+      r="2.851"
+      style="--wfp-seat-fill:rgba(100,100,100,0.10);--wfp-seat-stroke:#777777"
+      data-seat-index="2"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--occupied"
+      cx="153.539"
+      cy="220.509"
+      r="2.851"
+      style="--wfp-seat-fill:rgba(107,92,231,0.18);--wfp-seat-stroke:#6b5ce7"
+      data-seat-index="3"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--occupied"
+      cx="149.238"
+      cy="226.43"
+      r="2.851"
+      style="--wfp-seat-fill:rgba(194,37,92,0.18);--wfp-seat-stroke:#c2255c"
+      data-seat-index="4"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="142.278"
+      cy="228.691"
+      r="2.851"
+      
+      data-seat-index="5"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="135.318"
+      cy="226.43"
+      r="2.851"
+      
+      data-seat-index="6"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="131.017"
+      cy="220.509"
+      r="2.851"
+      
+      data-seat-index="7"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="131.017"
+      cy="213.191"
+      r="2.851"
+      
+      data-seat-index="8"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="135.318"
+      cy="207.27"
+      r="2.851"
+      
+      data-seat-index="9"/>
+      
+    <g class="wfp-design-table-core wfp-design-table-core--regular">
+      <circle class="wfp-design-table-orbit" cx="142.278" cy="216.85" r="11.841"/>
+      <circle class="wfp-design-table-center" cx="142.278" cy="216.85" r="7.894"/>
+      <text class="wfp-design-table-label" x="142.278" y="215.666">19桌</text>
+      <text class="wfp-design-table-count" x="142.278" y="219.455">5 / 10</text>
+    </g>
+      
+    <g class="wfp-seat-label wfp-seat-label--regular wfp-seat-label--top"
+      data-guest-id="g43"
+      data-seat-index="0"
+      style="--wfp-seat-stroke:#2f9e44;--wfp-label-font-size:1.834mm">
+      <rect class="wfp-design-label-box"
+        x="139.12"
+        y="201.109"
+        width="6.316"
+        height="3.1"
+        rx="1.4"/>
+      <text class="wfp-design-label-text"
+        x="142.278"
+        y="202.659"
+        font-size="1.834mm"
+        style="font-size:1.834mm">
+    <tspan x="142.278" y="202.659">余靜宜</tspan></text>
+    </g>
+    <g class="wfp-seat-label wfp-seat-label--regular wfp-seat-label--top-right"
+      data-guest-id="g44"
+      data-seat-index="1"
+      style="--wfp-seat-stroke:#c49a2a;--wfp-label-font-size:1.834mm">
+      <rect class="wfp-design-label-box"
+        x="150.038"
+        y="203.37"
+        width="6.316"
+        height="3.1"
+        rx="1.4"/>
+      <text class="wfp-design-label-text"
+        x="153.196"
+        y="204.92"
+        font-size="1.834mm"
+        style="font-size:1.834mm">
+    <tspan x="153.196" y="204.92">簡佑誠</tspan></text>
+    </g>
+    <g class="wfp-seat-label wfp-seat-label--regular wfp-seat-label--right"
+      data-guest-id="g45"
+      data-seat-index="2"
+      style="--wfp-seat-stroke:#777777;--wfp-label-font-size:1.834mm">
+      <rect class="wfp-design-label-box"
+        x="154.339"
+        y="211.641"
+        width="6.316"
+        height="3.1"
+        rx="1.4"/>
+      <text class="wfp-design-label-text"
+        x="157.497"
+        y="213.191"
+        font-size="1.834mm"
+        style="font-size:1.834mm">
+    <tspan x="157.497" y="213.191">葉佳穎</tspan></text>
+    </g>
+    <g class="wfp-seat-label wfp-seat-label--regular wfp-seat-label--right"
+      data-guest-id="g46"
+      data-seat-index="3"
+      style="--wfp-seat-stroke:#6b5ce7;--wfp-label-font-size:1.834mm">
+      <rect class="wfp-design-label-box"
+        x="154.339"
+        y="218.959"
+        width="6.316"
+        height="3.1"
+        rx="1.4"/>
+      <text class="wfp-design-label-text"
+        x="157.497"
+        y="220.509"
+        font-size="1.834mm"
+        style="font-size:1.834mm">
+    <tspan x="157.497" y="220.509">蘇郁婷</tspan></text>
+    </g>
+    <g class="wfp-seat-label wfp-seat-label--regular wfp-seat-label--bottom-right"
+      data-guest-id="g47"
+      data-seat-index="4"
+      style="--wfp-seat-stroke:#c2255c;--wfp-label-font-size:1.834mm">
+      <rect class="wfp-design-label-box"
+        x="150.038"
+        y="227.23"
+        width="6.316"
+        height="3.1"
+        rx="1.4"/>
+      <text class="wfp-design-label-text"
+        x="153.196"
+        y="228.78"
+        font-size="1.834mm"
+        style="font-size:1.834mm">
+    <tspan x="153.196" y="228.78">白承恩</tspan></text>
+    </g>
+    </g>
+    <g class="wfp-design-table wfp-design-table--regular"
+      data-table-id="t20"
+      data-table-label="20桌"
+      data-position-source="default">
+      
+      
+      
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="179.555"
+      cy="205.009"
+      r="2.851"
+      
+      data-seat-index="0"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="186.515"
+      cy="207.27"
+      r="2.851"
+      
+      data-seat-index="1"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="190.816"
+      cy="213.191"
+      r="2.851"
+      
+      data-seat-index="2"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="190.816"
+      cy="220.509"
+      r="2.851"
+      
+      data-seat-index="3"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="186.515"
+      cy="226.43"
+      r="2.851"
+      
+      data-seat-index="4"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="179.555"
+      cy="228.691"
+      r="2.851"
+      
+      data-seat-index="5"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="172.595"
+      cy="226.43"
+      r="2.851"
+      
+      data-seat-index="6"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="168.294"
+      cy="220.509"
+      r="2.851"
+      
+      data-seat-index="7"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="168.294"
+      cy="213.191"
+      r="2.851"
+      
+      data-seat-index="8"/>
+    <circle class="wfp-seat-dot wfp-seat-dot--empty"
+      cx="172.595"
+      cy="207.27"
+      r="2.851"
+      
+      data-seat-index="9"/>
+      
+    <g class="wfp-design-table-core wfp-design-table-core--regular">
+      <circle class="wfp-design-table-orbit" cx="179.555" cy="216.85" r="11.841"/>
+      <circle class="wfp-design-table-center" cx="179.555" cy="216.85" r="7.894"/>
+      <text class="wfp-design-table-label" x="179.555" y="215.666">20桌</text>
+      <text class="wfp-design-table-count" x="179.555" y="219.455">0 / 10</text>
+    </g>
+      
+    </g>
+    </g>
+    
+    <g class="wfp-design-legend">
+      <line class="wfp-design-legend-rule" x1="28" y1="264" x2="86" y2="264"/>
+      <text class="wfp-design-legend-title" x="105" y="266.2">座位圖例</text>
+      <line class="wfp-design-legend-rule" x1="124" y1="264" x2="182" y2="264"/>
+      <g class="wfp-design-legend-list" transform="translate(42 274)">
+        
+      <g class="wfp-design-legend-item" transform="translate(0 0)">
+        <circle class="wfp-design-legend-dot" r="2"
+          style="--wfp-seat-fill:#6b5ce7;--wfp-seat-stroke:#6b5ce7"/>
+        <text class="wfp-design-legend-text" x="4.4" y="1.2">新郎親友</text>
+      </g>
+      <g class="wfp-design-legend-item" transform="translate(30 0)">
+        <circle class="wfp-design-legend-dot" r="2"
+          style="--wfp-seat-fill:#d9567a;--wfp-seat-stroke:#c2255c"/>
+        <text class="wfp-design-legend-text" x="4.4" y="1.2">新娘親友</text>
+      </g>
+      <g class="wfp-design-legend-item" transform="translate(60 0)">
+        <circle class="wfp-design-legend-dot" r="2"
+          style="--wfp-seat-fill:#3aaa6e;--wfp-seat-stroke:#2f9e44"/>
+        <text class="wfp-design-legend-text" x="4.4" y="1.2">共同朋友</text>
+      </g>
+      <g class="wfp-design-legend-item" transform="translate(90 0)">
+        <circle class="wfp-design-legend-dot" r="2"
+          style="--wfp-seat-fill:#c49a2a;--wfp-seat-stroke:#c49a2a"/>
+        <text class="wfp-design-legend-text" x="4.4" y="1.2">同事</text>
+      </g>
+      <g class="wfp-design-legend-item" transform="translate(0 7)">
+        <circle class="wfp-design-legend-dot" r="2"
+          style="--wfp-seat-fill:#888888;--wfp-seat-stroke:#777777"/>
+        <text class="wfp-design-legend-text" x="4.4" y="1.2">其他</text>
+      </g>
+      </g>
+    </g>
+  </svg>
+      </div>
+    </section>
+    <section class="wfp-page wfp-page--index">
+      
+    
+    <svg class="wfp-floral wfp-floral--top-left" viewBox="0 0 120 108" aria-hidden="true">
+      <path class="wfp-floral-stem" d="M10 92 C31 67 46 55 68 48 C88 42 101 29 112 12" fill="none"/>
+      <path class="wfp-floral-stem wfp-floral-stem--fine" d="M16 100 C24 84 34 73 48 66 C62 59 67 49 73 35" fill="none"/>
+      <g class="wfp-floral-bloom wfp-floral-bloom--primary">
+        <ellipse cx="32" cy="34" rx="18" ry="10" fill="var(--wfp-rose-soft)" transform="rotate(-28 32 34)"/>
+        <ellipse cx="45" cy="26" rx="19" ry="10" fill="var(--wfp-rose-petal)" transform="rotate(22 45 26)"/>
+        <ellipse cx="51" cy="43" rx="16" ry="9" fill="var(--wfp-rose-soft)" transform="rotate(46 51 43)"/>
+        <ellipse cx="34" cy="49" rx="14" ry="8" fill="var(--wfp-rose-petal)" transform="rotate(-58 34 49)" opacity="0.78"/>
+        <circle cx="42" cy="36" r="10" fill="var(--wfp-paper-warm)"/>
+        <circle cx="42" cy="36" r="4" fill="var(--wfp-gold-line)" opacity="0.62"/>
+      </g>
+      <g class="wfp-floral-bloom wfp-floral-bloom--secondary">
+        <ellipse cx="76" cy="64" rx="10" ry="6" fill="var(--wfp-rose-soft)" transform="rotate(24 76 64)"/>
+        <ellipse cx="84" cy="58" rx="9" ry="5" fill="var(--wfp-rose-petal)" transform="rotate(-28 84 58)" opacity="0.72"/>
+        <circle cx="80" cy="61" r="3.4" fill="var(--wfp-gold-line)" opacity="0.42"/>
+      </g>
+      <ellipse cx="78" cy="33" rx="12" ry="5" fill="var(--wfp-leaf-soft)" transform="rotate(-34 78 33)"/>
+      <ellipse cx="96" cy="22" rx="13" ry="5" fill="var(--wfp-leaf-soft)" transform="rotate(-24 96 22)"/>
+      <ellipse cx="18" cy="78" rx="11" ry="4.8" fill="var(--wfp-leaf-soft)" transform="rotate(-60 18 78)"/>
+      <ellipse cx="31" cy="72" rx="9" ry="4" fill="var(--wfp-leaf-soft)" transform="rotate(-38 31 72)" opacity="0.72"/>
+      <ellipse cx="64" cy="72" rx="8" ry="3.8" fill="var(--wfp-leaf-soft)" transform="rotate(28 64 72)" opacity="0.7"/>
+      <circle cx="25" cy="56" r="3.2" fill="var(--wfp-rose-petal)" opacity="0.48"/>
+      <circle cx="101" cy="39" r="2.8" fill="var(--wfp-rose-soft)" opacity="0.72"/>
+      <circle cx="82" cy="70" r="1.8" fill="var(--wfp-gold-line)" opacity="0.45"/>
+      <circle cx="94" cy="61" r="1.2" fill="var(--wfp-gold-line)" opacity="0.5"/>
+      <circle cx="74" cy="82" r="1.3" fill="var(--wfp-gold-line)" opacity="0.38"/>
+    </svg>
+    
+    <svg class="wfp-floral wfp-floral--top-right" viewBox="0 0 120 108" aria-hidden="true">
+      <path class="wfp-floral-stem" d="M10 92 C31 67 46 55 68 48 C88 42 101 29 112 12" fill="none"/>
+      <path class="wfp-floral-stem wfp-floral-stem--fine" d="M16 100 C24 84 34 73 48 66 C62 59 67 49 73 35" fill="none"/>
+      <g class="wfp-floral-bloom wfp-floral-bloom--primary">
+        <ellipse cx="32" cy="34" rx="18" ry="10" fill="var(--wfp-rose-soft)" transform="rotate(-28 32 34)"/>
+        <ellipse cx="45" cy="26" rx="19" ry="10" fill="var(--wfp-rose-petal)" transform="rotate(22 45 26)"/>
+        <ellipse cx="51" cy="43" rx="16" ry="9" fill="var(--wfp-rose-soft)" transform="rotate(46 51 43)"/>
+        <ellipse cx="34" cy="49" rx="14" ry="8" fill="var(--wfp-rose-petal)" transform="rotate(-58 34 49)" opacity="0.78"/>
+        <circle cx="42" cy="36" r="10" fill="var(--wfp-paper-warm)"/>
+        <circle cx="42" cy="36" r="4" fill="var(--wfp-gold-line)" opacity="0.62"/>
+      </g>
+      <g class="wfp-floral-bloom wfp-floral-bloom--secondary">
+        <ellipse cx="76" cy="64" rx="10" ry="6" fill="var(--wfp-rose-soft)" transform="rotate(24 76 64)"/>
+        <ellipse cx="84" cy="58" rx="9" ry="5" fill="var(--wfp-rose-petal)" transform="rotate(-28 84 58)" opacity="0.72"/>
+        <circle cx="80" cy="61" r="3.4" fill="var(--wfp-gold-line)" opacity="0.42"/>
+      </g>
+      <ellipse cx="78" cy="33" rx="12" ry="5" fill="var(--wfp-leaf-soft)" transform="rotate(-34 78 33)"/>
+      <ellipse cx="96" cy="22" rx="13" ry="5" fill="var(--wfp-leaf-soft)" transform="rotate(-24 96 22)"/>
+      <ellipse cx="18" cy="78" rx="11" ry="4.8" fill="var(--wfp-leaf-soft)" transform="rotate(-60 18 78)"/>
+      <ellipse cx="31" cy="72" rx="9" ry="4" fill="var(--wfp-leaf-soft)" transform="rotate(-38 31 72)" opacity="0.72"/>
+      <ellipse cx="64" cy="72" rx="8" ry="3.8" fill="var(--wfp-leaf-soft)" transform="rotate(28 64 72)" opacity="0.7"/>
+      <circle cx="25" cy="56" r="3.2" fill="var(--wfp-rose-petal)" opacity="0.48"/>
+      <circle cx="101" cy="39" r="2.8" fill="var(--wfp-rose-soft)" opacity="0.72"/>
+      <circle cx="82" cy="70" r="1.8" fill="var(--wfp-gold-line)" opacity="0.45"/>
+      <circle cx="94" cy="61" r="1.2" fill="var(--wfp-gold-line)" opacity="0.5"/>
+      <circle cx="74" cy="82" r="1.3" fill="var(--wfp-gold-line)" opacity="0.38"/>
+    </svg>
+    
+    <svg class="wfp-floral wfp-floral--bottom-left" viewBox="0 0 120 108" aria-hidden="true">
+      <path class="wfp-floral-stem" d="M10 92 C31 67 46 55 68 48 C88 42 101 29 112 12" fill="none"/>
+      <path class="wfp-floral-stem wfp-floral-stem--fine" d="M16 100 C24 84 34 73 48 66 C62 59 67 49 73 35" fill="none"/>
+      <g class="wfp-floral-bloom wfp-floral-bloom--primary">
+        <ellipse cx="32" cy="34" rx="18" ry="10" fill="var(--wfp-rose-soft)" transform="rotate(-28 32 34)"/>
+        <ellipse cx="45" cy="26" rx="19" ry="10" fill="var(--wfp-rose-petal)" transform="rotate(22 45 26)"/>
+        <ellipse cx="51" cy="43" rx="16" ry="9" fill="var(--wfp-rose-soft)" transform="rotate(46 51 43)"/>
+        <ellipse cx="34" cy="49" rx="14" ry="8" fill="var(--wfp-rose-petal)" transform="rotate(-58 34 49)" opacity="0.78"/>
+        <circle cx="42" cy="36" r="10" fill="var(--wfp-paper-warm)"/>
+        <circle cx="42" cy="36" r="4" fill="var(--wfp-gold-line)" opacity="0.62"/>
+      </g>
+      <g class="wfp-floral-bloom wfp-floral-bloom--secondary">
+        <ellipse cx="76" cy="64" rx="10" ry="6" fill="var(--wfp-rose-soft)" transform="rotate(24 76 64)"/>
+        <ellipse cx="84" cy="58" rx="9" ry="5" fill="var(--wfp-rose-petal)" transform="rotate(-28 84 58)" opacity="0.72"/>
+        <circle cx="80" cy="61" r="3.4" fill="var(--wfp-gold-line)" opacity="0.42"/>
+      </g>
+      <ellipse cx="78" cy="33" rx="12" ry="5" fill="var(--wfp-leaf-soft)" transform="rotate(-34 78 33)"/>
+      <ellipse cx="96" cy="22" rx="13" ry="5" fill="var(--wfp-leaf-soft)" transform="rotate(-24 96 22)"/>
+      <ellipse cx="18" cy="78" rx="11" ry="4.8" fill="var(--wfp-leaf-soft)" transform="rotate(-60 18 78)"/>
+      <ellipse cx="31" cy="72" rx="9" ry="4" fill="var(--wfp-leaf-soft)" transform="rotate(-38 31 72)" opacity="0.72"/>
+      <ellipse cx="64" cy="72" rx="8" ry="3.8" fill="var(--wfp-leaf-soft)" transform="rotate(28 64 72)" opacity="0.7"/>
+      <circle cx="25" cy="56" r="3.2" fill="var(--wfp-rose-petal)" opacity="0.48"/>
+      <circle cx="101" cy="39" r="2.8" fill="var(--wfp-rose-soft)" opacity="0.72"/>
+      <circle cx="82" cy="70" r="1.8" fill="var(--wfp-gold-line)" opacity="0.45"/>
+      <circle cx="94" cy="61" r="1.2" fill="var(--wfp-gold-line)" opacity="0.5"/>
+      <circle cx="74" cy="82" r="1.3" fill="var(--wfp-gold-line)" opacity="0.38"/>
+    </svg>
+    
+    <svg class="wfp-floral wfp-floral--bottom-right" viewBox="0 0 120 108" aria-hidden="true">
+      <path class="wfp-floral-stem" d="M10 92 C31 67 46 55 68 48 C88 42 101 29 112 12" fill="none"/>
+      <path class="wfp-floral-stem wfp-floral-stem--fine" d="M16 100 C24 84 34 73 48 66 C62 59 67 49 73 35" fill="none"/>
+      <g class="wfp-floral-bloom wfp-floral-bloom--primary">
+        <ellipse cx="32" cy="34" rx="18" ry="10" fill="var(--wfp-rose-soft)" transform="rotate(-28 32 34)"/>
+        <ellipse cx="45" cy="26" rx="19" ry="10" fill="var(--wfp-rose-petal)" transform="rotate(22 45 26)"/>
+        <ellipse cx="51" cy="43" rx="16" ry="9" fill="var(--wfp-rose-soft)" transform="rotate(46 51 43)"/>
+        <ellipse cx="34" cy="49" rx="14" ry="8" fill="var(--wfp-rose-petal)" transform="rotate(-58 34 49)" opacity="0.78"/>
+        <circle cx="42" cy="36" r="10" fill="var(--wfp-paper-warm)"/>
+        <circle cx="42" cy="36" r="4" fill="var(--wfp-gold-line)" opacity="0.62"/>
+      </g>
+      <g class="wfp-floral-bloom wfp-floral-bloom--secondary">
+        <ellipse cx="76" cy="64" rx="10" ry="6" fill="var(--wfp-rose-soft)" transform="rotate(24 76 64)"/>
+        <ellipse cx="84" cy="58" rx="9" ry="5" fill="var(--wfp-rose-petal)" transform="rotate(-28 84 58)" opacity="0.72"/>
+        <circle cx="80" cy="61" r="3.4" fill="var(--wfp-gold-line)" opacity="0.42"/>
+      </g>
+      <ellipse cx="78" cy="33" rx="12" ry="5" fill="var(--wfp-leaf-soft)" transform="rotate(-34 78 33)"/>
+      <ellipse cx="96" cy="22" rx="13" ry="5" fill="var(--wfp-leaf-soft)" transform="rotate(-24 96 22)"/>
+      <ellipse cx="18" cy="78" rx="11" ry="4.8" fill="var(--wfp-leaf-soft)" transform="rotate(-60 18 78)"/>
+      <ellipse cx="31" cy="72" rx="9" ry="4" fill="var(--wfp-leaf-soft)" transform="rotate(-38 31 72)" opacity="0.72"/>
+      <ellipse cx="64" cy="72" rx="8" ry="3.8" fill="var(--wfp-leaf-soft)" transform="rotate(28 64 72)" opacity="0.7"/>
+      <circle cx="25" cy="56" r="3.2" fill="var(--wfp-rose-petal)" opacity="0.48"/>
+      <circle cx="101" cy="39" r="2.8" fill="var(--wfp-rose-soft)" opacity="0.72"/>
+      <circle cx="82" cy="70" r="1.8" fill="var(--wfp-gold-line)" opacity="0.45"/>
+      <circle cx="94" cy="61" r="1.2" fill="var(--wfp-gold-line)" opacity="0.5"/>
+      <circle cx="74" cy="82" r="1.3" fill="var(--wfp-gold-line)" opacity="0.38"/>
+    </svg>
+      <div class="wfp-content">
+        <header class="wfp-index-header">
+          <p>Jeremy &amp; Yuri</p>
+          <h2>完整桌次名單</h2>
+          <span>第 1 / 1 頁</span>
+        </header>
+        <div class="wfp-index-grid">
+          
+    <section class="wfp-index-section">
+      <h3>主桌 <span>8 / 10</span></h3>
+      <ol>
+    <li>
+      <span class="wfp-index-dot" style="--wfp-seat-print:#6b5ce7"></span>
+      <span>謝啟生</span>
+      <small>新郎親友</small>
+    </li>
+    <li>
+      <span class="wfp-index-dot" style="--wfp-seat-print:#d9567a"></span>
+      <span>謝嘉宇</span>
+      <small>新娘親友</small>
+    </li>
+    <li>
+      <span class="wfp-index-dot" style="--wfp-seat-print:#3aaa6e"></span>
+      <span>侯名家</span>
+      <small>共同朋友</small>
+    </li>
+    <li>
+      <span class="wfp-index-dot" style="--wfp-seat-print:#c49a2a"></span>
+      <span>佐藤道明</span>
+      <small>同事</small>
+    </li>
+    <li>
+      <span class="wfp-index-dot" style="--wfp-seat-print:#888888"></span>
+      <span>佐藤節子</span>
+      <small>其他</small>
+    </li>
+    <li>
+      <span class="wfp-index-dot" style="--wfp-seat-print:#6b5ce7"></span>
+      <span>何淑育</span>
+      <small>新郎親友</small>
+    </li>
+    <li>
+      <span class="wfp-index-dot" style="--wfp-seat-print:#d9567a"></span>
+      <span>何淑芳</span>
+      <small>新娘親友</small>
+    </li>
+    <li>
+      <span class="wfp-index-dot" style="--wfp-seat-print:#3aaa6e"></span>
+      <span>何美黛</span>
+      <small>共同朋友</small>
+    </li></ol>
+    </section>
+    <section class="wfp-index-section">
+      <h3>2桌 <span>3 / 10</span></h3>
+      <ol>
+    <li>
+      <span class="wfp-index-dot" style="--wfp-seat-print:#c49a2a"></span>
+      <span>何美惠</span>
+      <small>同事</small>
+    </li>
+    <li>
+      <span class="wfp-index-dot" style="--wfp-seat-print:#888888"></span>
+      <span>伊藤友則</span>
+      <small>其他</small>
+    </li>
+    <li>
+      <span class="wfp-index-dot" style="--wfp-seat-print:#6b5ce7"></span>
+      <span>洪瑞珠</span>
+      <small>新郎親友</small>
+    </li></ol>
+    </section>
+    <section class="wfp-index-section">
+      <h3>5桌 <span>10 / 10</span></h3>
+      <ol>
+    <li>
+      <span class="wfp-index-dot" style="--wfp-seat-print:#d9567a"></span>
+      <span>洪瑞綺</span>
+      <small>新娘親友</small>
+    </li>
+    <li>
+      <span class="wfp-index-dot" style="--wfp-seat-print:#3aaa6e"></span>
+      <span>洪瑞婷</span>
+      <small>共同朋友</small>
+    </li>
+    <li>
+      <span class="wfp-index-dot" style="--wfp-seat-print:#c49a2a"></span>
+      <span>洪瑞芳</span>
+      <small>同事</small>
+    </li>
+    <li>
+      <span class="wfp-index-dot" style="--wfp-seat-print:#888888"></span>
+      <span>洪瑞雯</span>
+      <small>其他</small>
+    </li>
+    <li>
+      <span class="wfp-index-dot" style="--wfp-seat-print:#6b5ce7"></span>
+      <span>謝宜蓁</span>
+      <small>新郎親友</small>
+    </li>
+    <li>
+      <span class="wfp-index-dot" style="--wfp-seat-print:#d9567a"></span>
+      <span>謝嘉勳</span>
+      <small>新娘親友</small>
+    </li>
+    <li>
+      <span class="wfp-index-dot" style="--wfp-seat-print:#3aaa6e"></span>
+      <span>蔡偉超</span>
+      <small>共同朋友</small>
+    </li>
+    <li>
+      <span class="wfp-index-dot" style="--wfp-seat-print:#c49a2a"></span>
+      <span>蔡佳蓉</span>
+      <small>同事</small>
+    </li>
+    <li>
+      <span class="wfp-index-dot" style="--wfp-seat-print:#888888"></span>
+      <span>黃雅婷</span>
+      <small>其他</small>
+    </li>
+    <li>
+      <span class="wfp-index-dot" style="--wfp-seat-print:#6b5ce7"></span>
+      <span>陳建宏</span>
+      <small>新郎親友</small>
+    </li></ol>
+    </section>
+    <section class="wfp-index-section">
+      <h3>6桌 <span>10 / 10</span></h3>
+      <ol>
+    <li>
+      <span class="wfp-index-dot" style="--wfp-seat-print:#d9567a"></span>
+      <span>林美華</span>
+      <small>新娘親友</small>
+    </li>
+    <li>
+      <span class="wfp-index-dot" style="--wfp-seat-print:#3aaa6e"></span>
+      <span>王小明</span>
+      <small>共同朋友</small>
+    </li>
+    <li>
+      <span class="wfp-index-dot" style="--wfp-seat-print:#c49a2a"></span>
+      <span>陳美麗</span>
+      <small>同事</small>
+    </li>
+    <li>
+      <span class="wfp-index-dot" style="--wfp-seat-print:#888888"></span>
+      <span>鄭工程師</span>
+      <small>其他</small>
+    </li>
+    <li>
+      <span class="wfp-index-dot" style="--wfp-seat-print:#6b5ce7"></span>
+      <span>張雅雯</span>
+      <small>新郎親友</small>
+    </li>
+    <li>
+      <span class="wfp-index-dot" style="--wfp-seat-print:#d9567a"></span>
+      <span>吳家豪</span>
+      <small>新娘親友</small>
+    </li>
+    <li>
+      <span class="wfp-index-dot" style="--wfp-seat-print:#3aaa6e"></span>
+      <span>李怡君</span>
+      <small>共同朋友</small>
+    </li>
+    <li>
+      <span class="wfp-index-dot" style="--wfp-seat-print:#c49a2a"></span>
+      <span>周柏翰</span>
+      <small>同事</small>
+    </li>
+    <li>
+      <span class="wfp-index-dot" style="--wfp-seat-print:#888888"></span>
+      <span>許芳瑜</span>
+      <small>其他</small>
+    </li>
+    <li>
+      <span class="wfp-index-dot" style="--wfp-seat-print:#6b5ce7"></span>
+      <span>劉冠廷</span>
+      <small>新郎親友</small>
+    </li></ol>
+    </section>
+    <section class="wfp-index-section">
+      <h3>7桌 <span>6 / 10</span></h3>
+      <ol>
+    <li>
+      <span class="wfp-index-dot" style="--wfp-seat-print:#d9567a"></span>
+      <span>郭佩珊</span>
+      <small>新娘親友</small>
+    </li>
+    <li>
+      <span class="wfp-index-dot" style="--wfp-seat-print:#3aaa6e"></span>
+      <span>楊志明</span>
+      <small>共同朋友</small>
+    </li>
+    <li>
+      <span class="wfp-index-dot" style="--wfp-seat-print:#c49a2a"></span>
+      <span>趙欣怡</span>
+      <small>同事</small>
+    </li>
+    <li>
+      <span class="wfp-index-dot" style="--wfp-seat-print:#888888"></span>
+      <span>孫嘉玲</span>
+      <small>其他</small>
+    </li>
+    <li>
+      <span class="wfp-index-dot" style="--wfp-seat-print:#6b5ce7"></span>
+      <span>朱庭安</span>
+      <small>新郎親友</small>
+    </li>
+    <li>
+      <span class="wfp-index-dot" style="--wfp-seat-print:#d9567a"></span>
+      <span>高明倫</span>
+      <small>新娘親友</small>
+    </li></ol>
+    </section>
+    <section class="wfp-index-section">
+      <h3>18桌 <span>5 / 10</span></h3>
+      <ol>
+    <li>
+      <span class="wfp-index-dot" style="--wfp-seat-print:#3aaa6e"></span>
+      <span>羅佳琪</span>
+      <small>共同朋友</small>
+    </li>
+    <li>
+      <span class="wfp-index-dot" style="--wfp-seat-print:#c49a2a"></span>
+      <span>彭俊傑</span>
+      <small>同事</small>
+    </li>
+    <li>
+      <span class="wfp-index-dot" style="--wfp-seat-print:#888888"></span>
+      <span>曾婉如</span>
+      <small>其他</small>
+    </li>
+    <li>
+      <span class="wfp-index-dot" style="--wfp-seat-print:#6b5ce7"></span>
+      <span>戴品妤</span>
+      <small>新郎親友</small>
+    </li>
+    <li>
+      <span class="wfp-index-dot" style="--wfp-seat-print:#d9567a"></span>
+      <span>方士豪</span>
+      <small>新娘親友</small>
+    </li></ol>
+    </section>
+    <section class="wfp-index-section">
+      <h3>19桌 <span>5 / 10</span></h3>
+      <ol>
+    <li>
+      <span class="wfp-index-dot" style="--wfp-seat-print:#3aaa6e"></span>
+      <span>余靜宜</span>
+      <small>共同朋友</small>
+    </li>
+    <li>
+      <span class="wfp-index-dot" style="--wfp-seat-print:#c49a2a"></span>
+      <span>簡佑誠</span>
+      <small>同事</small>
+    </li>
+    <li>
+      <span class="wfp-index-dot" style="--wfp-seat-print:#888888"></span>
+      <span>葉佳穎</span>
+      <small>其他</small>
+    </li>
+    <li>
+      <span class="wfp-index-dot" style="--wfp-seat-print:#6b5ce7"></span>
+      <span>蘇郁婷</span>
+      <small>新郎親友</small>
+    </li>
+    <li>
+      <span class="wfp-index-dot" style="--wfp-seat-print:#d9567a"></span>
+      <span>白承恩</span>
+      <small>新娘親友</small>
+    </li></ol>
+    </section>
+        </div>
+      </div>
+    </section>
+</body>
+</html>

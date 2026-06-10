@@ -1,6 +1,12 @@
 import { useCallback } from 'react';
 import * as XLSX from 'xlsx';
 import { buildCsvExportRows } from '../utils/csvExportBuilder';
+import {
+  buildFloorDesignSvgExport,
+  createFloorDesignSvgBlob,
+  renderFloorDesignPngBlob,
+} from '../utils/floorDesignImageExport';
+import { buildFloorDesignPromptExport } from '../utils/floorDesignPromptBuilder';
 import { buildWeddingFloorPrintHTML } from '../utils/floorPrintHTMLBuilder';
 import { buildJsonBackup } from '../utils/jsonExportBuilder';
 import { buildPrintHTML } from '../utils/printHTMLBuilder';
@@ -64,7 +70,60 @@ export function useExport(state) {
     }
   }, [state]);
 
-  return { exportJSON, exportCSV, exportPDF, exportFloorPDF };
+  const exportFloorDesignSVG = useCallback(() => {
+    if (!state) return;
+
+    try {
+      const artifact = buildFloorDesignSvgExport(state);
+      const blob = createFloorDesignSvgBlob(artifact.svg);
+      const url = URL.createObjectURL(blob);
+      triggerDownload(url, artifact.fileNames.svg);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('[useExport] Floor design SVG export failed:', err);
+      alert('座位圖 SVG 匯出失敗，請稍後再試');
+    }
+  }, [state]);
+
+  const exportFloorDesignPNG = useCallback(async () => {
+    if (!state) return;
+
+    try {
+      const artifact = buildFloorDesignSvgExport(state);
+      const blob = await renderFloorDesignPngBlob(artifact.svg);
+      const url = URL.createObjectURL(blob);
+      triggerDownload(url, artifact.fileNames.png);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('[useExport] Floor design PNG export failed:', err);
+      alert('座位圖 PNG 匯出失敗，請稍後再試');
+    }
+  }, [state]);
+
+  const exportFloorDesignPrompt = useCallback(() => {
+    if (!state) return;
+
+    try {
+      const artifact = buildFloorDesignPromptExport(state);
+      const blob = new Blob([artifact.prompt], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      triggerDownload(url, artifact.fileName);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('[useExport] Floor design prompt export failed:', err);
+      alert('AI 生圖提示詞匯出失敗，請稍後再試');
+    }
+  }, [state]);
+
+  return {
+    exportJSON,
+    exportCSV,
+    exportPDF,
+    exportFloorPDF,
+    exportFloorDesignSVG,
+    exportFloorDesignPNG,
+    exportFloorDesignPrompt,
+  };
 }
 
 function triggerDownload(url, filename) {

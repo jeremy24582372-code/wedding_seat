@@ -8,6 +8,8 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "check:floor-design-layout": "node scripts/check-floor-design-layout.mjs",
+    "check:floor-design-export": "node scripts/check-floor-design-export.mjs",
     "check:floor-pdf-layout": "node scripts/check-wedding-floor-pdf-layout.mjs",
     "check:floor-pdf-renderer": "node scripts/check-wedding-floor-print-renderer.mjs",
     "check:phase4-export-contract": "node scripts/check-phase4-export-contract.mjs",

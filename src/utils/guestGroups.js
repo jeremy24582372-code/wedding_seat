@@ -66,24 +66,28 @@ export function syncGuestGroupLocks(groups, lockedAssignments = {}) {
   }));
 }
 
-export function appendGuestToGroup(groups, groupId, guestId, validGuestIds = null, lockedAssignments = {}) {
-  const idToAdd = String(guestId ?? '').trim();
-  const valid = validGuestIds ? new Set(validGuestIds) : null;
-  if (!idToAdd || (valid && !valid.has(idToAdd))) {
+export function appendGuestsToGroup(groups, groupId, guestIds, validGuestIds = null, lockedAssignments = {}) {
+  const idsToAdd = uniqueValidGuestIds(guestIds, validGuestIds);
+  const targetGroupId = String(groupId ?? '').trim();
+  if (!targetGroupId || idsToAdd.length === 0) {
     return normalizeGuestGroups(groups, validGuestIds, lockedAssignments);
   }
 
   return normalizeGuestGroups(
     (groups ?? []).map(group => {
-      if (String(group?.id ?? '').trim() !== groupId) return group;
+      if (String(group?.id ?? '').trim() !== targetGroupId) return group;
       return {
         ...group,
-        guestIds: [...(group.guestIds ?? []), idToAdd],
+        guestIds: [...(group.guestIds ?? []), ...idsToAdd],
       };
     }),
     validGuestIds,
     lockedAssignments
   );
+}
+
+export function appendGuestToGroup(groups, groupId, guestId, validGuestIds = null, lockedAssignments = {}) {
+  return appendGuestsToGroup(groups, groupId, [guestId], validGuestIds, lockedAssignments);
 }
 
 export function normalizeGuestGroups(value = [], validGuestIds = null, lockedAssignments = {}) {

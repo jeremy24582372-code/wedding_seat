@@ -57,7 +57,15 @@ export default function App() {
   } = useSeatingState();
 
   const { fetchGuests, loading: importLoading } = useGoogleSheets();
-  const { exportJSON, exportCSV, exportPDF, exportFloorPDF } = useExport(state);
+  const {
+    exportJSON,
+    exportCSV,
+    exportPDF,
+    exportFloorPDF,
+    exportFloorDesignSVG,
+    exportFloorDesignPNG,
+    exportFloorDesignPrompt,
+  } = useExport(state);
   const firebaseStatus = useFirebaseStatus();
   const { toasts, toast } = useToast();
 
@@ -223,6 +231,8 @@ export default function App() {
               onGoToSeats={() => setActiveTab('seating')}
               onExportPDF={exportPDF}
               onExportFloorPDF={exportFloorPDF}
+              onExportFloorDesignPNG={exportFloorDesignPNG}
+              onExportFloorDesignPrompt={exportFloorDesignPrompt}
               onSyncSheets={handleSyncSheets}
             />
           ) : activeTab === 'guests' ? (
@@ -263,6 +273,9 @@ export default function App() {
                 onExportCSV={exportCSV}
                 onExportPDF={exportPDF}
                 onExportFloorPDF={exportFloorPDF}
+                onExportFloorDesignSVG={exportFloorDesignSVG}
+                onExportFloorDesignPNG={exportFloorDesignPNG}
+                onExportFloorDesignPrompt={exportFloorDesignPrompt}
                 onSyncSheets={handleSyncSheets}
                 importLoading={importLoading}
               />

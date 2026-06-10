@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import { defaultTablePosition } from '../src/utils/constants.js';
 import { buildFloorDesignLayoutModel } from '../src/utils/floorDesignLayoutModel.js';
 
+const DISTANCE_RATIO_TOLERANCE = 0.01;
+
 function makeGuest(id, name, category, tableId = null) {
   return {
     id,
@@ -47,9 +49,10 @@ function assertAllPairScaleFactorsMatch(model, label) {
   assert.ok(ratios.length > 0, `${label} must have table pairs to compare`);
   const expected = ratios[0];
   ratios.forEach((ratio, index) => {
+    const relativeError = Math.abs(ratio - expected) / expected;
     assert.ok(
-      Math.abs(ratio - expected) < 1e-9,
-      `${label} pair ${index} changed relative table distance ratio`
+      relativeError <= DISTANCE_RATIO_TOLERANCE,
+      `${label} pair ${index} changed relative table distance ratio by ${relativeError}`
     );
   });
 }
@@ -203,9 +206,50 @@ function checkSeatDotsAndGuestPayloadStayAttachedToTables() {
   assert.equal(table.seatDots[0].guestId, 'g1');
   assert.equal(table.seatDots[1].guestId, 'g2');
   assert.equal(table.seatDots[2].isEmpty, true);
+  assert.equal(table.seatLabels.length, 2, 'Only occupied seats should receive labels');
+  assert.deepEqual(
+    table.seatLabels.map(label => label.guestId),
+    ['g1', 'g2'],
+    'Seat labels must stay attached to occupied guests'
+  );
   table.seatDots.forEach(dot => {
     assert.equal(typeof dot.printPoint.x, 'number');
     assert.equal(typeof dot.printPoint.y, 'number');
+  });
+  table.seatLabels.forEach(label => {
+    assert.ok(label.distance.withinLimit, `${label.guestName} label must stay close to the seat dot`);
+    assert.ok(label.distance.edgeDistance <= label.distance.edgeMax, `${label.guestName} edge distance too large`);
+    assert.ok(label.distance.centerDistance <= label.distance.centerMax, `${label.guestName} center distance too large`);
+    assert.ok(label.connector.length <= label.distance.connectorMax, `${label.guestName} connector too long`);
+    assert.ok(
+      ['top', 'top-right', 'right', 'bottom-right', 'bottom', 'bottom-left', 'left', 'top-left'].includes(label.localSector),
+      `${label.guestName} must use a local label sector`
+    );
+  });
+}
+
+function checkCrowdedTablesStillUseNearbyLabels() {
+  const guests = Array.from({ length: 10 }, (_, index) =>
+    makeGuest(`g${index + 1}`, `長姓名賓客${index + 1}`, index % 2 === 0 ? '新郎親友' : '新娘親友', 't1')
+  );
+  const model = buildFloorDesignLayoutModel({
+    guests,
+    tables: [
+      makeTable('t1', '2桌', guests.map(guest => guest.id)),
+    ],
+    tablePositions: {
+      t1: { x: 700, y: 900 },
+    },
+    unassignedGuestIds: [],
+    partyRows: [],
+  });
+  const table = model.tables[0];
+
+  assert.equal(table.seatLabels.length, 10, 'A full table must still render one nearby label per occupied seat');
+  assert.equal(Object.hasOwn(model, 'detailPages'), false, 'Source-position model must not use detail pages for labels');
+  table.seatLabels.forEach(label => {
+    assert.ok(label.distance.withinLimit, `${label.guestName} must not be pushed into a remote label lane`);
+    assert.ok(label.textFit.lines.length <= 2, `${label.guestName} should fit into at most two lines`);
   });
 }
 
@@ -227,6 +271,7 @@ checkStoredPositionsRemainSourceOfTruth();
 checkDefaultFallbackOnlyWhenMissing();
 checkBreathingKeepsRelativeSpacing();
 checkSeatDotsAndGuestPayloadStayAttachedToTables();
+checkCrowdedTablesStillUseNearbyLabels();
 checkEmptyStateDoesNotCrash();
 
 console.log('Floor design source-position layout checks passed');

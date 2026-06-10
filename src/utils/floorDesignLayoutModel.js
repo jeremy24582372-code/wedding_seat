@@ -6,6 +6,10 @@ import {
   getCategoryVisual,
   normalizeCategory,
 } from './constants.js';
+import {
+  LABEL_DISTANCE_LIMITS,
+  SEAT_LOCAL_SECTORS,
+} from './weddingFloorSeatAnnotations.js';
 
 export const FLOOR_DESIGN_PAGE = {
   unit: 'mm',
@@ -255,6 +259,223 @@ function seatPointForIndex(center, radius, seatIndex) {
   };
 }
 
+function splitNameLines(name, maxCharsPerLine) {
+  const chars = Array.from(String(name ?? '').trim());
+  if (chars.length === 0) return [''];
+  if (chars.length <= maxCharsPerLine) return [chars.join('')];
+
+  const splitAt = Math.ceil(chars.length / 2);
+  return [
+    chars.slice(0, splitAt).join(''),
+    chars.slice(splitAt).join(''),
+  ].filter(Boolean);
+}
+
+function fitFloorDesignLabel(name, tableKind, compact = false) {
+  const isMain = tableKind === 'main';
+  const config = isMain
+    ? {
+      minWidth: 11,
+      maxWidth: compact ? 20 : 23,
+      minHeight: 5.8,
+      maxHeight: 8,
+      minFontPt: 6.2,
+      maxFontPt: 8,
+      maxCharsPerLine: compact ? 5 : 6,
+      paddingX: compact ? 0.9 : 1.2,
+      paddingY: compact ? 0.6 : 0.8,
+    }
+    : {
+      minWidth: 8,
+      maxWidth: compact ? 15 : 17,
+      minHeight: 4.2,
+      maxHeight: 6.6,
+      minFontPt: 5.5,
+      maxFontPt: 7,
+      maxCharsPerLine: compact ? 4 : 5,
+      paddingX: compact ? 0.55 : 0.8,
+      paddingY: compact ? 0.32 : 0.45,
+    };
+  const lines = splitNameLines(name, config.maxCharsPerLine);
+  const longestLineLength = Math.max(...lines.map(line => Array.from(line).length), 1);
+  const estimatedFont = (config.maxWidth - config.paddingX * 2) / (longestLineLength * 0.36);
+  const fontSizePt = Math.max(config.minFontPt, Math.min(config.maxFontPt, estimatedFont));
+  const width = Math.min(
+    config.maxWidth,
+    Math.max(config.minWidth, longestLineLength * fontSizePt * 0.36 + config.paddingX * 2)
+  );
+  const height = Math.min(
+    config.maxHeight,
+    Math.max(config.minHeight, lines.length * fontSizePt * 0.36 * 1.08 + config.paddingY * 2)
+  );
+
+  return {
+    lines,
+    fontSizePt: round(fontSizePt),
+    width: round(width),
+    height: round(height),
+    compact,
+  };
+}
+
+function labelBoxForSector(seatPoint, textFit, sector, gap) {
+  const { width, height } = textFit;
+  const horizontalCenter = seatPoint.x - width / 2;
+  const verticalCenter = seatPoint.y - height / 2;
+  const positions = {
+    top: {
+      x: horizontalCenter,
+      y: seatPoint.y - gap - height,
+    },
+    'top-right': {
+      x: seatPoint.x + gap,
+      y: seatPoint.y - gap - height,
+    },
+    right: {
+      x: seatPoint.x + gap,
+      y: verticalCenter,
+    },
+    'bottom-right': {
+      x: seatPoint.x + gap,
+      y: seatPoint.y + gap,
+    },
+    bottom: {
+      x: horizontalCenter,
+      y: seatPoint.y + gap,
+    },
+    'bottom-left': {
+      x: seatPoint.x - gap - width,
+      y: seatPoint.y + gap,
+    },
+    left: {
+      x: seatPoint.x - gap - width,
+      y: verticalCenter,
+    },
+    'top-left': {
+      x: seatPoint.x - gap - width,
+      y: seatPoint.y - gap - height,
+    },
+  };
+  const position = positions[sector] ?? positions.right;
+
+  return {
+    x: round(position.x),
+    y: round(position.y),
+    width: round(width),
+    height: round(height),
+  };
+}
+
+function clamp(value, min, max) {
+  return Math.min(Math.max(value, min), max);
+}
+
+function nearestPointOnBox(point, box) {
+  return {
+    x: clamp(point.x, box.x, box.x + box.width),
+    y: clamp(point.y, box.y, box.y + box.height),
+  };
+}
+
+function labelCenter(labelBox) {
+  return {
+    x: labelBox.x + labelBox.width / 2,
+    y: labelBox.y + labelBox.height / 2,
+  };
+}
+
+function distanceMetrics(seatPoint, labelBox) {
+  const nearest = nearestPointOnBox(seatPoint, labelBox);
+  const center = labelCenter(labelBox);
+  const connectorLength = Math.hypot(nearest.x - seatPoint.x, nearest.y - seatPoint.y);
+
+  return {
+    nearestPoint: {
+      x: round(nearest.x),
+      y: round(nearest.y),
+    },
+    edgeDistance: round(connectorLength),
+    centerDistance: round(Math.hypot(center.x - seatPoint.x, center.y - seatPoint.y)),
+    connectorLength: round(connectorLength),
+  };
+}
+
+function labelBoxesOverlap(a, b, padding = 0.25) {
+  return !(
+    a.x + a.width + padding <= b.x ||
+    b.x + b.width + padding <= a.x ||
+    a.y + a.height + padding <= b.y ||
+    b.y + b.height + padding <= a.y
+  );
+}
+
+function isMainTableLabel(label) {
+  const normalized = String(label ?? '').trim();
+  return normalized === '主桌' || normalized.includes('主桌') || normalized === '1桌';
+}
+
+function buildSeatLabels(table, seatDots, compact = false) {
+  const tableKind = isMainTableLabel(table.label) ? 'main' : 'regular';
+  const gap = tableKind === 'main' ? 1.2 : 0.8;
+  const limits = LABEL_DISTANCE_LIMITS[tableKind] ?? LABEL_DISTANCE_LIMITS.regular;
+
+  return table.seats
+    .filter(seat => !seat.isEmpty)
+    .map(seat => {
+      const seatDot = seatDots.find(dot => dot.seatIndex === seat.seatIndex);
+      const sector = SEAT_LOCAL_SECTORS[seat.seatIndex] ?? 'right';
+      const textFit = fitFloorDesignLabel(seat.guestName, tableKind, compact);
+      const labelBox = labelBoxForSector(seatDot.printPoint, textFit, sector, gap);
+      const distance = distanceMetrics(seatDot.printPoint, labelBox);
+
+      return {
+        guestId: seat.guestId,
+        guestName: seat.guestName,
+        tableId: table.id,
+        tableLabel: table.label,
+        seatIndex: seat.seatIndex,
+        seatNumber: seat.seatNumber,
+        localSector: sector,
+        labelBox,
+        textFit,
+        seatPoint: seatDot.printPoint,
+        connector: {
+          fromX: seatDot.printPoint.x,
+          fromY: seatDot.printPoint.y,
+          toX: distance.nearestPoint.x,
+          toY: distance.nearestPoint.y,
+          bendPoints: [],
+          length: distance.connectorLength,
+        },
+        distance: {
+          edgeDistance: distance.edgeDistance,
+          centerDistance: distance.centerDistance,
+          connectorLength: distance.connectorLength,
+          edgeMax: limits.edgeMax,
+          centerMax: limits.centerMax,
+          connectorMax: limits.connectorMax,
+          withinLimit:
+            distance.edgeDistance <= limits.edgeMax &&
+            distance.centerDistance <= limits.centerMax &&
+            distance.connectorLength <= limits.connectorMax,
+        },
+        compactMode: compact,
+        categoryVisual: seat.categoryVisual,
+      };
+    });
+}
+
+function buildCompactAwareSeatLabels(table, seatDots) {
+  const labels = buildSeatLabels(table, seatDots, false);
+  const hasCollision = labels.some((label, index) =>
+    labels.some((other, otherIndex) =>
+      otherIndex > index && labelBoxesOverlap(label.labelBox, other.labelBox)
+    )
+  );
+
+  return hasCollision ? buildSeatLabels(table, seatDots, true) : labels;
+}
+
 function buildSeatDots(table, printCenter, transform, tableGeometry) {
   const printSeatOrbitRadius = tableGeometry.seatOrbitRadius * transform.scalePxToMm;
   const printSeatRadius = tableGeometry.seatRadius * transform.scalePxToMm;
@@ -368,6 +589,9 @@ export function buildFloorDesignLayoutModel(state, options = {}) {
     };
     const printRadius = round(printTableRadius);
 
+    const seatDots = buildSeatDots(table, printCenter, transform, tableGeometry);
+    const seatLabels = buildCompactAwareSeatLabels(table, seatDots);
+
     return {
       id: table.id,
       label: table.label,
@@ -395,7 +619,8 @@ export function buildFloorDesignLayoutModel(state, options = {}) {
         printCentroid
       ),
       seats: table.seats,
-      seatDots: buildSeatDots(table, printCenter, transform, tableGeometry),
+      seatDots,
+      seatLabels,
       occupancy: table.occupancy,
       capacity: table.capacity,
     };

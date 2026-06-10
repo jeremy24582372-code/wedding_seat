@@ -19,6 +19,8 @@ export default function DashboardHome({
   onGoToSeats,
   onExportPDF,
   onExportFloorPDF,
+  onExportFloorDesignPNG,
+  onExportFloorDesignPrompt,
   onSyncSheets,
 }) {
   const [syncState, setSyncState] = useState('idle');
@@ -66,6 +68,9 @@ export default function DashboardHome({
           <button className="btn btn-secondary" type="button" onClick={onExportFloorPDF}>
             匯出桌次圖
           </button>
+          <button className="btn btn-secondary" type="button" onClick={onExportFloorDesignPNG}>
+            匯出設計圖
+          </button>
         </div>
       </section>
 
@@ -112,6 +117,10 @@ export default function DashboardHome({
             <button className="dashboard-home__action" type="button" onClick={onExportFloorPDF}>
               <span>匯出桌次圖</span>
               <small>交付場地的桌位位置圖</small>
+            </button>
+            <button className="dashboard-home__action" type="button" onClick={onExportFloorDesignPrompt}>
+              <span>AI 生圖提示詞</span>
+              <small>搭配設計圖做視覺美化</small>
             </button>
           </div>
         </section>

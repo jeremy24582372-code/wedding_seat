@@ -217,8 +217,14 @@ function assertPlacement(placement, label) {
   assertPoint(placement?.seatPoint, `${label} seatPoint`);
   assertBox(placement?.labelBox, `${label} labelBox`);
   assertConnector(placement?.connector, label);
-  assert.ok(['left', 'right', 'top', 'bottom', 'corner'].includes(placement.side), `${label} side must be valid`);
+  assert.ok(
+    ['top', 'top-right', 'right', 'bottom-right', 'bottom', 'bottom-left', 'left', 'top-left'].includes(placement.side),
+    `${label} side must be a local seat sector`
+  );
   assert.equal(typeof placement.slotIndex, 'number', `${label} slotIndex must be numeric`);
+  assert.equal(placement.detailPlacement, undefined, `${label} placement must not nest detail placement`);
+  assert.ok(placement.distance?.withinLimit, `${label} label must remain near its seat dot`);
+  assert.ok(placement.connector.length <= placement.distance.connectorMax, `${label} connector must be a micro leader`);
 }
 
 function allTableLayouts(model) {
@@ -237,15 +243,15 @@ function checkSeatAnnotationContract() {
     makeGuest('o2', '總覽左', '同事', 't2'),
     makeGuest('o3', '總覽下', '其他', 't2'),
   ];
-  const detailGuests = Array.from({ length: REGULAR_OVERVIEW_ANNOTATION_LIMIT + 1 }, (_, index) =>
-    makeGuest(`d${index + 1}`, `詳圖${index + 1}`, '新郎親友', 't3')
+  const crowdedGuests = Array.from({ length: REGULAR_OVERVIEW_ANNOTATION_LIMIT }, (_, index) =>
+    makeGuest(`d${index + 1}`, `滿桌長姓名${index + 1}`, '新郎親友', 't3')
   );
   const state = {
-    guests: [...mainGuests, ...overviewGuests, ...detailGuests],
+    guests: [...mainGuests, ...overviewGuests, ...crowdedGuests],
     tables: [
       makeTable('main', '主桌', mainGuests.map(guest => guest.id)),
       makeTable('t2', '2桌', ['o1', 'o2', null, null, null, 'o3']),
-      makeTable('t3', '3桌', detailGuests.map(guest => guest.id)),
+      makeTable('t3', '3桌', crowdedGuests.map(guest => guest.id)),
     ],
     unassignedGuestIds: [],
     partyRows: [],
@@ -271,15 +277,10 @@ function checkSeatAnnotationContract() {
       assert.ok(annotation.guestName, `${table.label} annotation must have guestName`);
       assert.equal(typeof annotation.seatIndex, 'number', `${table.label} annotation must have seatIndex`);
       assert.ok(
-        annotation.overviewPlacement || annotation.detailPlacement,
-        `${table.label} annotation must have overview or detail placement`
+        annotation.overviewPlacement && !annotation.detailPlacement,
+        `${table.label} annotation must have an overview seat-local placement only`
       );
-      if (annotation.overviewPlacement) {
-        assertPlacement(annotation.overviewPlacement, `${table.label}/${annotation.guestName} overview`);
-      }
-      if (annotation.detailPlacement) {
-        assertPlacement(annotation.detailPlacement, `${table.label}/${annotation.guestName} detail`);
-      }
+      assertPlacement(annotation.overviewPlacement, `${table.label}/${annotation.guestName} overview`);
       annotationGuestIds.add(annotation.guestId);
     });
   });
@@ -300,7 +301,7 @@ function checkSeatAnnotationContract() {
 
   const overviewTable = model.regularTablePages[0].tables.find(table => table.id === 't2');
   assert.equal(overviewTable.needsDetailPage, false, 'A safe 3-guest regular table can stay annotated on overview');
-  assert.equal(overviewTable.annotationRecords.length, REGULAR_OVERVIEW_ANNOTATION_LIMIT);
+  assert.equal(overviewTable.annotationRecords.length, overviewTable.occupancy);
   assert.ok(
     overviewTable.annotationRecords.every(annotation => annotation.overviewPlacement && !annotation.detailPlacement),
     'Overview-annotated regular table must give every occupied guest an overview placement'
@@ -311,23 +312,22 @@ function checkSeatAnnotationContract() {
     'Annotation seatIndex must follow table.guestIds position instead of compacting by guest order'
   );
 
-  const detailTable = model.regularTablePages[0].tables.find(table => table.id === 't3');
-  assert.equal(detailTable.needsDetailPage, true, 'Regular table above overview capacity must enter detail pages');
-  assert.equal(typeof detailTable.detailPageNumber, 'number', 'Detail table must have detailPageNumber');
+  const crowdedTable = model.regularTablePages[0].tables.find(table => table.id === 't3');
+  assert.equal(crowdedTable.needsDetailPage, false, 'Full regular tables must stay annotated on overview');
   assert.ok(
-    detailTable.annotationRecords.every(annotation => !annotation.overviewPlacement && annotation.detailPlacement),
-    'Overview-summary regular table must move all annotations to detail placement'
+    crowdedTable.annotationRecords.every(annotation => annotation.overviewPlacement && !annotation.detailPlacement),
+    'Every occupied guest must keep an overview seat-local label'
   );
-  assert.ok(model.detailTables.some(table => table.id === 't3'), 'Detail table must be listed in model.detailTables');
-  assert.ok(model.detailPages.some(page => page.tables.some(table => table.id === 't3')), 'Detail page must contain table');
-  assert.ok(model.pages.some(page => page.kind === 'detail'), 'Layout pages must include detail page metadata');
-  assert.equal(model.needsDetailPage, true, 'Top-level detail flag must be true when any table needs details');
+  assert.equal(model.detailTables.length, 0, 'Detail tables must not be generated for label overflow');
+  assert.equal(model.detailPages.length, 0, 'Detail pages must not be generated for label overflow');
+  assert.ok(model.pages.every(page => page.kind !== 'detail'), 'Layout pages must not include detail pages');
+  assert.equal(model.needsDetailPage, false, 'Top-level detail flag must stay false');
 
-  const directHelperResult = buildSeatAnnotations(detailTable, { tableKind: 'regular' });
-  assert.equal(directHelperResult.needsDetailPage, true, 'Standalone helper must detect detail fallback');
+  const directHelperResult = buildSeatAnnotations(crowdedTable, { tableKind: 'regular' });
+  assert.equal(directHelperResult.needsDetailPage, false, 'Standalone helper must not fall back to detail pages');
   assert.ok(
-    directHelperResult.annotationRecords.every(annotation => annotation.detailPlacement),
-    'Standalone helper must still produce deterministic detail placements'
+    directHelperResult.annotationRecords.every(annotation => annotation.overviewPlacement && !annotation.detailPlacement),
+    'Standalone helper must produce deterministic overview placements'
   );
 }
 

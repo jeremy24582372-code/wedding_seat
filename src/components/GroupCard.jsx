@@ -134,7 +134,7 @@ export default function GroupCard({
         allGuests={allGuests}
         currentGuestIds={group.guestIds}
         tableById={tableById}
-        onAddMember={guestId => onAddMember(group.id, guestId)}
+        onAddMember={guestIds => onAddMember(group.id, guestIds)}
       />
 
       <label className="group-card__notes">

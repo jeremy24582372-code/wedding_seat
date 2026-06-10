@@ -1,4 +1,6 @@
 import { escHtml } from './exportShared.js';
+import { buildFloorDesignLayoutModel } from './floorDesignLayoutModel.js';
+import { buildWeddingFloorDesignSvg } from './floorDesignSvgBuilder.js';
 import { buildWeddingFloorLayoutModel } from './weddingFloorPrintLayout.js';
 
 function cssValue(value) {
@@ -158,7 +160,7 @@ function renderHeader(model, compact = false) {
   return `
     <header class="wfp-header">
       <p class="wfp-couple">Jeremy &amp; Yuri</p>
-      <div class="wfp-header-ornament" aria-hidden="true"><span></span><i>&hearts;</i><span></span></div>
+      <div class="wfp-header-ornament" aria-hidden="true"><span></span><i>&#9829;</i><span></span></div>
       <h1>婚 禮 桌 次 位 置 圖</h1>
       <p class="wfp-subtitle">WEDDING SEATING CHART</p>
       <p class="wfp-meta">${escHtml(metaText)}</p>
@@ -268,11 +270,7 @@ function renderTableCore(table, instance, variant) {
 
 function renderDetailReference(table) {
   if (!table.needsDetailPage || !table.detailPageNumber) return '';
-
-  return `
-    <p class="wfp-detail-reference">
-      完整座位標註見第 ${table.detailPageNumber} 頁
-    </p>`;
+  return '';
 }
 
 function renderAnnotatedTable({ table, instance, placementKey, variant }) {
@@ -339,8 +337,26 @@ function renderWarningStrip(model) {
     </div>`;
 }
 
+function renderDesignChartPage(model) {
+  const designSvg = buildWeddingFloorDesignSvg(model.floorDesignModel, {
+    meta: model.meta,
+    legendItems: model.legendItems,
+  });
+
+  return `
+    <section class="wfp-page wfp-page--chart wfp-page--design">
+      <div class="wfp-design-chart">
+        ${designSvg}
+      </div>
+    </section>`;
+}
+
 function renderChartPage(model, page, index) {
   const isFirst = page.kind === 'first';
+
+  if (isFirst && model.floorDesignModel) {
+    return renderDesignChartPage(model);
+  }
 
   return `
     <section class="wfp-page wfp-page--chart wfp-page--${page.kind}">
@@ -447,7 +463,7 @@ function renderGuestIndexPage(model, sections, pageIndex, totalPages) {
 }
 
 function renderPages(model) {
-  const chartPages = model.regularTablePages.map((page, index) => renderChartPage(model, page, index));
+  const chartPages = [renderChartPage(model, { pageNumber: 1, kind: 'first', tables: [] }, 0)];
   const detailPages = model.detailPages.map((page, pageIndex) => renderDetailPage(page, pageIndex));
   const indexSections = model.fullGuestIndex.filter(section => section.guests.length > 0);
   const indexPages = paginateIndexSections(indexSections).map((sections, pageIndex, pages) =>
@@ -503,6 +519,16 @@ function renderStyles() {
     }
     .wfp-page:last-child { break-after: auto; page-break-after: auto; }
     .wfp-content { position: relative; z-index: 1; min-height: 281mm; }
+    .wfp-page--design {
+      padding: 0;
+      background: var(--wfp-paper);
+    }
+    .wfp-design-chart,
+    .wfp-design-svg {
+      display: block;
+      width: 210mm;
+      height: 297mm;
+    }
     .wfp-floral { position: absolute; z-index: 0; overflow: visible; pointer-events: none; }
     .wfp-floral-stem {
       stroke: var(--wfp-leaf);
@@ -806,20 +832,6 @@ function renderStyles() {
       width: 184mm;
       height: 249mm;
     }
-    .wfp-detail-reference {
-      position: absolute;
-      left: 50%;
-      bottom: -1.2mm;
-      width: 34mm;
-      transform: translateX(-50%);
-      margin: 0;
-      color: var(--wfp-muted-ink);
-      font-size: 5.8pt;
-      font-weight: 600;
-      line-height: 1.15;
-      text-align: center;
-      letter-spacing: 0.03em;
-    }
     .wfp-detail-header {
       height: 21mm;
       display: grid;
@@ -1080,5 +1092,11 @@ export function renderWeddingFloorPrintHTML(model) {
 }
 
 export function buildWeddingFloorPrintHTML(state, options = {}) {
-  return renderWeddingFloorPrintHTML(buildWeddingFloorLayoutModel(state, options));
+  const layoutModel = buildWeddingFloorLayoutModel(state, options);
+  const floorDesignModel = buildFloorDesignLayoutModel(state, options.floorDesign ?? {});
+
+  return renderWeddingFloorPrintHTML({
+    ...layoutModel,
+    floorDesignModel,
+  });
 }

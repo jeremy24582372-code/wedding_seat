@@ -14,6 +14,9 @@ import './Toolbar.css';
  *   onExportCSV     — () => void
  *   onExportPDF     — () => void
  *   onExportFloorPDF — () => void
+ *   onExportFloorDesignSVG — () => void
+ *   onExportFloorDesignPNG — () => void
+ *   onExportFloorDesignPrompt — () => void
  *   onSyncSheets    — () => Promise<void>   (同步回寫 Google Sheets)
  *   importLoading   — bool
  */
@@ -28,6 +31,9 @@ export default function Toolbar({
   onExportCSV,
   onExportPDF,
   onExportFloorPDF,
+  onExportFloorDesignSVG,
+  onExportFloorDesignPNG,
+  onExportFloorDesignPrompt,
   onSyncSheets,
   importLoading,
 }) {
@@ -208,6 +214,30 @@ export default function Toolbar({
                 id="btn-export-floor-pdf"
               >
                 桌次圖 PDF
+              </button>
+              <button
+                className="toolbar__export-item"
+                onClick={() => handleExportClick(onExportFloorDesignPNG)}
+                role="menuitem"
+                id="btn-export-floor-design-png"
+              >
+                座位圖設計圖 PNG
+              </button>
+              <button
+                className="toolbar__export-item"
+                onClick={() => handleExportClick(onExportFloorDesignSVG)}
+                role="menuitem"
+                id="btn-export-floor-design-svg"
+              >
+                座位圖設計圖 SVG
+              </button>
+              <button
+                className="toolbar__export-item"
+                onClick={() => handleExportClick(onExportFloorDesignPrompt)}
+                role="menuitem"
+                id="btn-export-floor-design-prompt"
+              >
+                AI 生圖提示詞
               </button>
             </div>
           )}

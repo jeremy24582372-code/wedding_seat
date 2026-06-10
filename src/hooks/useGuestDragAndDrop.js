@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { moveGuestByDropTarget, resolveDropTarget } from '../utils/dndDrop';
 import { createCenterOnPointerModifier } from '../utils/dndOverlay';
@@ -15,7 +15,7 @@ export function useGuestDragAndDrop({
     () => activeGuestId ? getGuestById(activeGuestId) : null,
     [activeGuestId, getGuestById]
   );
-  const lastPointer = useRef({ x: 0, y: 0 });
+  const lastPointer = useMemo(() => ({ current: { x: 0, y: 0 } }), []);
 
   useEffect(() => {
     const track = (event) => {
@@ -27,12 +27,12 @@ export function useGuestDragAndDrop({
       window.removeEventListener('pointermove', track);
       window.removeEventListener('pointerup', track);
     };
-  }, []);
+  }, [lastPointer]);
 
   // Modifier array for DragOverlay — keeps ghost centred on cursor
   const dragOverlayModifiers = useMemo(
     () => [createCenterOnPointerModifier(lastPointer)],
-    [] // lastPointer ref identity is stable
+    [lastPointer]
   );
 
   const sensors = useSensors(
@@ -62,7 +62,7 @@ export function useGuestDragAndDrop({
       swapGuests: swapGuestsWithLockPrompt,
       toast,
     });
-  }, [moveGuestWithLockPrompt, state.tables, swapGuestsWithLockPrompt, toast]);
+  }, [lastPointer, moveGuestWithLockPrompt, state.tables, swapGuestsWithLockPrompt, toast]);
 
   const handleDragCancel = useCallback(() => {
     setActiveGuestId(null);

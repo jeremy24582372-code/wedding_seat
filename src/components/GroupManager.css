@@ -366,11 +366,119 @@
   min-width: 0;
 }
 
+.group-card__member-menu-field {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.group-card__member-menu {
+  position: relative;
+  min-width: 0;
+}
+
+.group-card__member-menu-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  text-align: left;
+}
+
+.group-card__member-menu-popover {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + var(--space-1));
+  inset-inline: 0;
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-surface);
+  box-shadow: 0 16px 36px oklch(30% 0.03 60 / 0.16);
+}
+
+.group-card__member-menu-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.group-card__member-checklist {
+  display: grid;
+  gap: var(--space-1);
+  max-height: 240px;
+  overflow: auto;
+}
+
+.group-card__member-check-option {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-2);
+  align-items: start;
+  min-width: 0;
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.group-card__member-check-option:hover {
+  background: var(--color-bg-card-hover);
+}
+
+.group-card__member-check-option input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  min-height: 16px;
+  padding: 0;
+  margin: 2px 0 0;
+  accent-color: var(--color-accent);
+}
+
+.group-card__member-check-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.group-card__member-check-text strong {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--color-text-primary);
+  font-size: var(--text-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.group-card__member-check-text small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.group-card__member-menu-empty {
+  display: block;
+  padding: var(--space-2);
+}
+
 .group-card__add-member span,
 .group-card__add-member small {
   color: var(--color-text-muted);
   font-size: var(--text-xs);
   font-weight: 700;
+}
+
+.group-card__member-menu-trigger span {
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.group-card__member-check-text small {
+  font-weight: 650;
 }
 
 .group-card__add-member button {
@@ -382,6 +490,12 @@
   color: var(--color-text-secondary);
   font-size: var(--text-sm);
   font-weight: 750;
+}
+
+.group-card__member-menu-actions button {
+  min-height: 30px;
+  padding: 0 var(--space-3);
+  font-size: var(--text-xs);
 }
 
 .group-card__add-member button:hover:not(:disabled) {
