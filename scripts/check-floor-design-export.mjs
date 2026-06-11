@@ -34,6 +34,7 @@ const exportState = {
   guests: [
     guest('g-main-1', '主桌貴賓', '新郎親友', 'main'),
     guest('g-main-2', '新人家人', '新娘親友', 'main'),
+    guest('g-1-1', '一桌賓客', '新郎親友', 't1'),
     guest('g-2-1', '共同好友', '共同朋友', 't10'),
     guest('g-2-2', '林同事', '同事', 't10'),
     guest('g-3-1', '自訂貴賓<&">', '長輩貴賓', 't2'),
@@ -42,11 +43,13 @@ const exportState = {
   tables: [
     table('t10', '10桌', ['g-2-1', 'g-2-2']),
     table('main', '主桌', ['g-main-1', 'g-main-2']),
+    table('t1', '1桌', ['g-1-1']),
     table('t2', '2桌', ['g-3-1']),
   ],
   tablePositions: {
     t10: { x: 1420, y: 360 },
     main: { x: 280, y: 1200 },
+    t1: { x: 760, y: 1100 },
     t2: { x: 1040, y: 1960 },
   },
   unassignedGuestIds: ['g-unassigned'],
@@ -137,12 +140,18 @@ function checkSvgExportContract() {
   assert.equal(artifact.layoutSignature, layoutModel.layoutSignature);
   assert.deepEqual(
     layoutModel.tables.map(tableLayout => tableLayout.id),
-    ['t10', 'main', 't2'],
+    ['t10', 'main', 't1', 't2'],
     'SVG export must preserve source table order and must not sort into a fixed grid'
   );
   assert.ok(
     layoutModel.tables.every(tableLayout => tableLayout.positionSource === 'stored'),
     'Stored tablePositions must be the SVG export source of truth'
+  );
+  assert.equal(layoutModel.contentFrame.y, 78, 'Design content frame must start below the stage ribbon');
+  assert.equal(
+    layoutModel.contentFrame.y + layoutModel.contentFrame.height,
+    266,
+    'Design content frame must extend closer to the compact legend'
   );
   assertAllPairScaleFactorsMatch(layoutModel);
 
@@ -155,7 +164,31 @@ function checkSvgExportContract() {
   assert.match(svg, /Jeremy &amp; Yuri/);
   assert.match(svg, /&#9829;/);
   assertNoUnknownSvgNamedEntities(svg);
+  assert.match(svg, /aria-label="舞台"/, 'Stage ribbon accessibility label must use 舞台 only');
+  assert.match(svg, />舞台</, 'Stage ribbon visible text must use 舞台 only');
+  assert.doesNotMatch(svg, /主桌\s*\/\s*舞台/, 'Stage ribbon must not include legacy stage copy');
+  assert.match(svg, /font-size: 19\.5px;/, 'Couple heading must stay below the previous oversized export');
+  assert.match(svg, /font-size: 9\.4px;/, 'Chinese title must stay below the previous oversized export');
+  assert.match(svg, /font-size: 5\.6px;/, 'English subtitle must stay below the previous oversized export');
+  assert.match(svg, /\.wfp-design-stage-text\s*\{[\s\S]*?font-size: 6\.2px;/, 'Stage label must stay compact');
+  assert.match(svg, /font-size: 3\.2px;/, 'Regular table labels must stay compact');
+  assert.match(svg, /\.wfp-design-legend-title\s*\{[\s\S]*?font-size: 5px;/, 'Legend title must stay compact');
+  assert.match(svg, /\.wfp-design-legend-text\s*\{[\s\S]*?font-size: 3\.8px;/, 'Legend item text must stay compact');
+  assert.match(svg, /class="wfp-design-legend-list" transform="translate\(49 283\)"/, 'Legend list must stay below the expanded content frame');
+  assert.doesNotMatch(svg, /--wfp-label-font-size:[^;"']+pt/, 'Seat labels must not emit pt units inside the SVG viewBox');
+  assert.match(svg, /--wfp-label-font-size:2\.\d+px/, 'Seat labels must render at compact SVG user-unit size');
+  assert.match(svg, /font-size="2\.\d+"/, 'Seat label text must include a compact presentation fallback');
   assert.match(svg, /座位圖例/);
+  assert.equal(
+    countMatches(svg, /class="wfp-design-table wfp-design-table--main"/g),
+    1,
+    'Only the explicit main table should use main table styling'
+  );
+  assert.match(
+    svg,
+    /class="wfp-design-table wfp-design-table--regular"[\s\S]*?data-table-id="t1"[\s\S]*?data-table-label="1桌"/,
+    '1桌 must use regular styling when an explicit 主桌 exists'
+  );
   assert.match(svg, /長輩貴賓/);
   assert.match(svg, /自訂貴賓/);
   assert.match(svg, /&lt;&amp;&quot;&gt;/);

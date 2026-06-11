@@ -375,7 +375,9 @@ function checkFloorPrintHtmlContract() {
   assert.match(html, /實際人數：10 位/);
   assert.match(html, /共 4 桌/);
   assert.match(html, /來源筆數：1 筆/);
-  assert.match(html, /主桌 \/ 舞台/);
+  assert.match(html, /aria-label="舞台"/, 'Stage ribbon accessibility label must use 舞台 only');
+  assert.match(html, />舞台</, 'Stage ribbon visible text must use 舞台 only');
+  assert.doesNotMatch(html, /主桌\s*\/\s*舞台/, 'Stage ribbon must not include legacy stage copy');
   assert.match(html, /class="wfp-design-svg"/);
   assert.match(html, /class="wfp-design-stage"/);
   assert.match(html, /class="wfp-design-table wfp-design-table--main"/);

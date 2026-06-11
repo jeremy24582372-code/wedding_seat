@@ -60,23 +60,45 @@ function assertAllPairScaleFactorsMatch(model, label) {
 function assertTablesInsideContentFrame(model) {
   const frame = model.contentFrame;
 
+  function assertRectInsideFrame(rect, label) {
+    assert.ok(
+      rect.x >= frame.x - 0.001,
+      `${label} left must stay inside content frame`
+    );
+    assert.ok(
+      rect.y >= frame.y - 0.001,
+      `${label} top must stay inside content frame`
+    );
+    assert.ok(
+      rect.x + rect.width <= frame.x + frame.width + 0.001,
+      `${label} right must stay inside content frame`
+    );
+    assert.ok(
+      rect.y + rect.height <= frame.y + frame.height + 0.001,
+      `${label} bottom must stay inside content frame`
+    );
+  }
+
   model.tables.forEach(table => {
-    assert.ok(
-      table.printPosition.x >= frame.x - 0.001,
-      `${table.label} print left must stay inside content frame`
-    );
-    assert.ok(
-      table.printPosition.y >= frame.y - 0.001,
-      `${table.label} print top must stay inside content frame`
-    );
-    assert.ok(
-      table.printPosition.x + table.printPosition.diameter <= frame.x + frame.width + 0.001,
-      `${table.label} print right must stay inside content frame`
-    );
-    assert.ok(
-      table.printPosition.y + table.printPosition.diameter <= frame.y + frame.height + 0.001,
-      `${table.label} print bottom must stay inside content frame`
-    );
+    assertRectInsideFrame({
+      x: table.printPosition.x,
+      y: table.printPosition.y,
+      width: table.printPosition.diameter,
+      height: table.printPosition.diameter,
+    }, `${table.label} print footprint`);
+
+    table.seatDots.forEach(dot => {
+      assertRectInsideFrame({
+        x: dot.printPoint.x - dot.dotRadius,
+        y: dot.printPoint.y - dot.dotRadius,
+        width: dot.dotRadius * 2,
+        height: dot.dotRadius * 2,
+      }, `${table.label} seat ${dot.seatNumber}`);
+    });
+
+    table.seatLabels.forEach(label => {
+      assertRectInsideFrame(label.labelBox, `${table.label} ${label.guestName} label`);
+    });
   });
 }
 
@@ -253,6 +275,33 @@ function checkCrowdedTablesStillUseNearbyLabels() {
   });
 }
 
+function checkOneTableUsesRegularLabelsWhenExplicitMainExists() {
+  const model = buildFloorDesignLayoutModel({
+    guests: [
+      makeGuest('main-guest', '主桌賓客', '新郎親友', 'main'),
+      makeGuest('one-guest', '一桌賓客', '新娘親友', 't1'),
+    ],
+    tables: [
+      makeTable('main', '主桌', ['main-guest']),
+      makeTable('t1', '1桌', ['one-guest']),
+    ],
+    tablePositions: {
+      main: { x: 620, y: 720 },
+      t1: { x: 920, y: 980 },
+    },
+    unassignedGuestIds: [],
+    partyRows: [],
+  });
+  const oneTable = model.tables.find(table => table.label === '1桌');
+  const oneLabel = oneTable.seatLabels.find(label => label.guestId === 'one-guest');
+
+  assert.ok(oneLabel, '1桌 fixture must render the occupied guest label');
+  assert.ok(
+    oneLabel.textFit.fontSizePt <= 7,
+    '1桌 must use regular label sizing when an explicit 主桌 exists'
+  );
+}
+
 function checkEmptyStateDoesNotCrash() {
   const model = buildFloorDesignLayoutModel({
     guests: [],
@@ -272,6 +321,7 @@ checkDefaultFallbackOnlyWhenMissing();
 checkBreathingKeepsRelativeSpacing();
 checkSeatDotsAndGuestPayloadStayAttachedToTables();
 checkCrowdedTablesStillUseNearbyLabels();
+checkOneTableUsesRegularLabelsWhenExplicitMainExists();
 checkEmptyStateDoesNotCrash();
 
 console.log('Floor design source-position layout checks passed');

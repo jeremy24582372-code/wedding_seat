@@ -20,7 +20,7 @@ export const FLOOR_DESIGN_PAGE = {
 
 export const FLOOR_DESIGN_CONTENT_FRAME = {
   x: 14,
-  y: 62,
+  y: 78,
   width: 182,
   height: 188,
 };
@@ -370,6 +370,14 @@ function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
 }
 
+function clampLabelBoxToFrame(labelBox, frame) {
+  return {
+    ...labelBox,
+    x: round(clamp(labelBox.x, frame.x, frame.x + frame.width - labelBox.width)),
+    y: round(clamp(labelBox.y, frame.y, frame.y + frame.height - labelBox.height)),
+  };
+}
+
 function nearestPointOnBox(point, box) {
   return {
     x: clamp(point.x, box.x, box.x + box.width),
@@ -409,13 +417,18 @@ function labelBoxesOverlap(a, b, padding = 0.25) {
   );
 }
 
-function isMainTableLabel(label) {
+function isExplicitMainTableLabel(label) {
   const normalized = String(label ?? '').trim();
-  return normalized === '主桌' || normalized.includes('主桌') || normalized === '1桌';
+  return normalized === '主桌' || normalized.includes('主桌');
 }
 
-function buildSeatLabels(table, seatDots, compact = false) {
-  const tableKind = isMainTableLabel(table.label) ? 'main' : 'regular';
+function isMainTableLabel(label, hasExplicitMainTable = false) {
+  const normalized = String(label ?? '').trim();
+  return isExplicitMainTableLabel(label) || (!hasExplicitMainTable && normalized === '1桌');
+}
+
+function buildSeatLabels(table, seatDots, contentFrame, hasExplicitMainTable, compact = false) {
+  const tableKind = isMainTableLabel(table.label, hasExplicitMainTable) ? 'main' : 'regular';
   const gap = tableKind === 'main' ? 1.2 : 0.8;
   const limits = LABEL_DISTANCE_LIMITS[tableKind] ?? LABEL_DISTANCE_LIMITS.regular;
 
@@ -425,7 +438,10 @@ function buildSeatLabels(table, seatDots, compact = false) {
       const seatDot = seatDots.find(dot => dot.seatIndex === seat.seatIndex);
       const sector = SEAT_LOCAL_SECTORS[seat.seatIndex] ?? 'right';
       const textFit = fitFloorDesignLabel(seat.guestName, tableKind, compact);
-      const labelBox = labelBoxForSector(seatDot.printPoint, textFit, sector, gap);
+      const labelBox = clampLabelBoxToFrame(
+        labelBoxForSector(seatDot.printPoint, textFit, sector, gap),
+        contentFrame
+      );
       const distance = distanceMetrics(seatDot.printPoint, labelBox);
 
       return {
@@ -465,15 +481,15 @@ function buildSeatLabels(table, seatDots, compact = false) {
     });
 }
 
-function buildCompactAwareSeatLabels(table, seatDots) {
-  const labels = buildSeatLabels(table, seatDots, false);
+function buildCompactAwareSeatLabels(table, seatDots, contentFrame, hasExplicitMainTable) {
+  const labels = buildSeatLabels(table, seatDots, contentFrame, hasExplicitMainTable, false);
   const hasCollision = labels.some((label, index) =>
     labels.some((other, otherIndex) =>
       otherIndex > index && labelBoxesOverlap(label.labelBox, other.labelBox)
     )
   );
 
-  return hasCollision ? buildSeatLabels(table, seatDots, true) : labels;
+  return hasCollision ? buildSeatLabels(table, seatDots, contentFrame, hasExplicitMainTable, true) : labels;
 }
 
 function buildSeatDots(table, printCenter, transform, tableGeometry) {
@@ -580,6 +596,7 @@ export function buildFloorDesignLayoutModel(state, options = {}) {
     y: round(printCentroidPoint.y),
   };
   const printTableRadius = tableGeometry.footprintRadius * transform.scalePxToMm;
+  const hasExplicitMainTable = tableEntries.some(table => isExplicitMainTableLabel(table.label));
 
   const tables = tableEntries.map((table, index) => {
     const printCenterPoint = transformBreathedPoint(breathedCenters[index], transform);
@@ -590,7 +607,12 @@ export function buildFloorDesignLayoutModel(state, options = {}) {
     const printRadius = round(printTableRadius);
 
     const seatDots = buildSeatDots(table, printCenter, transform, tableGeometry);
-    const seatLabels = buildCompactAwareSeatLabels(table, seatDots);
+    const seatLabels = buildCompactAwareSeatLabels(
+      table,
+      seatDots,
+      contentFrame,
+      hasExplicitMainTable
+    );
 
     return {
       id: table.id,

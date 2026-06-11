@@ -235,7 +235,7 @@ export default function FloorPlan({
 
           {/* ── Stage / Head table indicator ── */}
           <div className="floor-plan__stage">
-            <span>主桌 / 舞台</span>
+            <span>舞台</span>
           </div>
 
           {/* ── Smart guide lines SVG overlay ── */}

@@ -169,9 +169,9 @@ function renderHeader(model, compact = false) {
 
 function renderStageRibbon() {
   return `
-    <div class="wfp-stage-ribbon" aria-label="主桌 / 舞台">
+    <div class="wfp-stage-ribbon" aria-label="舞台">
       <span class="wfp-stage-ribbon__tail wfp-stage-ribbon__tail--left"></span>
-      <span>主桌 / 舞台</span>
+      <span>舞台</span>
       <span class="wfp-stage-ribbon__tail wfp-stage-ribbon__tail--right"></span>
     </div>`;
 }

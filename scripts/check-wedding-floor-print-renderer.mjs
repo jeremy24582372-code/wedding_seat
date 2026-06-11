@@ -28,6 +28,7 @@ const sampleState = {
   guests: [
     guest('g1', '王小明', '新郎親友', 'main'),
     guest('g2', '陳美麗特別長姓名', '新娘親友', 'main'),
+    guest('g1a', '一桌賓客', '新郎親友', 't1'),
     guest('g3', '共同好友', '共同朋友', 't2'),
     guest('g4', '林同事', '同事', 't2'),
     guest('g5', '自訂貴賓<&">', '長輩貴賓', 't3'),
@@ -38,6 +39,7 @@ const sampleState = {
   ],
   tables: [
     table('main', '主桌', ['g1', 'g2']),
+    table('t1', '1桌', ['g1a']),
     table('t2', '2桌', ['g3', 'g4']),
     table('t3', '3桌', ['g5', 'g6', 'g7', 'g8']),
     table('t10', '10桌', []),
@@ -78,10 +80,33 @@ const expectedSeatDotCount = floorDesignModel.tables.reduce(
 assert.match(html, /Jeremy &amp; Yuri/);
 assert.match(html, /婚 禮 桌 次 位 置 圖/);
 assert.match(html, /WEDDING SEATING CHART/);
-assert.match(html, /主桌 \/ 舞台/);
+assert.match(html, /aria-label="舞台"/, 'Stage ribbon accessibility label must use 舞台 only');
+assert.match(html, />舞台</, 'Stage ribbon visible text must use 舞台 only');
+assert.doesNotMatch(html, /主桌\s*\/\s*舞台/, 'Stage ribbon must not include legacy stage copy');
 assert.match(html, /class="wfp-design-svg"/);
+assert.match(html, /font-size: 19\.5px;/, 'Couple heading must stay below the previous oversized export');
+assert.match(html, /font-size: 9\.4px;/, 'Chinese title must stay below the previous oversized export');
+assert.match(html, /font-size: 5\.6px;/, 'English subtitle must stay below the previous oversized export');
+assert.match(html, /\.wfp-design-stage-text\s*\{[\s\S]*?font-size: 6\.2px;/, 'Stage label must stay compact');
+assert.match(html, /font-size: 3\.2px;/, 'Regular table labels must stay compact');
+assert.match(html, /\.wfp-design-legend-title\s*\{[\s\S]*?font-size: 5px;/, 'Legend title must stay compact');
+assert.match(html, /\.wfp-design-legend-text\s*\{[\s\S]*?font-size: 3\.8px;/, 'Legend item text must stay compact');
+assert.match(html, /class="wfp-design-legend-list" transform="translate\(49 283\)"/, 'Legend list must stay below the expanded content frame');
+assert.doesNotMatch(html, /--wfp-label-font-size:[^;"']+pt/, 'Seat labels must not emit pt units inside the SVG viewBox');
+assert.match(html, /--wfp-label-font-size:2\.\d+px/, 'Seat labels must render at compact SVG user-unit size');
+assert.match(html, /font-size="2\.\d+"/, 'Seat label text must include a compact presentation fallback');
 assert.match(html, /class="wfp-design-stage"/);
 assert.match(html, /class="wfp-design-table wfp-design-table--main"/);
+assert.equal(
+  countMatches(html, /class="wfp-design-table wfp-design-table--main"/g),
+  1,
+  'Only the explicit main table should use main table styling'
+);
+assert.match(
+  html,
+  /class="wfp-design-table wfp-design-table--regular"[\s\S]*?data-table-id="t1"[\s\S]*?data-table-label="1桌"/,
+  '1桌 must use regular styling when an explicit 主桌 exists'
+);
 assert.match(html, /class="wfp-design-main-medallion"/);
 assert.ok(
   html.includes(`data-layout-signature="${floorDesignModel.layoutSignature}"`),

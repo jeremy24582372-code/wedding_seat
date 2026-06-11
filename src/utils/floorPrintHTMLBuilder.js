@@ -215,7 +215,7 @@ export function buildLegacyFloorPrintHTML(state) {
             text-anchor="middle" dominant-baseline="central"
             font-family="${SYS_FONT}"
             font-size="20" font-weight="500" fill="#7c5c00" letter-spacing="5">
-        主桌 / 舞台
+        舞台
       </text>
     </g>
 

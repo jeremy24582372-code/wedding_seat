@@ -6,6 +6,10 @@ function formatNumber(value) {
   return Number(value ?? 0).toFixed(3).replace(/\.?0+$/u, '');
 }
 
+function ptToSvgUserUnit(value) {
+  return Number(value ?? 0) * 0.36;
+}
+
 function cssValue(value, fallback = 'currentColor') {
   return escHtml(value || fallback);
 }
@@ -19,9 +23,14 @@ function displayTableLabel(label) {
   return normalized.length > 6 ? `${normalized.slice(0, 6)}...` : normalized;
 }
 
-function isMainTable(table) {
+function isExplicitMainTable(table) {
   const label = String(table?.label ?? '').trim();
-  return label === '主桌' || label.includes('主桌') || label === '1桌';
+  return label === '主桌' || label.includes('主桌');
+}
+
+function isMainTable(table, hasExplicitMainTable = false) {
+  const label = String(table?.label ?? '').trim();
+  return isExplicitMainTable(table) || (!hasExplicitMainTable && label === '1桌');
 }
 
 function labelCenter(labelBox) {
@@ -105,13 +114,13 @@ function renderHeader(meta) {
 
 function renderStageRibbon() {
   return `
-    <g class="wfp-design-stage" aria-label="主桌 / 舞台">
+    <g class="wfp-design-stage" aria-label="舞台">
       <path class="wfp-design-stage-tail" d="M49 64 H62 V74 H49 L54 69 Z"/>
       <path class="wfp-design-stage-tail" d="M161 64 H148 V74 H161 L156 69 Z"/>
       <rect class="wfp-design-stage-ribbon" x="58" y="62" width="94" height="14" rx="1.6"/>
       <line class="wfp-design-stage-line" x1="64" y1="65" x2="146" y2="65"/>
       <line class="wfp-design-stage-line" x1="64" y1="73" x2="146" y2="73"/>
-      <text class="wfp-design-stage-text" x="105" y="70.5">主桌 / 舞台</text>
+      <text class="wfp-design-stage-text" x="105" y="70.5">舞台</text>
     </g>`;
 }
 
@@ -149,24 +158,25 @@ function renderSeatLabel(label, variant) {
   const center = labelCenter(label.labelBox);
   const lines = textLines(label);
   const fontSize = label.textFit?.fontSizePt ?? (variant === 'main' ? 6.6 : 5.8);
+  const fontSizeUnit = formatNumber(ptToSvgUserUnit(fontSize));
 
   return `
     <g class="wfp-seat-label wfp-seat-label--${variant} wfp-seat-label--${label.localSector}"
       data-guest-id="${attr(label.guestId)}"
       data-seat-index="${label.seatIndex}"
-      style="--wfp-seat-stroke:${cssValue(visual.floorBorder || visual.printColor || 'var(--wfp-gold-line)')};--wfp-label-font-size:${formatNumber(fontSize)}pt">
+      style="--wfp-seat-stroke:${cssValue(visual.floorBorder || visual.printColor || 'var(--wfp-gold-line)')};--wfp-label-font-size:${fontSizeUnit}px">
       <rect class="wfp-design-label-box"
         x="${formatNumber(label.labelBox.x)}"
         y="${formatNumber(label.labelBox.y)}"
         width="${formatNumber(label.labelBox.width)}"
         height="${formatNumber(label.labelBox.height)}"
         rx="${variant === 'main' ? '2.2' : '1.4'}"/>
-      <text class="wfp-design-label-text" x="${formatNumber(center.x)}" y="${formatNumber(center.y)}">${renderTextLines(lines, center, fontSize)}</text>
+      <text class="wfp-design-label-text" x="${formatNumber(center.x)}" y="${formatNumber(center.y)}" font-size="${fontSizeUnit}">${renderTextLines(lines, center, fontSize)}</text>
     </g>`;
 }
 
-function renderMainMedallion(table) {
-  if (!isMainTable(table)) return '';
+function renderMainMedallion(table, variant) {
+  if (variant !== 'main') return '';
 
   const { centerX, centerY, radius } = table.printPosition;
   const medallionRadius = Math.max(6, radius * 0.42);
@@ -196,8 +206,8 @@ function renderTableCore(table, variant) {
     </g>`;
 }
 
-function renderTable(table) {
-  const variant = isMainTable(table) ? 'main' : 'regular';
+function renderTable(table, hasExplicitMainTable) {
+  const variant = isMainTable(table, hasExplicitMainTable) ? 'main' : 'regular';
   const connectors = table.seatLabels.map(label => renderSeatConnector(label, variant)).join('');
   const dots = table.seatDots.map(renderSeatDot).join('');
   const labels = table.seatLabels.map(label => renderSeatLabel(label, variant)).join('');
@@ -207,7 +217,7 @@ function renderTable(table) {
       data-table-id="${attr(table.id)}"
       data-table-label="${attr(table.label)}"
       data-position-source="${attr(table.positionSource)}">
-      ${renderMainMedallion(table)}
+      ${renderMainMedallion(table, variant)}
       ${connectors}
       ${dots}
       ${renderTableCore(table, variant)}
@@ -221,19 +231,19 @@ function renderLegend(legendItems = []) {
     const col = index % 4;
     const row = Math.floor(index / 4);
     return `
-      <g class="wfp-design-legend-item${item.used ? '' : ' wfp-design-legend-item--unused'}" transform="translate(${formatNumber(col * 30)} ${formatNumber(row * 7)})">
-        <circle class="wfp-design-legend-dot" r="2"
+      <g class="wfp-design-legend-item${item.used ? '' : ' wfp-design-legend-item--unused'}" transform="translate(${formatNumber(col * 27)} ${formatNumber(row * 5.4)})">
+        <circle class="wfp-design-legend-dot" r="1.25"
           style="--wfp-seat-fill:${cssValue(visual.printColor)};--wfp-seat-stroke:${cssValue(visual.floorBorder || visual.printColor)}"/>
-        <text class="wfp-design-legend-text" x="4.4" y="1.2">${attr(item.label)}</text>
+        <text class="wfp-design-legend-text" x="3.2" y="0.9">${attr(item.label)}</text>
       </g>`;
   }).join('');
 
   return `
     <g class="wfp-design-legend">
-      <line class="wfp-design-legend-rule" x1="28" y1="264" x2="86" y2="264"/>
-      <text class="wfp-design-legend-title" x="105" y="266.2">座位圖例</text>
-      <line class="wfp-design-legend-rule" x1="124" y1="264" x2="182" y2="264"/>
-      <g class="wfp-design-legend-list" transform="translate(42 274)">
+      <line class="wfp-design-legend-rule" x1="34" y1="273" x2="90" y2="273"/>
+      <text class="wfp-design-legend-title" x="105" y="275">座位圖例</text>
+      <line class="wfp-design-legend-rule" x1="120" y1="273" x2="176" y2="273"/>
+      <g class="wfp-design-legend-list" transform="translate(49 283)">
         ${items}
       </g>
     </g>`;
@@ -275,27 +285,27 @@ function renderStyles() {
       .wfp-design-couple {
         fill: var(--wfp-gold-ink);
         font-family: 'Imperial Script', 'Segoe Script', 'Times New Roman', cursive;
-        font-size: 33px;
+        font-size: 19.5px;
         text-anchor: middle;
       }
       .wfp-design-title {
         fill: var(--wfp-brown-ink);
         font-family: 'Noto Serif TC', 'Noto Sans TC', 'Microsoft JhengHei', serif;
-        font-size: 14.6px;
+        font-size: 9.4px;
         font-weight: 500;
-        letter-spacing: 4.8px;
+        letter-spacing: 3px;
         text-anchor: middle;
       }
       .wfp-design-subtitle {
         fill: var(--wfp-gold-ink);
-        font-size: 8.5px;
+        font-size: 5.6px;
         font-weight: 500;
-        letter-spacing: 3.1px;
+        letter-spacing: 2px;
         text-anchor: middle;
       }
       .wfp-design-meta {
         fill: var(--wfp-muted-ink);
-        font-size: 7px;
+        font-size: 4.6px;
         text-anchor: middle;
       }
       .wfp-design-gold-rule,
@@ -306,7 +316,7 @@ function renderStyles() {
       .wfp-design-heart {
         fill: var(--wfp-gold-ink);
         font-family: 'Noto Serif TC', 'Times New Roman', serif;
-        font-size: 7.2px;
+        font-size: 5.2px;
         text-anchor: middle;
       }
       .wfp-design-stage-tail,
@@ -322,9 +332,9 @@ function renderStyles() {
       .wfp-design-stage-text {
         fill: var(--wfp-brown-ink);
         font-family: 'Noto Serif TC', 'Microsoft JhengHei', serif;
-        font-size: 11px;
+        font-size: 6.2px;
         font-weight: 600;
-        letter-spacing: 1.8px;
+        letter-spacing: 0.7px;
         text-anchor: middle;
         dominant-baseline: central;
       }
@@ -355,15 +365,15 @@ function renderStyles() {
       .wfp-design-table-label {
         fill: var(--wfp-brown-ink);
         font-family: 'Noto Serif TC', 'Microsoft JhengHei', serif;
-        font-size: 4.6px;
+        font-size: 3.2px;
         font-weight: 700;
         text-anchor: middle;
         dominant-baseline: central;
       }
-      .wfp-design-table--main .wfp-design-table-label { font-size: 6px; }
+      .wfp-design-table--main .wfp-design-table-label { font-size: 4.3px; }
       .wfp-design-table-count {
         fill: var(--wfp-gold-ink);
-        font-size: 3.6px;
+        font-size: 2.8px;
         font-weight: 600;
         text-anchor: middle;
         dominant-baseline: central;
@@ -427,9 +437,9 @@ function renderStyles() {
       .wfp-design-legend-title {
         fill: var(--wfp-gold-ink);
         font-family: 'Noto Serif TC', 'Microsoft JhengHei', serif;
-        font-size: 8.2px;
+        font-size: 5px;
         font-weight: 600;
-        letter-spacing: 1.2px;
+        letter-spacing: 0.6px;
         text-anchor: middle;
       }
       .wfp-design-legend-dot {
@@ -439,7 +449,7 @@ function renderStyles() {
       }
       .wfp-design-legend-text {
         fill: var(--wfp-brown-ink);
-        font-size: 6.8px;
+        font-size: 3.8px;
       }
       .wfp-design-legend-item--unused { opacity: 0.46; }
     </style>`;
@@ -459,6 +469,7 @@ export function buildWeddingFloorDesignSvg(model, options = {}) {
   const legendItems = options.legendItems ?? [];
   const meta = normalizeMeta(model, options);
   const contentFrame = model.contentFrame;
+  const hasExplicitMainTable = model.tables.some(isExplicitMainTable);
 
   return `<svg class="wfp-design-svg"
     xmlns="${SVG_NS}"
@@ -499,7 +510,7 @@ export function buildWeddingFloorDesignSvg(model, options = {}) {
       width="${formatNumber(contentFrame.width)}"
       height="${formatNumber(contentFrame.height)}"/>
     <g class="wfp-design-floor" data-layout-signature="${attr(model.layoutSignature)}">
-      ${model.tables.map(renderTable).join('')}
+      ${model.tables.map(table => renderTable(table, hasExplicitMainTable)).join('')}
     </g>
     ${renderLegend(legendItems)}
   </svg>`;
