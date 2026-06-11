@@ -17,6 +17,7 @@ import FloorPlan from './components/FloorPlan';
 import DragGuestToken from './components/DragGuestToken';
 import AddGuestModal from './components/AddGuestModal';
 import AutoSeatRulesModal from './components/AutoSeatRulesModal';
+import FloorDesignExportModal from './components/FloorDesignExportModal';
 import ToastContainer from './components/Toast';
 
 import { useSeatingState } from './hooks/useSeatingState';
@@ -61,9 +62,6 @@ export default function App() {
     exportJSON,
     exportCSV,
     exportPDF,
-    exportFloorPDF,
-    exportFloorDesignSVG,
-    exportFloorDesignPNG,
     exportFloorDesignPrompt,
   } = useExport(state);
   const firebaseStatus = useFirebaseStatus();
@@ -73,6 +71,7 @@ export default function App() {
   const [showAddGuest, setShowAddGuest] = useState(false);
   const [editingGuest, setEditingGuest] = useState(null); // Guest object being edited
   const [activeTab, setActiveTab] = useState('overview');
+  const [floorExportMode, setFloorExportMode] = useState(null);
 
   const handleOpenEdit = (guest) => setEditingGuest(guest);
   const handleCloseEdit = () => setEditingGuest(null);
@@ -195,6 +194,14 @@ export default function App() {
         />
       )}
 
+      {floorExportMode && (
+        <FloorDesignExportModal
+          state={state}
+          mode={floorExportMode}
+          onClose={() => setFloorExportMode(null)}
+        />
+      )}
+
       {/* Global toast notifications */}
       <ToastContainer toasts={toasts} onDismiss={toast.dismiss} />
 
@@ -230,8 +237,8 @@ export default function App() {
               onOpenAddGuest={() => setShowAddGuest(true)}
               onGoToSeats={() => setActiveTab('seating')}
               onExportPDF={exportPDF}
-              onExportFloorPDF={exportFloorPDF}
-              onExportFloorDesignPNG={exportFloorDesignPNG}
+              onExportFloorPDF={() => setFloorExportMode('pdf')}
+              onExportFloorDesignPNG={() => setFloorExportMode('png')}
               onExportFloorDesignPrompt={exportFloorDesignPrompt}
               onSyncSheets={handleSyncSheets}
             />
@@ -272,9 +279,9 @@ export default function App() {
                 onExportJSON={exportJSON}
                 onExportCSV={exportCSV}
                 onExportPDF={exportPDF}
-                onExportFloorPDF={exportFloorPDF}
-                onExportFloorDesignSVG={exportFloorDesignSVG}
-                onExportFloorDesignPNG={exportFloorDesignPNG}
+                onExportFloorPDF={() => setFloorExportMode('pdf')}
+                onExportFloorDesignSVG={() => setFloorExportMode('svg')}
+                onExportFloorDesignPNG={() => setFloorExportMode('png')}
                 onExportFloorDesignPrompt={exportFloorDesignPrompt}
                 onSyncSheets={handleSyncSheets}
                 importLoading={importLoading}

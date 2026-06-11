@@ -40,7 +40,7 @@ export function buildFloorDesignPrompt(state, layoutModel, options = {}) {
     '',
     unassignedSummary,
     '',
-    '中文補充：請維持附件中的桌位與相對距離，不要重新排成固定網格；每個姓名都要貼近原本座位點，不可新增、刪除或改名。',
+    '中文補充：請維持附件中的桌位與相對方向；可依匯出桌間距設定做全域等比例拉開，但不可重新排序成固定網格。每個姓名都要貼近原本座位點，不可新增、刪除或改名。',
   ].join('\n');
 }
 

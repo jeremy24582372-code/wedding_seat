@@ -492,6 +492,34 @@ function checkFloorDesignExportContract() {
   assert.match(promptArtifact.prompt, /preserve exact table layout and relative positions from the attached reference image/);
   assert.match(promptArtifact.prompt, /keep all names close to their corresponding seat dots/);
   assert.match(promptArtifact.prompt, /do not invent, remove, or rename guests/);
+
+  const spaciousOptions = {
+    date: new Date(2026, 5, 8),
+    floorDesign: {
+      minHorizontalTableGapMm: 12,
+      minVerticalTableGapMm: 10,
+    },
+  };
+  const spaciousSvgArtifact = buildFloorDesignSvgExport(floorSeatLabelState, spaciousOptions);
+  const spaciousPromptArtifact = buildFloorDesignPromptExport(floorSeatLabelState, spaciousOptions);
+  const spaciousPrintHtml = buildWeddingFloorPrintHTML(floorSeatLabelState, spaciousOptions);
+
+  assert.equal(spaciousSvgArtifact.layoutModel.minHorizontalTableGapMm, 12);
+  assert.equal(spaciousSvgArtifact.layoutModel.minVerticalTableGapMm, 10);
+  assert.ok(
+    spaciousPrintHtml.includes(`data-layout-signature="${spaciousSvgArtifact.layoutSignature}"`),
+    'Official PDF export must propagate the selected minimum table gap into its layout model'
+  );
+  assert.equal(
+    spaciousPromptArtifact.layoutSignature,
+    spaciousSvgArtifact.layoutSignature,
+    'SVG, PDF, PNG source SVG, and prompt export must share the selected spacing layout'
+  );
+  assert.deepEqual(
+    spaciousSvgArtifact.layoutModel.tables.map(table => table.sourcePosition),
+    model.tables.map(table => table.sourcePosition),
+    'Export spacing options must never change interactive canvas source positions'
+  );
 }
 
 function checkPrintWindowOneShotGuard() {

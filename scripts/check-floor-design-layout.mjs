@@ -125,7 +125,7 @@ function checkStoredPositionsRemainSourceOfTruth() {
     unassignedGuestIds: [],
     partyRows: [],
   };
-  const model = buildFloorDesignLayoutModel(state);
+  const model = buildFloorDesignLayoutModel(state, { autoSpacing: false });
 
   assert.deepEqual(
     model.tables.map(table => table.id),
@@ -148,7 +148,8 @@ function checkStoredPositionsRemainSourceOfTruth() {
 
   assertAllPairScaleFactorsMatch(model, 'stored position model');
   assertTablesInsideContentFrame(model);
-  assert.match(model.layoutSignature, /floor-design-layout-v1/);
+  assert.match(model.layoutSignature, /floor-design-layout-v4/);
+  assert.match(model.layoutSignature, /mode:source-position/);
   assert.match(model.layoutSignature, /t10@stored/);
 }
 
@@ -178,7 +179,7 @@ function checkDefaultFallbackOnlyWhenMissing() {
   );
 }
 
-function checkBreathingKeepsRelativeSpacing() {
+function checkCanvasMappingKeepsFixedTableSize() {
   const state = {
     guests: [],
     tables: [
@@ -196,12 +197,25 @@ function checkBreathingKeepsRelativeSpacing() {
     unassignedGuestIds: [],
     partyRows: [],
   };
-  const model = buildFloorDesignLayoutModel(state, { breathingScale: 1.18 });
+  const tight = buildFloorDesignLayoutModel(state, { minTableGapMm: 0 });
+  const spacious = buildFloorDesignLayoutModel(state, { minTableGapMm: 16 });
 
-  assert.equal(model.breathingScale, 1.18);
-  assert.equal(model.positionTransform.scaleX, model.positionTransform.scaleY);
-  assertAllPairScaleFactorsMatch(model, 'breathing model');
-  assertTablesInsideContentFrame(model);
+  assert.equal(tight.breathingScale, 1);
+  assert.equal(spacious.breathingScale, 1);
+  assert.equal(tight.positionTransform.scaleX, tight.positionTransform.scaleY);
+  assert.equal(spacious.positionTransform.scalePxToMm, tight.positionTransform.scalePxToMm);
+  assert.deepEqual(
+    spacious.tables.map(table => table.printPosition.radius),
+    tight.tables.map(table => table.printPosition.radius),
+    'Changing minimum spacing must not resize tables'
+  );
+  assert.deepEqual(
+    spacious.tables.flatMap(table => table.seatDots.map(dot => dot.dotRadius)),
+    tight.tables.flatMap(table => table.seatDots.map(dot => dot.dotRadius)),
+    'Changing minimum spacing must not resize seat dots'
+  );
+  assertTablesInsideContentFrame(tight);
+  assertTablesInsideContentFrame(spacious);
 }
 
 function checkSeatDotsAndGuestPayloadStayAttachedToTables() {
@@ -302,6 +316,175 @@ function checkOneTableUsesRegularLabelsWhenExplicitMainExists() {
   );
 }
 
+function checkOneTableUsesRegularLabelsWithoutExplicitMain() {
+  const model = buildFloorDesignLayoutModel({
+    guests: [
+      makeGuest('one-guest', '一桌賓客', '新娘親友', 't1'),
+    ],
+    tables: [
+      makeTable('t1', '1桌', ['one-guest']),
+    ],
+    tablePositions: {
+      t1: { x: 620, y: 720 },
+    },
+    unassignedGuestIds: [],
+    partyRows: [],
+  });
+  const oneTable = model.tables[0];
+  const oneLabel = oneTable.seatLabels.find(label => label.guestId === 'one-guest');
+
+  assert.ok(oneLabel, '1桌 fixture must render the occupied guest label');
+  assert.ok(
+    oneLabel.textFit.fontSizePt <= 7,
+    '1桌 must use regular label sizing even when there is no explicit 主桌'
+  );
+}
+
+function checkAxisSpacingPreservesRowsAndColumns() {
+  const state = {
+    guests: [],
+    tables: [
+      makeTable('t11', '11桌'),
+      makeTable('t12', '12桌'),
+      makeTable('t13', '13桌'),
+      makeTable('t14', '14桌'),
+    ],
+    tablePositions: {
+      t11: { x: 670, y: 870 },
+      t12: { x: 970, y: 870 },
+      t13: { x: 670, y: 1170 },
+      t14: { x: 970, y: 1170 },
+    },
+    unassignedGuestIds: [],
+    partyRows: [],
+  };
+  const tight = buildFloorDesignLayoutModel(state, {
+    minHorizontalTableGapMm: 0,
+    minVerticalTableGapMm: 0,
+  });
+  const spacious = buildFloorDesignLayoutModel(state, {
+    minHorizontalTableGapMm: 12,
+    minVerticalTableGapMm: 12,
+  });
+  const tightById = Object.fromEntries(tight.tables.map(table => [table.id, table]));
+  const byId = Object.fromEntries(spacious.tables.map(table => [table.id, table]));
+
+  assert.equal(
+    byId.t12.printPosition.centerX,
+    byId.t14.printPosition.centerX,
+    'Tables that share the same source X axis must stay on the same print X axis'
+  );
+  assert.equal(
+    byId.t11.printPosition.centerY,
+    byId.t12.printPosition.centerY,
+    'Tables that share the same source Y axis must stay on the same print Y axis'
+  );
+  assert.equal(
+    byId.t13.printPosition.centerY,
+    byId.t14.printPosition.centerY,
+    'Lower row tables that share the same source Y axis must stay aligned'
+  );
+  assert.ok(
+    byId.t11.printPosition.centerX < tightById.t11.printPosition.centerX,
+    'Increasing horizontal spacing must move left-side tables left instead of pinning them'
+  );
+  assert.ok(
+    byId.t12.printPosition.centerX > tightById.t12.printPosition.centerX,
+    'Increasing horizontal spacing must move right-side tables right'
+  );
+  assert.ok(
+    byId.t11.printPosition.centerY < tightById.t11.printPosition.centerY,
+    'Increasing vertical spacing must move upper-row tables upward'
+  );
+  assert.ok(
+    byId.t13.printPosition.centerY > tightById.t13.printPosition.centerY,
+    'Increasing vertical spacing must move lower-row tables downward'
+  );
+  assert.ok(
+    spacious.axisSpacing.horizontal.movedNegativeCount > 0 &&
+      spacious.axisSpacing.horizontal.movedPositiveCount > 0,
+    'Horizontal spacing must expand both sides from the chart center'
+  );
+  assert.ok(
+    spacious.axisSpacing.vertical.movedNegativeCount > 0 &&
+      spacious.axisSpacing.vertical.movedPositiveCount > 0,
+    'Vertical spacing must expand both sides from the chart center'
+  );
+  assert.deepEqual(
+    spacious.tables.map(table => table.printPosition.radius),
+    tight.tables.map(table => table.printPosition.radius),
+    'Axis spacing must not resize tables'
+  );
+  assert.ok(spacious.spacingMetrics.minimumHorizontalTableGapMm >= 12);
+  assert.ok(spacious.spacingMetrics.minimumVerticalTableGapMm >= 12);
+}
+
+function checkAutoSpacingPreservesCanvasTopology() {
+  const guests = Array.from({ length: 16 }, (_, index) =>
+    makeGuest(
+      `spacing-${index + 1}`,
+      `桌距賓客${index + 1}`,
+      index % 2 === 0 ? '新郎親友' : '新娘親友',
+      index < 8 ? 'a' : 'b'
+    )
+  );
+  const state = {
+    guests,
+    tables: [
+      makeTable('a', '2桌', guests.slice(0, 8).map(guest => guest.id)),
+      makeTable('b', '3桌', guests.slice(8).map(guest => guest.id)),
+    ],
+    tablePositions: {
+      a: { x: 700, y: 900 },
+      b: { x: 900, y: 900 },
+    },
+    unassignedGuestIds: [],
+    partyRows: [],
+  };
+  const tight = buildFloorDesignLayoutModel(state, {
+    minHorizontalTableGapMm: 0,
+    minVerticalTableGapMm: 0,
+  });
+  const spacious = buildFloorDesignLayoutModel(state, {
+    minHorizontalTableGapMm: 16,
+    minVerticalTableGapMm: 0,
+  });
+  const disabled = buildFloorDesignLayoutModel(state, {
+    autoSpacing: false,
+    minHorizontalTableGapMm: 12,
+    minVerticalTableGapMm: 12,
+  });
+
+  assert.deepEqual(
+    spacious.tables.map(table => table.id),
+    ['a', 'b'],
+    'Auto spacing must preserve the interactive canvas table order'
+  );
+  assert.deepEqual(
+    spacious.tables.map(table => table.sourcePosition),
+    tight.tables.map(table => table.sourcePosition),
+    'Changing export spacing must not modify interactive canvas source positions'
+  );
+  assert.ok(
+    spacious.spacingMetrics.minimumHorizontalTableGapMm >= 16,
+    'Resolved export must satisfy the requested horizontal table gap when A4 has enough room'
+  );
+  assert.equal(disabled.breathingScale, 1, 'Disabling auto spacing must preserve the requested base scale');
+  assert.equal(disabled.autoSpacing, false);
+  assert.equal(spacious.positionTransform.scalePxToMm, tight.positionTransform.scalePxToMm);
+  assert.deepEqual(
+    spacious.tables.map(table => table.printPosition.radius),
+    tight.tables.map(table => table.printPosition.radius),
+    'Auto spacing must move table centers without changing table sizes'
+  );
+  assert.notDeepEqual(
+    spacious.tables.map(table => table.printPosition),
+    tight.tables.map(table => table.printPosition),
+    'A larger minimum table gap must visibly move table centers'
+  );
+  assertTablesInsideContentFrame(spacious);
+}
+
 function checkEmptyStateDoesNotCrash() {
   const model = buildFloorDesignLayoutModel({
     guests: [],
@@ -318,10 +501,13 @@ function checkEmptyStateDoesNotCrash() {
 
 checkStoredPositionsRemainSourceOfTruth();
 checkDefaultFallbackOnlyWhenMissing();
-checkBreathingKeepsRelativeSpacing();
+checkCanvasMappingKeepsFixedTableSize();
 checkSeatDotsAndGuestPayloadStayAttachedToTables();
 checkCrowdedTablesStillUseNearbyLabels();
 checkOneTableUsesRegularLabelsWhenExplicitMainExists();
+checkOneTableUsesRegularLabelsWithoutExplicitMain();
+checkAxisSpacingPreservesRowsAndColumns();
+checkAutoSpacingPreservesCanvasTopology();
 checkEmptyStateDoesNotCrash();
 
 console.log('Floor design source-position layout checks passed');

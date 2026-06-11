@@ -30,7 +30,7 @@ function isExplicitMainTable(table) {
 
 function isMainTable(table, hasExplicitMainTable = false) {
   const label = String(table?.label ?? '').trim();
-  return isExplicitMainTable(table) || (!hasExplicitMainTable && label === '1桌');
+  return isExplicitMainTable(table) || (hasExplicitMainTable && label === '主桌');
 }
 
 function labelCenter(labelBox) {
@@ -55,35 +55,38 @@ function renderTextLines(lines, center, fontSizePt, lineHeight = 0.34) {
 
 function renderFloralCorner(position) {
   const transforms = {
-    'top-left': 'translate(-4 -3)',
-    'top-right': 'translate(214 -3) scale(-1 1)',
-    'bottom-left': 'translate(-5 303) scale(1 -1) rotate(5)',
-    'bottom-right': 'translate(216 303) rotate(180)',
+    'top-left': 'translate(-9 -7)',
+    'top-right': 'translate(219 -7) scale(-1 1)',
+    'bottom-left': 'translate(-11 307) scale(1 -1) rotate(4)',
+    'bottom-right': 'translate(221 307) rotate(180)',
   };
-  const scale = position.includes('bottom') ? 0.56 : 0.45;
+  const scale = position.includes('bottom') ? 0.66 : 0.56;
 
   return `
     <g class="wfp-design-floral wfp-design-floral--${position}" transform="${transforms[position]} scale(${scale})" aria-hidden="true">
       <path class="wfp-design-floral-stem" d="M12 100 C32 72 49 58 73 50 C92 44 105 30 118 12"/>
       <path class="wfp-design-floral-stem wfp-design-floral-stem--fine" d="M20 108 C29 88 41 76 57 68 C70 61 77 49 82 34"/>
-      <g opacity="0.9">
-        <ellipse cx="35" cy="36" rx="19" ry="10" transform="rotate(-28 35 36)" fill="var(--wfp-rose-soft)"/>
-        <ellipse cx="49" cy="27" rx="20" ry="10" transform="rotate(22 49 27)" fill="var(--wfp-rose-petal)"/>
-        <ellipse cx="55" cy="45" rx="17" ry="9" transform="rotate(47 55 45)" fill="var(--wfp-rose-soft)"/>
-        <ellipse cx="36" cy="51" rx="15" ry="8" transform="rotate(-58 36 51)" fill="var(--wfp-rose-petal)" opacity="0.78"/>
-        <circle cx="45" cy="38" r="10" fill="var(--wfp-paper-warm)"/>
-        <circle cx="45" cy="38" r="4" fill="var(--wfp-gold-line)" opacity="0.58"/>
+      <g class="wfp-design-rose wfp-design-rose--primary">
+        <ellipse cx="31" cy="38" rx="23" ry="11" transform="rotate(-36 31 38)" fill="url(#wfp-design-rose-wash)"/>
+        <ellipse cx="51" cy="27" rx="25" ry="12" transform="rotate(24 51 27)" fill="url(#wfp-design-rose-petal)"/>
+        <ellipse cx="59" cy="48" rx="22" ry="11" transform="rotate(51 59 48)" fill="url(#wfp-design-rose-wash)"/>
+        <ellipse cx="36" cy="57" rx="20" ry="10" transform="rotate(-57 36 57)" fill="url(#wfp-design-rose-petal)" opacity="0.72"/>
+        <ellipse cx="44" cy="37" rx="17" ry="8" transform="rotate(-18 44 37)" fill="var(--wfp-paper-warm)" opacity="0.82"/>
+        <ellipse cx="49" cy="42" rx="13" ry="6" transform="rotate(38 49 42)" fill="var(--wfp-rose-petal)" opacity="0.45"/>
+        <path d="M38 42 C42 32 54 31 58 40 C54 48 43 50 38 42 Z" fill="var(--wfp-rose-deep)" opacity="0.36"/>
+        <circle cx="48" cy="41" r="3.4" fill="var(--wfp-gold-line)" opacity="0.45"/>
       </g>
-      <g opacity="0.75">
-        <ellipse cx="80" cy="66" rx="10" ry="6" transform="rotate(24 80 66)" fill="var(--wfp-rose-soft)"/>
-        <ellipse cx="88" cy="60" rx="9" ry="5" transform="rotate(-28 88 60)" fill="var(--wfp-rose-petal)"/>
+      <g class="wfp-design-rose wfp-design-rose--secondary">
+        <ellipse cx="80" cy="67" rx="12" ry="7" transform="rotate(24 80 67)" fill="url(#wfp-design-rose-wash)"/>
+        <ellipse cx="89" cy="60" rx="11" ry="6" transform="rotate(-28 89 60)" fill="url(#wfp-design-rose-petal)"/>
+        <ellipse cx="87" cy="69" rx="9" ry="5" transform="rotate(52 87 69)" fill="var(--wfp-rose-soft)" opacity="0.68"/>
         <circle cx="84" cy="63" r="3.4" fill="var(--wfp-gold-line)" opacity="0.42"/>
       </g>
-      <ellipse cx="82" cy="34" rx="13" ry="5" transform="rotate(-34 82 34)" fill="var(--wfp-leaf-soft)"/>
-      <ellipse cx="101" cy="23" rx="13" ry="5" transform="rotate(-24 101 23)" fill="var(--wfp-leaf-soft)"/>
-      <ellipse cx="20" cy="82" rx="11" ry="4.8" transform="rotate(-60 20 82)" fill="var(--wfp-leaf-soft)"/>
-      <ellipse cx="34" cy="75" rx="9" ry="4" transform="rotate(-38 34 75)" fill="var(--wfp-leaf-soft)" opacity="0.72"/>
-      <ellipse cx="67" cy="75" rx="8" ry="3.8" transform="rotate(28 67 75)" fill="var(--wfp-leaf-soft)" opacity="0.7"/>
+      <ellipse cx="82" cy="34" rx="14" ry="5.4" transform="rotate(-34 82 34)" fill="url(#wfp-design-leaf-wash)"/>
+      <ellipse cx="102" cy="22" rx="15" ry="5.5" transform="rotate(-24 102 22)" fill="url(#wfp-design-leaf-wash)"/>
+      <ellipse cx="20" cy="84" rx="13" ry="5.2" transform="rotate(-60 20 84)" fill="url(#wfp-design-leaf-wash)"/>
+      <ellipse cx="35" cy="76" rx="11" ry="4.6" transform="rotate(-38 35 76)" fill="var(--wfp-leaf-soft)" opacity="0.66"/>
+      <ellipse cx="67" cy="77" rx="10" ry="4.3" transform="rotate(28 67 77)" fill="var(--wfp-leaf-soft)" opacity="0.64"/>
       <circle cx="27" cy="58" r="3.2" fill="var(--wfp-rose-petal)" opacity="0.48"/>
       <circle cx="106" cy="41" r="2.8" fill="var(--wfp-rose-soft)" opacity="0.72"/>
       <circle cx="86" cy="73" r="1.8" fill="var(--wfp-gold-line)" opacity="0.45"/>
@@ -115,11 +118,11 @@ function renderHeader(meta) {
 function renderStageRibbon() {
   return `
     <g class="wfp-design-stage" aria-label="舞台">
-      <path class="wfp-design-stage-tail" d="M49 64 H62 V74 H49 L54 69 Z"/>
-      <path class="wfp-design-stage-tail" d="M161 64 H148 V74 H161 L156 69 Z"/>
-      <rect class="wfp-design-stage-ribbon" x="58" y="62" width="94" height="14" rx="1.6"/>
-      <line class="wfp-design-stage-line" x1="64" y1="65" x2="146" y2="65"/>
-      <line class="wfp-design-stage-line" x1="64" y1="73" x2="146" y2="73"/>
+      <path class="wfp-design-stage-tail" d="M66 64 H76 V74 H66 L71 69 Z"/>
+      <path class="wfp-design-stage-tail" d="M144 64 H134 V74 H144 L139 69 Z"/>
+      <rect class="wfp-design-stage-ribbon" x="72" y="62" width="66" height="14" rx="1.6"/>
+      <line class="wfp-design-stage-line" x1="78" y1="65" x2="132" y2="65"/>
+      <line class="wfp-design-stage-line" x1="78" y1="73" x2="132" y2="73"/>
       <text class="wfp-design-stage-text" x="105" y="70.5">舞台</text>
     </g>`;
 }
@@ -133,13 +136,28 @@ function renderSeatDot(dot) {
     ? ''
     : `style="--wfp-seat-fill:${cssValue(visual.floorBackground || visual.printColor)};--wfp-seat-stroke:${cssValue(visual.floorBorder || visual.printColor)}"`;
 
+  if (dot.isEmpty) {
+    return `
+      <circle class="${className}"
+        cx="${formatNumber(dot.printPoint.x)}"
+        cy="${formatNumber(dot.printPoint.y)}"
+        r="${formatNumber(Math.max(0.9, dot.dotRadius))}"
+        data-seat-index="${dot.seatIndex}"/>`;
+  }
+
   return `
-    <circle class="${className}"
-      cx="${formatNumber(dot.printPoint.x)}"
-      cy="${formatNumber(dot.printPoint.y)}"
-      r="${formatNumber(Math.max(0.9, dot.dotRadius))}"
+    <g class="${className}"
       ${style}
-      data-seat-index="${dot.seatIndex}"/>`;
+      data-seat-index="${dot.seatIndex}">
+      <circle class="wfp-seat-dot__outer"
+        cx="${formatNumber(dot.printPoint.x)}"
+        cy="${formatNumber(dot.printPoint.y)}"
+        r="${formatNumber(Math.max(0.9, dot.dotRadius))}"/>
+      <circle class="wfp-seat-dot__inner"
+        cx="${formatNumber(dot.printPoint.x)}"
+        cy="${formatNumber(dot.printPoint.y)}"
+        r="${formatNumber(Math.max(0.52, dot.dotRadius * 0.58))}"/>
+    </g>`;
 }
 
 function renderSeatConnector(label, variant) {
@@ -184,12 +202,14 @@ function renderMainMedallion(table, variant) {
   return `
     <g class="wfp-design-main-medallion" aria-hidden="true">
       <circle class="wfp-main-medallion-halo" cx="${formatNumber(centerX)}" cy="${formatNumber(centerY)}" r="${formatNumber(medallionRadius + 3)}"/>
-      <path class="wfp-main-medallion-leaf" d="M ${formatNumber(centerX - medallionRadius * 0.55)} ${formatNumber(centerY - 1)}
-        C ${formatNumber(centerX - medallionRadius * 0.35)} ${formatNumber(centerY - medallionRadius * 0.45)}
-          ${formatNumber(centerX + medallionRadius * 0.1)} ${formatNumber(centerY - medallionRadius * 0.45)}
-          ${formatNumber(centerX + medallionRadius * 0.32)} ${formatNumber(centerY - 2)}"/>
-      <circle class="wfp-main-medallion-bloom" cx="${formatNumber(centerX - medallionRadius * 0.25)}" cy="${formatNumber(centerY - medallionRadius * 0.12)}" r="${formatNumber(Math.max(2, medallionRadius * 0.2))}"/>
-      <circle class="wfp-main-medallion-bloom wfp-main-medallion-bloom--soft" cx="${formatNumber(centerX + medallionRadius * 0.18)}" cy="${formatNumber(centerY - medallionRadius * 0.04)}" r="${formatNumber(Math.max(1.8, medallionRadius * 0.17))}"/>
+      <path class="wfp-main-medallion-leaf" d="M ${formatNumber(centerX - medallionRadius * 0.72)} ${formatNumber(centerY + medallionRadius * 0.35)}
+        C ${formatNumber(centerX - medallionRadius * 0.48)} ${formatNumber(centerY - medallionRadius * 0.48)}
+          ${formatNumber(centerX + medallionRadius * 0.18)} ${formatNumber(centerY - medallionRadius * 0.56)}
+          ${formatNumber(centerX + medallionRadius * 0.68)} ${formatNumber(centerY + medallionRadius * 0.24)}"/>
+      <ellipse class="wfp-main-medallion-petal" cx="${formatNumber(centerX - medallionRadius * 0.2)}" cy="${formatNumber(centerY - medallionRadius * 0.13)}" rx="${formatNumber(medallionRadius * 0.36)}" ry="${formatNumber(medallionRadius * 0.2)}" transform="rotate(-28 ${formatNumber(centerX - medallionRadius * 0.2)} ${formatNumber(centerY - medallionRadius * 0.13)})"/>
+      <ellipse class="wfp-main-medallion-petal wfp-main-medallion-petal--soft" cx="${formatNumber(centerX + medallionRadius * 0.18)}" cy="${formatNumber(centerY - medallionRadius * 0.04)}" rx="${formatNumber(medallionRadius * 0.32)}" ry="${formatNumber(medallionRadius * 0.19)}" transform="rotate(32 ${formatNumber(centerX + medallionRadius * 0.18)} ${formatNumber(centerY - medallionRadius * 0.04)})"/>
+      <circle class="wfp-main-medallion-bloom" cx="${formatNumber(centerX - medallionRadius * 0.08)}" cy="${formatNumber(centerY - medallionRadius * 0.02)}" r="${formatNumber(Math.max(1.7, medallionRadius * 0.17))}"/>
+      <circle class="wfp-main-medallion-bloom wfp-main-medallion-bloom--soft" cx="${formatNumber(centerX + medallionRadius * 0.25)}" cy="${formatNumber(centerY + medallionRadius * 0.18)}" r="${formatNumber(Math.max(1.5, medallionRadius * 0.14))}"/>
     </g>`;
 }
 
@@ -201,8 +221,8 @@ function renderTableCore(table, variant) {
     <g class="wfp-design-table-core wfp-design-table-core--${variant}">
       <circle class="wfp-design-table-orbit" cx="${formatNumber(centerX)}" cy="${formatNumber(centerY)}" r="${formatNumber(radius * 0.72)}"/>
       <circle class="wfp-design-table-center" cx="${formatNumber(centerX)}" cy="${formatNumber(centerY)}" r="${formatNumber(coreRadius)}"/>
-      <text class="wfp-design-table-label" x="${formatNumber(centerX)}" y="${formatNumber(centerY - coreRadius * 0.15)}">${attr(displayTableLabel(table.label))}</text>
-      <text class="wfp-design-table-count" x="${formatNumber(centerX)}" y="${formatNumber(centerY + coreRadius * 0.33)}">${table.occupancy} / ${table.capacity}</text>
+      <text class="wfp-design-table-label" x="${formatNumber(centerX)}" y="${formatNumber(centerY - coreRadius * 0.33)}">${attr(displayTableLabel(table.label))}</text>
+      <text class="wfp-design-table-count" x="${formatNumber(centerX)}" y="${formatNumber(centerY + coreRadius * 0.44)}">${table.occupancy} / ${table.capacity}</text>
     </g>`;
 }
 
@@ -211,16 +231,15 @@ function renderTable(table, hasExplicitMainTable) {
   const connectors = table.seatLabels.map(label => renderSeatConnector(label, variant)).join('');
   const dots = table.seatDots.map(renderSeatDot).join('');
   const labels = table.seatLabels.map(label => renderSeatLabel(label, variant)).join('');
-
   return `
     <g class="wfp-design-table wfp-design-table--${variant}"
       data-table-id="${attr(table.id)}"
       data-table-label="${attr(table.label)}"
       data-position-source="${attr(table.positionSource)}">
-      ${renderMainMedallion(table, variant)}
       ${connectors}
       ${dots}
       ${renderTableCore(table, variant)}
+      ${renderMainMedallion(table, variant)}
       ${labels}
     </g>`;
 }
@@ -264,6 +283,7 @@ function renderStyles() {
         --wfp-muted-ink: oklch(52% 0.035 58);
         --wfp-rose-petal: oklch(83% 0.075 20);
         --wfp-rose-soft: oklch(94% 0.035 18);
+        --wfp-rose-deep: oklch(68% 0.105 22);
         --wfp-leaf: oklch(58% 0.064 145);
         --wfp-leaf-soft: oklch(82% 0.042 145);
         --wfp-empty-seat-fill: oklch(98% 0.01 78 / 0.72);
@@ -279,9 +299,11 @@ function renderStyles() {
         stroke: var(--wfp-leaf);
         stroke-width: 3.3;
         stroke-linecap: round;
-        opacity: 0.38;
+        opacity: 0.3;
       }
-      .wfp-design-floral-stem--fine { stroke-width: 2.2; opacity: 0.28; }
+      .wfp-design-floral-stem--fine { stroke-width: 2.2; opacity: 0.22; }
+      .wfp-design-rose { opacity: 0.82; }
+      .wfp-design-rose--secondary { opacity: 0.68; }
       .wfp-design-couple {
         fill: var(--wfp-gold-ink);
         font-family: 'Imperial Script', 'Segoe Script', 'Times New Roman', cursive;
@@ -343,14 +365,14 @@ function renderStyles() {
         stroke: var(--wfp-gold-hairline);
         stroke-width: 0.25;
         stroke-dasharray: 1.2 2.4;
-        opacity: 0.34;
+        opacity: 0.08;
       }
       .wfp-design-table-orbit {
         fill: none;
         stroke: var(--wfp-gold-hairline);
         stroke-width: 0.32;
         stroke-dasharray: 1.2 1.8;
-        opacity: 0.48;
+        opacity: 0;
       }
       .wfp-design-table-center {
         fill: oklch(99% 0.01 82 / 0.94);
@@ -360,7 +382,7 @@ function renderStyles() {
       }
       .wfp-design-table--regular .wfp-design-table-center {
         fill: oklch(99% 0.008 82 / 0.86);
-        stroke-width: 0.36;
+        stroke-width: 0.48;
       }
       .wfp-design-table-label {
         fill: var(--wfp-brown-ink);
@@ -371,6 +393,8 @@ function renderStyles() {
         dominant-baseline: central;
       }
       .wfp-design-table--main .wfp-design-table-label { font-size: 4.3px; }
+      .wfp-design-table--main .wfp-design-table-label,
+      .wfp-design-table--main .wfp-design-table-count { opacity: 0; }
       .wfp-design-table-count {
         fill: var(--wfp-gold-ink);
         font-size: 2.8px;
@@ -379,7 +403,7 @@ function renderStyles() {
         dominant-baseline: central;
       }
       .wfp-main-medallion-halo {
-        fill: var(--wfp-paper-warm);
+        fill: oklch(99% 0.012 82 / 0.9);
         stroke: var(--wfp-gold-hairline);
         stroke-width: 0.35;
         opacity: 0.72;
@@ -392,29 +416,47 @@ function renderStyles() {
       }
       .wfp-main-medallion-bloom {
         fill: var(--wfp-rose-petal);
-        opacity: 0.55;
+        opacity: 0.68;
       }
       .wfp-main-medallion-bloom--soft {
         fill: var(--wfp-rose-soft);
         opacity: 0.72;
       }
+      .wfp-main-medallion-petal {
+        fill: url(#wfp-design-rose-petal);
+        opacity: 0.76;
+      }
+      .wfp-main-medallion-petal--soft {
+        fill: url(#wfp-design-rose-wash);
+        opacity: 0.72;
+      }
       .wfp-seat-dot {
-        fill: var(--wfp-seat-fill);
-        stroke: var(--wfp-seat-stroke);
-        stroke-width: 0.45;
         filter: url(#wfp-design-dot-paper);
+      }
+      .wfp-seat-dot__outer {
+        fill: none;
+        stroke: var(--wfp-seat-stroke);
+        stroke-width: 0.48;
+      }
+      .wfp-seat-dot__inner {
+        fill: var(--wfp-seat-fill);
+        stroke: none;
+        opacity: 0.94;
       }
       .wfp-seat-dot--empty {
         --wfp-seat-fill: var(--wfp-empty-seat-fill);
         --wfp-seat-stroke: var(--wfp-gold-line);
-        opacity: 0.68;
+        fill: var(--wfp-seat-fill);
+        stroke: var(--wfp-seat-stroke);
+        stroke-width: 0.45;
+        opacity: 0.82;
       }
       .wfp-seat-connector {
         fill: none;
         stroke: var(--wfp-seat-stroke);
         stroke-width: 0.28;
         stroke-linecap: round;
-        opacity: 0.62;
+        opacity: 0.3;
       }
       .wfp-design-label-box {
         fill: oklch(99% 0.008 82 / 0.96);
@@ -485,6 +527,20 @@ export function buildWeddingFloorDesignSvg(model, options = {}) {
         <stop offset="58%" stop-color="oklch(98.4% 0.014 82 / 0.82)"/>
         <stop offset="100%" stop-color="oklch(96.8% 0.02 96 / 0.72)"/>
       </radialGradient>
+      <radialGradient id="wfp-design-rose-wash" cx="38%" cy="34%" r="72%">
+        <stop offset="0%" stop-color="oklch(98% 0.018 18 / 0.72)"/>
+        <stop offset="52%" stop-color="oklch(91% 0.055 18 / 0.62)"/>
+        <stop offset="100%" stop-color="oklch(82% 0.09 22 / 0.28)"/>
+      </radialGradient>
+      <radialGradient id="wfp-design-rose-petal" cx="42%" cy="38%" r="68%">
+        <stop offset="0%" stop-color="oklch(96% 0.035 18 / 0.78)"/>
+        <stop offset="62%" stop-color="oklch(84% 0.085 20 / 0.58)"/>
+        <stop offset="100%" stop-color="oklch(70% 0.11 24 / 0.22)"/>
+      </radialGradient>
+      <linearGradient id="wfp-design-leaf-wash" x1="0%" y1="100%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="oklch(88% 0.035 145 / 0.42)"/>
+        <stop offset="100%" stop-color="oklch(62% 0.065 145 / 0.56)"/>
+      </linearGradient>
       <filter id="wfp-design-soft-shadow" x="-30%" y="-30%" width="160%" height="160%">
         <feDropShadow dx="0" dy="0.55" stdDeviation="0.55" flood-color="oklch(44% 0.035 58 / 0.12)"/>
       </filter>

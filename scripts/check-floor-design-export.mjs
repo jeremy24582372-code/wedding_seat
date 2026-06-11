@@ -5,7 +5,6 @@ import {
   buildFloorDesignPromptExport,
 } from '../src/utils/floorDesignPromptBuilder.js';
 
-const DISTANCE_RATIO_TOLERANCE = 0.01;
 const SVG_ALLOWED_NAMED_ENTITIES = new Set(['amp', 'lt', 'gt', 'quot', 'apos']);
 
 function guest(id, name, category, tableId = null) {
@@ -89,35 +88,6 @@ function assertNoUnknownSvgNamedEntities(svg) {
   );
 }
 
-function distance(a, b, prefix) {
-  return Math.hypot(
-    a[`${prefix}Position`].centerX - b[`${prefix}Position`].centerX,
-    a[`${prefix}Position`].centerY - b[`${prefix}Position`].centerY
-  );
-}
-
-function assertAllPairScaleFactorsMatch(model) {
-  const ratios = [];
-
-  for (let i = 0; i < model.tables.length; i += 1) {
-    for (let j = i + 1; j < model.tables.length; j += 1) {
-      const sourceDistance = distance(model.tables[i], model.tables[j], 'source');
-      const printDistance = distance(model.tables[i], model.tables[j], 'print');
-      if (sourceDistance > 0) ratios.push(printDistance / sourceDistance);
-    }
-  }
-
-  assert.ok(ratios.length > 0, 'Export fixture must have table pairs to compare');
-  const expected = ratios[0];
-  ratios.forEach((ratio, index) => {
-    const relativeError = Math.abs(ratio - expected) / expected;
-    assert.ok(
-      relativeError <= DISTANCE_RATIO_TOLERANCE,
-      `Export pair ${index} changed relative table distance ratio by ${relativeError}`
-    );
-  });
-}
-
 function checkSvgExportContract() {
   const artifact = buildFloorDesignSvgExport(exportState, {
     date: new Date(2026, 5, 10),
@@ -153,7 +123,11 @@ function checkSvgExportContract() {
     266,
     'Design content frame must extend closer to the compact legend'
   );
-  assertAllPairScaleFactorsMatch(layoutModel);
+  assert.equal(layoutModel.positionTransform.scaleX, layoutModel.positionTransform.scaleY);
+  assert.ok(
+    layoutModel.tables.every(table => table.printPosition.radius === layoutModel.tables[0].printPosition.radius),
+    'SVG export must keep a fixed table size across all source-position tables'
+  );
 
   assert.match(svg, /class="wfp-design-svg"/);
   assert.match(svg, /viewBox="0 0 210 297"/);
@@ -213,6 +187,21 @@ function checkSvgExportContract() {
     layoutModel.tables.length * 10,
     'SVG export must render all empty and occupied seat dots'
   );
+  assert.equal(
+    countMatches(svg, /class="wfp-seat-dot__outer"/g),
+    occupiedGuestIds.length,
+    'Occupied seat dots must render a ring instead of a single filled disk'
+  );
+  assert.equal(
+    countMatches(svg, /class="wfp-seat-dot__inner"/g),
+    occupiedGuestIds.length,
+    'Occupied seat dots must render a smaller inner dot'
+  );
+  assert.equal(
+    countMatches(svg, /class="wfp-seat-dot wfp-seat-dot--empty"/g),
+    layoutModel.tables.length * 10 - occupiedGuestIds.length,
+    'Empty seat dots must remain visually distinct from occupied ring dots'
+  );
   assert.deepEqual(
     sorted(labelGuestIds),
     sorted(occupiedGuestIds),
@@ -224,6 +213,36 @@ function checkSvgExportContract() {
   });
 
   return artifact;
+}
+
+function checkOneTableSvgUsesRegularStyleWithoutMain() {
+  const artifact = buildFloorDesignSvgExport({
+    guests: [
+      guest('solo-guest', '一桌賓客', '新娘親友', 't1'),
+    ],
+    tables: [
+      table('t1', '1桌', ['solo-guest']),
+    ],
+    tablePositions: {
+      t1: { x: 720, y: 860 },
+    },
+    unassignedGuestIds: [],
+    partyRows: [],
+    guestGroups: [],
+    seatingRules: {},
+    lockedAssignments: {},
+  });
+
+  assert.equal(
+    countMatches(artifact.svg, /class="wfp-design-table wfp-design-table--main"/g),
+    0,
+    '1桌 must not use main table styling when there is no explicit 主桌'
+  );
+  assert.match(
+    artifact.svg,
+    /class="wfp-design-table wfp-design-table--regular"[\s\S]*?data-table-id="t1"[\s\S]*?data-table-label="1桌"/,
+    '1桌 must keep the same SVG table style as other regular tables'
+  );
 }
 
 function checkPromptContract(svgArtifact) {
@@ -249,7 +268,78 @@ function checkPromptContract(svgArtifact) {
   assert.doesNotMatch(prompt, /完整座位標註見第/);
 }
 
+function checkDynamicExportSpacingContract() {
+  const spacingGuests = Array.from({ length: 16 }, (_, index) =>
+    guest(
+      `spacing-${index + 1}`,
+      `桌距賓客${index + 1}`,
+      index % 2 === 0 ? '新郎親友' : '新娘親友',
+      index < 8 ? 'a' : 'b'
+    )
+  );
+  const spacingState = {
+    guests: spacingGuests,
+    tables: [
+      table('a', '2桌', spacingGuests.slice(0, 8).map(item => item.id)),
+      table('b', '3桌', spacingGuests.slice(8).map(item => item.id)),
+    ],
+    tablePositions: {
+      a: { x: 700, y: 900 },
+      b: { x: 900, y: 900 },
+    },
+  };
+  const tight = buildFloorDesignSvgExport(spacingState, {
+    floorDesign: {
+      minHorizontalTableGapMm: 0,
+      minVerticalTableGapMm: 0,
+    },
+  });
+  const spacious = buildFloorDesignSvgExport(spacingState, {
+    floorDesign: {
+      minHorizontalTableGapMm: 16,
+      minVerticalTableGapMm: 0,
+    },
+  });
+
+  assert.deepEqual(
+    spacious.layoutModel.tables.map(item => item.sourcePosition),
+    tight.layoutModel.tables.map(item => item.sourcePosition),
+    'Changing export spacing must not mutate interactive canvas source positions'
+  );
+  assert.deepEqual(
+    spacious.layoutModel.tables.map(item => item.id),
+    tight.layoutModel.tables.map(item => item.id),
+    'Changing export spacing must preserve interactive canvas table order'
+  );
+  assert.ok(
+    spacious.layoutModel.spacingMetrics.minimumHorizontalTableGapMm >= 16,
+    'SVG export must satisfy the selected horizontal table gap when A4 has enough room'
+  );
+  assert.equal(
+    spacious.layoutModel.positionTransform.scalePxToMm,
+    tight.layoutModel.positionTransform.scalePxToMm,
+    'Dynamic export spacing must not change the canvas-to-print size scale'
+  );
+  assert.deepEqual(
+    spacious.layoutModel.tables.map(item => item.printPosition.radius),
+    tight.layoutModel.tables.map(item => item.printPosition.radius),
+    'Dynamic export spacing must not resize tables'
+  );
+  assert.notDeepEqual(
+    spacious.layoutModel.tables.map(item => item.printPosition),
+    tight.layoutModel.tables.map(item => item.printPosition),
+    'Dynamic export spacing must visibly move table centers'
+  );
+  assert.notEqual(
+    spacious.layoutSignature,
+    tight.layoutSignature,
+    'Dynamic spacing must produce a distinct export layout signature'
+  );
+}
+
 const svgArtifact = checkSvgExportContract();
+checkOneTableSvgUsesRegularStyleWithoutMain();
 checkPromptContract(svgArtifact);
+checkDynamicExportSpacingContract();
 
 console.log('Floor design image and prompt export checks passed');

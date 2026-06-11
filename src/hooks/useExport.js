@@ -17,7 +17,8 @@ import { openPrintDocument } from '../utils/printWindow';
  * Export utilities for JSON, CSV/Excel, and print-based PDF.
  * JSON is a restore-grade AppState backup. CSV/Excel and PDFs are handoff formats.
  */
-export function useExport(state) {
+export function useExport(state, options = {}) {
+  const floorDesignMinTableGapMm = options.floorDesignMinTableGapMm ?? 4;
   const exportJSON = useCallback(() => {
     if (!state) return;
 
@@ -59,7 +60,9 @@ export function useExport(state) {
 
     try {
       openPrintDocument({
-        html: buildWeddingFloorPrintHTML(state),
+        html: buildWeddingFloorPrintHTML(state, {
+          floorDesign: { minTableGapMm: floorDesignMinTableGapMm },
+        }),
         popupMessage: '請先允許瀏覽器開啟彈出視窗，再點選「匯出桌次圖」。\n（網址列右方通常有封鎖提示）',
         failureMessage: '桌次圖 PDF 匯出失敗，請稍後再試',
         logLabel: 'Floor PDF export',
@@ -68,13 +71,15 @@ export function useExport(state) {
       console.error('[useExport] Floor PDF export failed:', err);
       alert('桌次圖 PDF 匯出失敗，請稍後再試');
     }
-  }, [state]);
+  }, [state, floorDesignMinTableGapMm]);
 
   const exportFloorDesignSVG = useCallback(() => {
     if (!state) return;
 
     try {
-      const artifact = buildFloorDesignSvgExport(state);
+      const artifact = buildFloorDesignSvgExport(state, {
+        floorDesign: { minTableGapMm: floorDesignMinTableGapMm },
+      });
       const blob = createFloorDesignSvgBlob(artifact.svg);
       const url = URL.createObjectURL(blob);
       triggerDownload(url, artifact.fileNames.svg);
@@ -83,13 +88,15 @@ export function useExport(state) {
       console.error('[useExport] Floor design SVG export failed:', err);
       alert('座位圖 SVG 匯出失敗，請稍後再試');
     }
-  }, [state]);
+  }, [state, floorDesignMinTableGapMm]);
 
   const exportFloorDesignPNG = useCallback(async () => {
     if (!state) return;
 
     try {
-      const artifact = buildFloorDesignSvgExport(state);
+      const artifact = buildFloorDesignSvgExport(state, {
+        floorDesign: { minTableGapMm: floorDesignMinTableGapMm },
+      });
       const blob = await renderFloorDesignPngBlob(artifact.svg);
       const url = URL.createObjectURL(blob);
       triggerDownload(url, artifact.fileNames.png);
@@ -98,13 +105,15 @@ export function useExport(state) {
       console.error('[useExport] Floor design PNG export failed:', err);
       alert('座位圖 PNG 匯出失敗，請稍後再試');
     }
-  }, [state]);
+  }, [state, floorDesignMinTableGapMm]);
 
   const exportFloorDesignPrompt = useCallback(() => {
     if (!state) return;
 
     try {
-      const artifact = buildFloorDesignPromptExport(state);
+      const artifact = buildFloorDesignPromptExport(state, {
+        floorDesign: { minTableGapMm: floorDesignMinTableGapMm },
+      });
       const blob = new Blob([artifact.prompt], { type: 'text/plain;charset=utf-8' });
       const url = URL.createObjectURL(blob);
       triggerDownload(url, artifact.fileName);
@@ -113,7 +122,7 @@ export function useExport(state) {
       console.error('[useExport] Floor design prompt export failed:', err);
       alert('AI 生圖提示詞匯出失敗，請稍後再試');
     }
-  }, [state]);
+  }, [state, floorDesignMinTableGapMm]);
 
   return {
     exportJSON,
