@@ -7,7 +7,7 @@ import { useFloorPlanTableDrag } from '../hooks/useFloorPlanTableDrag';
 import { useFloorPlanViewport } from '../hooks/useFloorPlanViewport';
 
 /**
- * FloorPlan — A large, pannable canvas where tables can be freely dragged.
+ * FloorPlan — A large, scrollable canvas where tables can be freely dragged.
  *
  * Two independent drag systems coexist:
  *  1. Table repositioning — handled here via pointer events on the drag-handle.
@@ -17,7 +17,7 @@ import { useFloorPlanViewport } from '../hooks/useFloorPlanViewport';
  * Alignment features:
  *  - Snap-to-Grid: tables snap to 40px grid on drag (toggle in controls)
  *  - Smart Guides: orange dashed guide lines appear when edges/centres align
- *  - Left-click pan: click empty canvas background and drag to pan
+ *  - Marquee selection: drag on empty canvas space to select multiple tables
  *
  * @param {object[]}  tables           - Array of table objects
  * @param {object}    guests           - All guest objects keyed by id
@@ -64,24 +64,23 @@ export default function FloorPlan({
   }, [positions]);
 
   const {
-    selectedTableIds,
-    clearSelectedTables,
-    selectTableFromPointer,
-    handleTableWrapperClick,
-  } = useFloorPlanSelection();
-
-  const {
-    canvasRef,
-    pan,
+    viewportRef,
     zoom,
     zoomIn,
     zoomOut,
     resetView,
-    handleCanvasClick,
+  } = useFloorPlanViewport();
+
+  const {
+    selectedTableIds,
+    selectionRect,
+    selectTableFromPointer,
+    handleTableWrapperPointerDown,
+    handleTableWrapperClickCapture,
     handleCanvasPointerDown,
     handleCanvasPointerMove,
     handleCanvasPointerUp,
-  } = useFloorPlanViewport({ onBackgroundClick: clearSelectedTables });
+  } = useFloorPlanSelection({ viewportRef });
 
   const {
     guides,
@@ -205,7 +204,7 @@ export default function FloorPlan({
 
       {/* ── Legend ───────────────────────────────────── */}
       <div className="floor-plan__legend" aria-label="圖例">
-        <span className="floor-plan__legend-tip">空白處拖曳平移 · 滾輪縮放</span>
+        <span className="floor-plan__legend-tip">空白處拖曳框選 · Ctrl 點選複選 · 滾輪上下捲動</span>
         <span className="floor-plan__legend-tip">
           {tablesLocked ? '桌子已鎖定 · 不能移動或刪桌 · 可安心拖曳賓客' : '桌名拖曳移桌 · 多選可一起移動'}
         </span>
@@ -214,22 +213,29 @@ export default function FloorPlan({
       {/* ── Scrollable viewport ───────────────────────── */}
       <div
         className="floor-plan__viewport"
-        ref={canvasRef}
+        ref={viewportRef}
         onPointerDown={handleCanvasPointerDown}
         onPointerMove={handleCanvasPointerMove}
         onPointerUp={handleCanvasPointerUp}
+        onPointerCancel={handleCanvasPointerUp}
       >
-        {/* Transformed canvas */}
         <div
-          className="floor-plan__canvas"
+          className="floor-plan__canvas-scroll-area"
           style={{
-            width: CANVAS_WIDTH,
-            height: CANVAS_HEIGHT,
-            transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
-            transformOrigin: '0 0',
+            width: Math.ceil(CANVAS_WIDTH * zoom),
+            height: Math.ceil(CANVAS_HEIGHT * zoom),
           }}
-          onClick={handleCanvasClick}
         >
+          {/* Transformed canvas */}
+          <div
+            className="floor-plan__canvas"
+            style={{
+              width: CANVAS_WIDTH,
+              height: CANVAS_HEIGHT,
+              transform: `scale(${zoom})`,
+              transformOrigin: '0 0',
+            }}
+          >
           {/* ── Room label ── */}
           <div className="floor-plan__room-label">婚宴廳</div>
 
@@ -280,6 +286,7 @@ export default function FloorPlan({
             return (
               <div
                 key={table.id}
+                data-table-id={table.id}
                 className={[
                   'floor-plan__table-wrapper',
                   isDragging ? 'floor-plan__table-wrapper--dragging' : '',
@@ -292,7 +299,8 @@ export default function FloorPlan({
                   position: 'absolute',
                   zIndex: isDragging ? 100 : isSelected ? 10 : 1,
                 }}
-                onClick={(event) => handleTableWrapperClick(event, table.id)}
+                onPointerDownCapture={(event) => handleTableWrapperPointerDown(event, table.id)}
+                onClickCapture={handleTableWrapperClickCapture}
               >
                 {/* Drag handle — sits above the table diagram */}
                 <div
@@ -360,6 +368,15 @@ export default function FloorPlan({
               </div>
             );
           })}
+          </div>
+
+          {selectionRect && (
+            <div
+              className="floor-plan__selection-box"
+              style={selectionRect}
+              aria-hidden="true"
+            />
+          )}
         </div>
       </div>
     </div>

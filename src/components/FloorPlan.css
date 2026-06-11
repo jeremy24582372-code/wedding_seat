@@ -167,19 +167,26 @@
 .floor-plan__viewport {
   flex: 1;
   position: relative;
-  overflow: hidden;
-  cursor: default;
+  z-index: 0;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  cursor: crosshair;
   user-select: none;
 }
 
-.floor-plan__viewport.floor-plan__canvas--panning,
-.floor-plan__viewport.floor-plan__canvas--panning * {
-  cursor: grabbing !important;
+.floor-plan__canvas-scroll-area {
+  position: relative;
+  flex: 0 0 auto;
 }
 
 /* ── Canvas (the actual floor plan surface) ── */
 .floor-plan__canvas {
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 0;
   /* Dot-grid background — like graph paper */
   background-color: var(--color-bg-canvas);
   background-image:
@@ -193,8 +200,17 @@
     var(--shadow-card);
   will-change: transform;
   outline: none;
-  /* Show grab cursor over empty canvas to hint left-click pan */
-  cursor: grab;
+  cursor: crosshair;
+}
+
+.floor-plan__selection-box {
+  position: absolute;
+  z-index: 300;
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  box-shadow: 0 0 0 1px var(--color-bg-surface);
+  pointer-events: none;
 }
 
 /* ── Smart guide lines SVG overlay ── */

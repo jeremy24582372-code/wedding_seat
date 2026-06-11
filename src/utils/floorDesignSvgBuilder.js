@@ -1,4 +1,8 @@
 import { escHtml } from './exportShared.js';
+import {
+  buildWeddingFloorFontFaces,
+  buildWeddingFloorFontVariables,
+} from './weddingFloorTypography.js';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -99,7 +103,6 @@ function renderHeader(meta) {
   const metaText = [
     `列印日期：${meta.exportDate}`,
     `共 ${meta.tableCount} 桌`,
-    `來源筆數：${meta.partyRowCount} 筆`,
     `實際人數：${meta.guestCount} 位`,
   ].join(' ｜ ');
 
@@ -110,8 +113,7 @@ function renderHeader(meta) {
       <text class="wfp-design-heart" x="105" y="33">&#9829;</text>
       <line class="wfp-design-gold-rule" x1="114" y1="31" x2="148" y2="31"/>
       <text class="wfp-design-title" x="105" y="43">婚 禮 桌 次 位 置 圖</text>
-      <text class="wfp-design-subtitle" x="105" y="51">WEDDING SEATING CHART</text>
-      <text class="wfp-design-meta" x="105" y="58">${attr(metaText)}</text>
+      <text class="wfp-design-meta" x="105" y="52">${attr(metaText)}</text>
     </g>`;
 }
 
@@ -213,20 +215,24 @@ function renderMainMedallion(table, variant) {
     </g>`;
 }
 
-function renderTableCore(table, variant) {
+function renderTableCore(table, variant, showTableOccupancy) {
   const { centerX, centerY, radius } = table.printPosition;
   const coreRadius = Math.max(3.2, radius * 0.48);
+  const labelY = showTableOccupancy ? centerY - coreRadius * 0.33 : centerY;
+  const count = showTableOccupancy
+    ? `<text class="wfp-design-table-count" x="${formatNumber(centerX)}" y="${formatNumber(centerY + coreRadius * 0.44)}">${table.occupancy} / ${table.capacity}</text>`
+    : '';
 
   return `
     <g class="wfp-design-table-core wfp-design-table-core--${variant}">
       <circle class="wfp-design-table-orbit" cx="${formatNumber(centerX)}" cy="${formatNumber(centerY)}" r="${formatNumber(radius * 0.72)}"/>
       <circle class="wfp-design-table-center" cx="${formatNumber(centerX)}" cy="${formatNumber(centerY)}" r="${formatNumber(coreRadius)}"/>
-      <text class="wfp-design-table-label" x="${formatNumber(centerX)}" y="${formatNumber(centerY - coreRadius * 0.33)}">${attr(displayTableLabel(table.label))}</text>
-      <text class="wfp-design-table-count" x="${formatNumber(centerX)}" y="${formatNumber(centerY + coreRadius * 0.44)}">${table.occupancy} / ${table.capacity}</text>
+      <text class="wfp-design-table-label" x="${formatNumber(centerX)}" y="${formatNumber(labelY)}">${attr(displayTableLabel(table.label))}</text>
+      ${count}
     </g>`;
 }
 
-function renderTable(table, hasExplicitMainTable) {
+function renderTable(table, hasExplicitMainTable, showTableOccupancy) {
   const variant = isMainTable(table, hasExplicitMainTable) ? 'main' : 'regular';
   const connectors = table.seatLabels.map(label => renderSeatConnector(label, variant)).join('');
   const dots = table.seatDots.map(renderSeatDot).join('');
@@ -238,7 +244,7 @@ function renderTable(table, hasExplicitMainTable) {
       data-position-source="${attr(table.positionSource)}">
       ${connectors}
       ${dots}
-      ${renderTableCore(table, variant)}
+      ${renderTableCore(table, variant, showTableOccupancy)}
       ${renderMainMedallion(table, variant)}
       ${labels}
     </g>`;
@@ -271,7 +277,9 @@ function renderLegend(legendItems = []) {
 function renderStyles() {
   return `
     <style>
+      ${buildWeddingFloorFontFaces()}
       .wfp-design-svg {
+        ${buildWeddingFloorFontVariables()};
         --wfp-paper: oklch(98.4% 0.014 82);
         --wfp-paper-warm: oklch(96.8% 0.022 78);
         --wfp-gold-line: oklch(68% 0.086 78);
@@ -289,7 +297,7 @@ function renderStyles() {
         --wfp-empty-seat-fill: oklch(98% 0.01 78 / 0.72);
         color: var(--wfp-brown-ink);
         background: var(--wfp-paper);
-        font-family: 'Noto Sans TC', 'Microsoft JhengHei', 'PingFang TC', system-ui, sans-serif;
+        font-family: var(--wfp-font-zh);
         text-rendering: geometricPrecision;
       }
       .wfp-design-paper { fill: var(--wfp-paper); }
@@ -306,23 +314,16 @@ function renderStyles() {
       .wfp-design-rose--secondary { opacity: 0.68; }
       .wfp-design-couple {
         fill: var(--wfp-gold-ink);
-        font-family: 'Imperial Script', 'Segoe Script', 'Times New Roman', cursive;
-        font-size: 19.5px;
+        font-family: var(--wfp-font-en-script);
+        font-size: 15.6px;
         text-anchor: middle;
       }
       .wfp-design-title {
         fill: var(--wfp-brown-ink);
-        font-family: 'Noto Serif TC', 'Noto Sans TC', 'Microsoft JhengHei', serif;
-        font-size: 9.4px;
+        font-family: var(--wfp-font-zh);
+        font-size: 7.52px;
         font-weight: 500;
-        letter-spacing: 3px;
-        text-anchor: middle;
-      }
-      .wfp-design-subtitle {
-        fill: var(--wfp-gold-ink);
-        font-size: 5.6px;
-        font-weight: 500;
-        letter-spacing: 2px;
+        letter-spacing: 2.4px;
         text-anchor: middle;
       }
       .wfp-design-meta {
@@ -337,7 +338,7 @@ function renderStyles() {
       }
       .wfp-design-heart {
         fill: var(--wfp-gold-ink);
-        font-family: 'Noto Serif TC', 'Times New Roman', serif;
+        font-family: var(--wfp-font-en-text);
         font-size: 5.2px;
         text-anchor: middle;
       }
@@ -353,7 +354,7 @@ function renderStyles() {
       }
       .wfp-design-stage-text {
         fill: var(--wfp-brown-ink);
-        font-family: 'Noto Serif TC', 'Microsoft JhengHei', serif;
+        font-family: var(--wfp-font-zh);
         font-size: 6.2px;
         font-weight: 600;
         letter-spacing: 0.7px;
@@ -386,7 +387,7 @@ function renderStyles() {
       }
       .wfp-design-table-label {
         fill: var(--wfp-brown-ink);
-        font-family: 'Noto Serif TC', 'Microsoft JhengHei', serif;
+        font-family: var(--wfp-font-zh);
         font-size: 3.2px;
         font-weight: 700;
         text-anchor: middle;
@@ -478,7 +479,7 @@ function renderStyles() {
       }
       .wfp-design-legend-title {
         fill: var(--wfp-gold-ink);
-        font-family: 'Noto Serif TC', 'Microsoft JhengHei', serif;
+        font-family: var(--wfp-font-zh);
         font-size: 5px;
         font-weight: 600;
         letter-spacing: 0.6px;
@@ -512,6 +513,7 @@ export function buildWeddingFloorDesignSvg(model, options = {}) {
   const meta = normalizeMeta(model, options);
   const contentFrame = model.contentFrame;
   const hasExplicitMainTable = model.tables.some(isExplicitMainTable);
+  const showTableOccupancy = model.showTableOccupancy !== false;
 
   return `<svg class="wfp-design-svg"
     xmlns="${SVG_NS}"
@@ -566,7 +568,7 @@ export function buildWeddingFloorDesignSvg(model, options = {}) {
       width="${formatNumber(contentFrame.width)}"
       height="${formatNumber(contentFrame.height)}"/>
     <g class="wfp-design-floor" data-layout-signature="${attr(model.layoutSignature)}">
-      ${model.tables.map(table => renderTable(table, hasExplicitMainTable)).join('')}
+      ${model.tables.map(table => renderTable(table, hasExplicitMainTable, showTableOccupancy)).join('')}
     </g>
     ${renderLegend(legendItems)}
   </svg>`;

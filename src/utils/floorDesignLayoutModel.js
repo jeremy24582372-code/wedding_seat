@@ -36,6 +36,9 @@ export const FLOOR_DESIGN_SOURCE_TABLE_GEOMETRY = {
 const SIGNATURE_VERSION = 'floor-design-layout-v4';
 const MIN_FIT_EXTENT = 1;
 const DEFAULT_MIN_TABLE_GAP_MM = 4;
+const DEFAULT_GUEST_NAME_FONT_SCALE = 1;
+const MIN_GUEST_NAME_FONT_SCALE = 0.7;
+const MAX_GUEST_NAME_FONT_SCALE = 1.4;
 const AXIS_LANE_EPSILON_MM = 0.5;
 
 function round(value, precision = 3) {
@@ -431,9 +434,9 @@ function splitNameLines(name, maxCharsPerLine) {
   ].filter(Boolean);
 }
 
-function fitFloorDesignLabel(name, tableKind, compact = false) {
+function fitFloorDesignLabel(name, tableKind, compact = false, fontScale = DEFAULT_GUEST_NAME_FONT_SCALE) {
   const isMain = tableKind === 'main';
-  const config = isMain
+  const baseConfig = isMain
     ? {
       minWidth: 11,
       maxWidth: compact ? 20 : 23,
@@ -456,6 +459,18 @@ function fitFloorDesignLabel(name, tableKind, compact = false) {
       paddingX: compact ? 0.55 : 0.8,
       paddingY: compact ? 0.32 : 0.45,
     };
+  const scale = clamp(fontScale, MIN_GUEST_NAME_FONT_SCALE, MAX_GUEST_NAME_FONT_SCALE);
+  const config = {
+    ...baseConfig,
+    minWidth: baseConfig.minWidth * scale,
+    maxWidth: baseConfig.maxWidth * scale,
+    minHeight: baseConfig.minHeight * scale,
+    maxHeight: baseConfig.maxHeight * scale,
+    minFontPt: baseConfig.minFontPt * scale,
+    maxFontPt: baseConfig.maxFontPt * scale,
+    paddingX: baseConfig.paddingX * scale,
+    paddingY: baseConfig.paddingY * scale,
+  };
   const lines = splitNameLines(name, config.maxCharsPerLine);
   const longestLineLength = Math.max(...lines.map(line => Array.from(line).length), 1);
   const estimatedFont = (config.maxWidth - config.paddingX * 2) / (longestLineLength * 0.36);
@@ -644,7 +659,14 @@ function isMainTableLabel(label, hasExplicitMainTable = false) {
   return isExplicitMainTableLabel(label) || (hasExplicitMainTable && normalized === '主桌');
 }
 
-function buildSeatLabels(table, seatDots, contentFrame, hasExplicitMainTable, compact = false) {
+function buildSeatLabels(
+  table,
+  seatDots,
+  contentFrame,
+  hasExplicitMainTable,
+  guestNameFontScale,
+  compact = false
+) {
   const tableKind = isMainTableLabel(table.label, hasExplicitMainTable) ? 'main' : 'regular';
   const gap = tableKind === 'main' ? 1.2 : 0.8;
   const limits = LABEL_DISTANCE_LIMITS[tableKind] ?? LABEL_DISTANCE_LIMITS.regular;
@@ -654,7 +676,7 @@ function buildSeatLabels(table, seatDots, contentFrame, hasExplicitMainTable, co
     .map(seat => {
       const seatDot = seatDots.find(dot => dot.seatIndex === seat.seatIndex);
       const sector = SEAT_LOCAL_SECTORS[seat.seatIndex] ?? 'right';
-      const textFit = fitFloorDesignLabel(seat.guestName, tableKind, compact);
+      const textFit = fitFloorDesignLabel(seat.guestName, tableKind, compact, guestNameFontScale);
       const labelBox = clampLabelBoxToFrame(
         labelBoxForSector(seatDot.printPoint, textFit, sector, gap),
         contentFrame
@@ -698,15 +720,37 @@ function buildSeatLabels(table, seatDots, contentFrame, hasExplicitMainTable, co
     });
 }
 
-function buildCompactAwareSeatLabels(table, seatDots, contentFrame, hasExplicitMainTable) {
-  const labels = buildSeatLabels(table, seatDots, contentFrame, hasExplicitMainTable, false);
+function buildCompactAwareSeatLabels(
+  table,
+  seatDots,
+  contentFrame,
+  hasExplicitMainTable,
+  guestNameFontScale
+) {
+  const labels = buildSeatLabels(
+    table,
+    seatDots,
+    contentFrame,
+    hasExplicitMainTable,
+    guestNameFontScale,
+    false
+  );
   const hasCollision = labels.some((label, index) =>
     labels.some((other, otherIndex) =>
       otherIndex > index && labelBoxesOverlap(label.labelBox, other.labelBox)
     )
   );
 
-  return hasCollision ? buildSeatLabels(table, seatDots, contentFrame, hasExplicitMainTable, true) : labels;
+  return hasCollision
+    ? buildSeatLabels(
+      table,
+      seatDots,
+      contentFrame,
+      hasExplicitMainTable,
+      guestNameFontScale,
+      true
+    )
+    : labels;
 }
 
 function buildSeatDots(table, printCenter, transform, tableGeometry) {
@@ -756,7 +800,14 @@ function buildRelativePositionSignature(sourceCenter, printCenter, sourceCentroi
   };
 }
 
-function buildLayoutSignature({ sourceCanvas, contentFrame, positionTransform, tables }) {
+function buildLayoutSignature({
+  sourceCanvas,
+  contentFrame,
+  positionTransform,
+  guestNameFontScale,
+  showTableOccupancy,
+  tables,
+}) {
   const tableSignature = tables
     .map(table => [
       table.id,
@@ -774,6 +825,8 @@ function buildLayoutSignature({ sourceCanvas, contentFrame, positionTransform, t
     `scale:${positionTransform.scalePxToMm}`,
     `gapX:${positionTransform.minHorizontalTableGapMm}`,
     `gapY:${positionTransform.minVerticalTableGapMm}`,
+    `nameScale:${guestNameFontScale}`,
+    `showCount:${showTableOccupancy}`,
     tableSignature,
   ].join('::');
 }
@@ -790,6 +843,12 @@ export function buildFloorDesignLayoutModel(state, options = {}) {
     legacyMinTableGapMm
   );
   const minTableGapMm = Math.min(minHorizontalTableGapMm, minVerticalTableGapMm);
+  const guestNameFontScale = clamp(
+    normalizePositiveNumber(options.guestNameFontScale, DEFAULT_GUEST_NAME_FONT_SCALE),
+    MIN_GUEST_NAME_FONT_SCALE,
+    MAX_GUEST_NAME_FONT_SCALE
+  );
+  const showTableOccupancy = options.showTableOccupancy !== false;
   const autoSpacing = options.autoSpacing !== false;
 
   const tableGeometry = {
@@ -861,7 +920,8 @@ export function buildFloorDesignLayoutModel(state, options = {}) {
       table,
       seatDots,
       contentFrame,
-      hasExplicitMainTable
+      hasExplicitMainTable,
+      guestNameFontScale
     );
 
     return {
@@ -910,6 +970,8 @@ export function buildFloorDesignLayoutModel(state, options = {}) {
     minTableGapMm,
     minHorizontalTableGapMm,
     minVerticalTableGapMm,
+    guestNameFontScale,
+    showTableOccupancy,
     axisSpacing: {
       horizontal: spacingSolution.horizontal,
       vertical: spacingSolution.vertical,

@@ -2,6 +2,10 @@ import { escHtml } from './exportShared.js';
 import { buildFloorDesignLayoutModel } from './floorDesignLayoutModel.js';
 import { buildWeddingFloorDesignSvg } from './floorDesignSvgBuilder.js';
 import { buildWeddingFloorLayoutModel } from './weddingFloorPrintLayout.js';
+import {
+  buildWeddingFloorFontFaces,
+  buildWeddingFloorFontVariables,
+} from './weddingFloorTypography.js';
 
 function cssValue(value) {
   return escHtml(value ?? '');
@@ -144,7 +148,6 @@ function renderHeader(model, compact = false) {
   const metaText = [
     `列印日期：${meta.exportDate}`,
     `共 ${meta.tableCount} 桌`,
-    `來源筆數：${meta.partyRowCount} 筆`,
     `實際人數：${meta.guestCount} 位`,
   ].join(' ｜ ');
 
@@ -162,7 +165,6 @@ function renderHeader(model, compact = false) {
       <p class="wfp-couple">Jeremy &amp; Yuri</p>
       <div class="wfp-header-ornament" aria-hidden="true"><span></span><i>&#9829;</i><span></span></div>
       <h1>婚 禮 桌 次 位 置 圖</h1>
-      <p class="wfp-subtitle">WEDDING SEATING CHART</p>
       <p class="wfp-meta">${escHtml(metaText)}</p>
     </header>`;
 }
@@ -476,14 +478,14 @@ function renderPages(model) {
 function renderStyles() {
   return `
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Imperial+Script&family=Noto+Sans+TC:wght@400;500;600;700&family=Noto+Serif+TC:wght@500;700&display=swap');
-
+    ${buildWeddingFloorFontFaces()}
     *, *::before, *::after { box-sizing: border-box; }
     html, body { margin: 0; min-height: 100%; }
     body {
+      ${buildWeddingFloorFontVariables()};
       background: oklch(94% 0.02 78);
       color: var(--wfp-brown-ink);
-      font-family: 'Noto Sans TC', 'Microsoft JhengHei', 'PingFang TC', system-ui, sans-serif;
+      font-family: var(--wfp-font-zh);
       text-rendering: geometricPrecision;
       print-color-adjust: exact;
       -webkit-print-color-adjust: exact;
@@ -558,8 +560,8 @@ function renderStyles() {
     .wfp-couple {
       margin: 0;
       color: var(--wfp-gold-ink);
-      font-family: 'Imperial Script', 'Segoe Script', 'Times New Roman', cursive;
-      font-size: 33pt;
+      font-family: var(--wfp-font-en-script);
+      font-size: 26.4pt;
       line-height: 0.92;
       letter-spacing: 0;
     }
@@ -578,7 +580,7 @@ function renderStyles() {
     }
     .wfp-header-ornament i {
       display: block;
-      font-family: 'Noto Serif TC', 'Times New Roman', serif;
+      font-family: var(--wfp-font-en-text);
       font-size: 7.2pt;
       font-style: normal;
       line-height: 1;
@@ -587,23 +589,15 @@ function renderStyles() {
     .wfp-header h1 {
       margin: 2.7mm 0 0;
       color: var(--wfp-brown-ink);
-      font-family: 'Noto Serif TC', 'Noto Sans TC', 'Microsoft JhengHei', serif;
-      font-size: 14.6pt;
+      font-family: var(--wfp-font-zh);
+      font-size: 11.68pt;
       font-weight: 500;
       line-height: 1;
-      letter-spacing: 0.42em;
-      text-indent: 0.42em;
-    }
-    .wfp-subtitle {
-      margin: 1.8mm 0 0;
-      color: var(--wfp-gold-ink);
-      font-size: 8.5pt;
-      font-weight: 500;
-      letter-spacing: 0.36em;
-      text-indent: 0.36em;
+      letter-spacing: 0.336em;
+      text-indent: 0.336em;
     }
     .wfp-meta {
-      margin: 3mm 0 0;
+      margin: 2mm 0 0;
       color: var(--wfp-muted-ink);
       font-size: 8pt;
       line-height: 1.25;
@@ -618,7 +612,7 @@ function renderStyles() {
       display: grid;
       place-items: center;
       color: var(--wfp-brown-ink);
-      font-family: 'Noto Serif TC', 'Microsoft JhengHei', serif;
+      font-family: var(--wfp-font-zh);
       font-size: 12pt;
       font-weight: 600;
       letter-spacing: 0.18em;
@@ -803,7 +797,7 @@ function renderStyles() {
     }
     .wfp-table-core span {
       max-width: 80%;
-      font-family: 'Noto Serif TC', 'Microsoft JhengHei', serif;
+      font-family: var(--wfp-font-zh);
       font-size: 9pt;
       font-weight: 700;
       line-height: 1.1;
@@ -844,14 +838,14 @@ function renderStyles() {
     .wfp-detail-header p {
       margin: 0;
       color: var(--wfp-gold-ink);
-      font-family: 'Imperial Script', 'Segoe Script', cursive;
+      font-family: var(--wfp-font-en-script);
       font-size: 22pt;
       line-height: 0.9;
     }
     .wfp-detail-header h2 {
       margin: 0;
       color: var(--wfp-brown-ink);
-      font-family: 'Noto Serif TC', 'Microsoft JhengHei', serif;
+      font-family: var(--wfp-font-zh);
       font-size: 14pt;
       font-weight: 700;
       letter-spacing: 0.26em;
@@ -901,7 +895,7 @@ function renderStyles() {
       background: linear-gradient(90deg, transparent, var(--wfp-gold-hairline), transparent);
     }
     .wfp-legend-title b {
-      font-family: 'Noto Serif TC', 'Microsoft JhengHei', serif;
+      font-family: var(--wfp-font-zh);
       font-weight: 600;
     }
     .wfp-legend-list {
@@ -962,7 +956,7 @@ function renderStyles() {
     }
     .wfp-compact-mark {
       color: var(--wfp-gold-ink);
-      font-family: 'Imperial Script', 'Segoe Script', cursive;
+      font-family: var(--wfp-font-en-script);
       font-size: 19pt;
       letter-spacing: 0;
     }
@@ -987,14 +981,14 @@ function renderStyles() {
     .wfp-index-header p {
       margin: 0;
       color: var(--wfp-gold-ink);
-      font-family: 'Imperial Script', 'Segoe Script', cursive;
+      font-family: var(--wfp-font-en-script);
       font-size: 22pt;
       line-height: 0.9;
     }
     .wfp-index-header h2 {
       margin: 0;
       color: var(--wfp-brown-ink);
-      font-family: 'Noto Serif TC', 'Microsoft JhengHei', serif;
+      font-family: var(--wfp-font-zh);
       font-size: 14pt;
       font-weight: 700;
       letter-spacing: 0.26em;

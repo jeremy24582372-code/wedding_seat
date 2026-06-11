@@ -80,6 +80,7 @@
   align-content: start;
   gap: var(--space-4);
   padding: var(--space-5);
+  overflow-y: auto;
 }
 
 .floor-export-modal__field {
@@ -103,6 +104,41 @@
   width: 100%;
   accent-color: var(--color-accent);
   cursor: pointer;
+}
+
+.floor-export-modal__toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-surface);
+  cursor: pointer;
+}
+
+.floor-export-modal__toggle input {
+  width: 18px;
+  height: 18px;
+  margin: 1px 0 0;
+  accent-color: var(--color-accent);
+  cursor: pointer;
+}
+
+.floor-export-modal__toggle span {
+  display: grid;
+  gap: 3px;
+}
+
+.floor-export-modal__toggle strong {
+  color: var(--color-text-primary);
+  font-size: var(--text-sm);
+}
+
+.floor-export-modal__toggle small {
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  line-height: 1.45;
 }
 
 .floor-export-modal__hint,
